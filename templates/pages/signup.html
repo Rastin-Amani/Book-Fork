@@ -1,0 +1,28 @@
+{% extends "layouts/auth.html" %}
+{% block title %}Sign up · {{ app_name }}{% endblock %}
+{% block content %}
+<h1 class="t-h1 text-[24px]">Create your account</h1>
+<p class="mt-1.5 text-[14px] text-graphite">Start translating whole documents in a minute.</p>
+
+<div id="auth-msg" class="mt-5 empty:mt-0"></div>
+
+<form hx-post="/auth/signup" hx-target="#auth-msg" hx-swap="innerHTML"
+      hx-disabled-elt="find button" class="mt-6 space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label class="block">
+    <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Name <span class="font-normal text-mid-gray">(optional)</span></span>
+    <input class="input w-full" type="text" name="name" autocomplete="name" placeholder="Ada Lovelace">
+  </label>
+  <label class="block">
+    <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Email</span>
+    <input class="input w-full" type="email" name="email" autocomplete="email" placeholder="you@studio.com" required>
+  </label>
+  <label class="block">
+    <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Password</span>
+    <input class="input w-full" type="password" name="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+  </label>
+  <button class="btn btn-primary w-full" type="submit">Create account</button>
+</form>
+
+<p class="mt-6 text-[13.5px] text-graphite">Already have an account? <a href="/login" class="link">Log in</a></p>
+{% endblock %}

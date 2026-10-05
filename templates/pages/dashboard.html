@@ -1,0 +1,28 @@
+{% extends "layouts/base.html" %}
+{% block title %}Dashboard · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="space-y-6">
+  <header>
+    <h1 class="text-xl font-semibold">Dashboard</h1>
+    <p class="text-sm opacity-70">
+      Signed in as {{ current_user.email }}
+      {% if not current_user.verified %}· email not verified{% endif %}
+    </p>
+  </header>
+
+  <div id="documents" class="border border-base-300 p-4">
+    <h2 class="font-medium">Documents</h2>
+    <p class="text-sm opacity-70">No documents yet. Uploading arrives with the document pipeline.</p>
+  </div>
+
+  <div id="translation" class="border border-base-300 p-4">
+    <h2 class="font-medium">Translation</h2>
+    <p class="text-sm opacity-70">No translation jobs yet.</p>
+  </div>
+
+  <div id="settings" class="border border-base-300 p-4">
+    <h2 class="font-medium">Settings</h2>
+    <p class="text-sm opacity-70">Providers, models, and language configuration will live here.</p>
+  </div>
+</section>
+{% endblock %}

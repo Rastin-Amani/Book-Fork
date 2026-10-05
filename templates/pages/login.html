@@ -1,0 +1,27 @@
+{% extends "layouts/auth.html" %}
+{% block title %}Log in · {{ app_name }}{% endblock %}
+{% block content %}
+<h1 class="t-h1 text-[24px]">Welcome back</h1>
+<p class="mt-1.5 text-[14px] text-graphite">Log in to your translation workspace.</p>
+
+<div id="auth-msg" class="mt-5 empty:mt-0"></div>
+
+<form hx-post="/auth/login" hx-target="#auth-msg" hx-swap="innerHTML"
+      hx-disabled-elt="find button" class="mt-6 space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label class="block">
+    <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Email</span>
+    <input class="input w-full" type="email" name="identity" autocomplete="username" placeholder="you@studio.com" required>
+  </label>
+  <label class="block">
+    <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Password</span>
+    <input class="input w-full" type="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
+  </label>
+  <button class="btn btn-primary w-full" type="submit">Log in</button>
+</form>
+
+<div class="mt-6 flex items-center justify-between text-[13.5px]">
+  <a href="/signup" class="link">Create an account</a>
+  <a href="/forgot-password" class="link">Forgot password?</a>
+</div>
+{% endblock %}
