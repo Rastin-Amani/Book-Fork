@@ -1,0 +1,54 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}{{ 'Edit' if record else 'New' }} {{ resource.title }} · Admin{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl space-y-6">
+  <a href="/admin/{{ resource.slug }}" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} {{ resource.title }}
+  </a>
+  <header class="space-y-1.5">
+    <p class="eyebrow">Admin</p>
+    <h1 class="t-h1">{{ 'Edit' if record else 'New' }} {{ resource.title }}</h1>
+  </header>
+
+  <form method="post" action="/admin/{{ resource.slug }}{% if record %}/{{ record.id }}{% endif %}" class="t-card space-y-5 p-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {% if error %}<div class="rounded-[6px] border border-error/25 bg-error/5 px-4 py-3 text-[13.5px] text-error" role="alert">{{ error }}</div>{% endif %}
+    {% for field in resource.fields %}
+    <div class="block">
+      <label class="mb-1.5 block text-[13px] font-medium text-ink-black" for="f-{{ field.name }}">{{ field.label }}{% if field.required %} <span class="text-deep-amber">*</span>{% endif %}</label>
+      {% if field.kind == 'readonly' %}
+        <input id="f-{{ field.name }}" class="input w-full" value="{{ values.get(field.name, '') }}" disabled>
+      {% elif field.kind == 'bool' %}
+        <label class="flex items-center gap-2.5 text-[13.5px] text-graphite"><input id="f-{{ field.name }}" type="checkbox" class="checkbox checkbox-sm" name="{{ field.name }}" value="1" {% if values.get(field.name) %}checked{% endif %}> Enabled</label>
+      {% elif field.kind == 'textarea' %}
+        <textarea id="f-{{ field.name }}" class="textarea w-full" name="{{ field.name }}" rows="5">{{ values.get(field.name, '') }}</textarea>
+      {% elif field.kind == 'select' %}
+        <select id="f-{{ field.name }}" class="select w-full" name="{{ field.name }}">
+          <option value="">—</option>
+          {% for choice in field.choices %}<option value="{{ choice }}" {% if values.get(field.name) == choice %}selected{% endif %}>{{ choice }}</option>{% endfor %}
+        </select>
+      {% elif field.kind == 'relation' %}
+        <select id="f-{{ field.name }}" class="select w-full" name="{{ field.name }}">
+          <option value="">—</option>
+          {% for option_id, option_label in relation_options.get(field.name, []) %}
+          <option value="{{ option_id }}" {% if values.get(field.name) == option_id %}selected{% endif %}>{{ option_label }}</option>
+          {% endfor %}
+        </select>
+      {% elif field.kind == 'int' %}
+        <input id="f-{{ field.name }}" class="input w-full" type="number" step="1" name="{{ field.name }}" value="{{ values.get(field.name, '') }}">
+      {% elif field.kind == 'float' %}
+        <input id="f-{{ field.name }}" class="input w-full" type="number" step="any" name="{{ field.name }}" value="{{ values.get(field.name, '') }}">
+      {% else %}
+        <input id="f-{{ field.name }}" class="input w-full" name="{{ field.name }}" value="{{ values.get(field.name, '') }}">
+      {% endif %}
+      {% if field.help %}<span class="mt-1 block text-[12px] text-mid-gray">{{ field.help }}</span>{% endif %}
+    </div>
+    {% endfor %}
+    <div class="flex items-center gap-2 pt-1">
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-ghost" href="/admin/{{ resource.slug }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

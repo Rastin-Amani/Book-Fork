@@ -1,0 +1,47 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}Metrics · Admin{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <a href="/admin" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Admin
+  </a>
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div class="space-y-1.5">
+      <p class="eyebrow">Observability</p>
+      <h1 class="t-h1">Metrics</h1>
+      <p class="text-[14px] text-graphite">Live counters and gauges from the running process.</p>
+    </div>
+    <a href="/metrics" class="btn gap-1.5">{{ icon('activity', 'h-4 w-4') }} Prometheus text</a>
+  </header>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <div class="t-card overflow-hidden">
+      <div class="border-b border-pebble-border px-5 py-4"><h2 class="t-h2 text-[16px]">Counters</h2></div>
+      <div class="overflow-x-auto">
+        <table class="t-table">
+          <thead><tr><th>Counter</th><th>Value</th></tr></thead>
+          <tbody>
+            {% for key, value in counters.items() %}
+            <tr><td class="font-mono text-[12px] text-ink-black">{{ key }}</td><td class="font-mono text-[12px]">{{ value }}</td></tr>
+            {% else %}<tr><td colspan="2" class="py-8 text-center text-mid-gray">No counters yet.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="t-card overflow-hidden">
+      <div class="border-b border-pebble-border px-5 py-4"><h2 class="t-h2 text-[16px]">Gauges</h2></div>
+      <div class="overflow-x-auto">
+        <table class="t-table">
+          <thead><tr><th>Gauge</th><th>Value</th></tr></thead>
+          <tbody>
+            {% for key, value in gauges.items() %}
+            <tr><td class="font-mono text-[12px] text-ink-black">{{ key }}</td><td class="font-mono text-[12px]">{{ value }}</td></tr>
+            {% else %}<tr><td colspan="2" class="py-8 text-center text-mid-gray">No gauges yet.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

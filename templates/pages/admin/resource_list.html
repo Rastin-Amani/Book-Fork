@@ -1,0 +1,63 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}{{ resource.title }} · Admin{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <a href="/admin" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Admin
+  </a>
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div class="space-y-1.5">
+      <p class="eyebrow">Admin</p>
+      <h1 class="t-h1">{{ resource.title }}</h1>
+      {% if resource.description %}<p class="text-[14px] text-graphite">{{ resource.description }}</p>{% endif %}
+    </div>
+    {% if resource.can_create %}<a href="/admin/{{ resource.slug }}/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'h-4 w-4') }} New</a>{% endif %}
+  </header>
+
+  {% if rows %}
+  <div class="t-card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="t-table">
+        <thead><tr>
+          {% for name in resource.list_fields %}<th>{{ name }}</th>{% endfor %}
+          <th></th>
+        </tr></thead>
+        <tbody>
+          {% for row in rows %}
+          <tr id="row-{{ row.record.id }}">
+            {% for name in resource.list_fields %}
+            <td class="max-w-xs truncate">{{ row.values.get(name, '—') if row.values.get(name) not in (None, '') else '—' }}</td>
+            {% endfor %}
+            <td>
+              <div class="flex flex-wrap items-center justify-end gap-1.5">
+                {% if resource.can_update %}<a class="btn btn-ghost btn-xs" href="/admin/{{ resource.slug }}/{{ row.record.id }}/edit">Edit</a>{% endif %}
+                {% if resource.slug == 'prompt-templates' %}<a class="btn btn-ghost btn-xs" href="/admin/prompt-templates/{{ row.record.id }}/new-version">New version</a>{% endif %}
+                {% if resource.slug == 'prompt-versions' %}
+                <form hx-post="/admin/prompt-versions/{{ row.record.id }}/activate" hx-swap="none"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-ghost btn-xs">Activate</button></form>
+                <form hx-post="/admin/prompt-versions/{{ row.record.id }}/archive" hx-swap="none"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-ghost btn-xs">Archive</button></form>
+                {% endif %}
+                {% if resource.slug == 'credit-wallets' %}<a class="btn btn-ghost btn-xs" href="/admin/credit-wallets/{{ row.record.id }}/ledger">Ledger</a>{% endif %}
+                {% if resource.can_delete %}
+                <button class="btn btn-ghost btn-xs text-mid-gray hover:text-error" hx-post="/admin/{{ resource.slug }}/{{ row.record.id }}/delete" hx-confirm="Delete this record?" hx-target="#row-{{ row.record.id }}" hx-swap="outerHTML">Delete</button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="t-card flex flex-col items-center gap-3 px-6 py-16 text-center">
+    <span class="grid h-11 w-11 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('list', 'h-5 w-5') }}</span>
+    <p class="text-[14px] text-graphite">No records yet.</p>
+  </div>
+  {% endif %}
+
+  {% if resource.actions and resource.slug == 'prompt-versions' %}
+  <a class="link text-[13.5px]" href="/admin/prompt-versions/compare">Compare versions &rarr;</a>
+  {% endif %}
+</section>
+{% endblock %}

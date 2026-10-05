@@ -1,0 +1,41 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}Compare prompt versions · Admin{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <a href="/admin/prompt-versions" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Prompt versions
+  </a>
+  <header class="space-y-1.5">
+    <p class="eyebrow">Admin</p>
+    <h1 class="t-h1">Compare prompt versions</h1>
+  </header>
+
+  <form method="get" action="/admin/prompt-versions/compare" class="t-card flex flex-wrap items-end gap-4 p-5">
+    <label class="block">
+      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Left</span>
+      <select class="select" name="left">
+        {% for version in versions %}<option value="{{ version.id }}" {% if left and left.id == version.id %}selected{% endif %}>v{{ version.version }} ({{ version.status }})</option>{% endfor %}
+      </select>
+    </label>
+    <label class="block">
+      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Right</span>
+      <select class="select" name="right">
+        {% for version in versions %}<option value="{{ version.id }}" {% if right and right.id == version.id %}selected{% endif %}>v{{ version.version }} ({{ version.status }})</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn" type="submit">Compare</button>
+  </form>
+
+  <div class="grid gap-5 md:grid-cols-2">
+    <div class="t-card overflow-hidden">
+      <div class="border-b border-pebble-border px-5 py-3 font-mono text-[12px] text-mid-gray">{% if left %}v{{ left.version }}{% else %}Left{% endif %}</div>
+      <pre class="whitespace-pre-wrap p-5 font-mono text-[12px] leading-relaxed text-graphite">{{ left.body if left else '' }}</pre>
+    </div>
+    <div class="t-card overflow-hidden">
+      <div class="border-b border-pebble-border px-5 py-3 font-mono text-[12px] text-mid-gray">{% if right %}v{{ right.version }}{% else %}Right{% endif %}</div>
+      <pre class="whitespace-pre-wrap p-5 font-mono text-[12px] leading-relaxed text-graphite">{{ right.body if right else '' }}</pre>
+    </div>
+  </div>
+</section>
+{% endblock %}
