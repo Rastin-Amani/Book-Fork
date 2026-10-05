@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+node_modules
+__pycache__
+*.pyc
+.mypy_cache
+.pytest_cache
+.ruff_cache
+var
+docs
+*.md
+!README.md
+.env
+.env.*
+pb_data

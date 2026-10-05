@@ -1,0 +1,36 @@
+# --- secrets & local state ---
+.env
+.env.*
+!.env.example
+var/
+pb_data/
+pb_static/
+
+# --- python ---
+.venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# --- node ---
+node_modules/
+npm-debug.log*
+
+# --- generated frontend assets ---
+static/css/app.css
+static/js/vendor/
+
+# --- editors / os ---
+.idea/
+.vscode/
+.DS_Store
+
+# --- pocketbase binary (dev convenience, not source) ---
+pocketbase
