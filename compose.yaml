@@ -1,0 +1,69 @@
+# Book Fork development stack.
+# `pocketbase` is optional for local work if you already run one elsewhere;
+# comment it out and point POCKETBASE_URL at your instance. `minio` is behind a
+# profile for testing S3-compatible storage without touching real object storage.
+
+name: book-fork
+
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:${POCKETBASE_VERSION:-0.40.4}
+    command: serve --http=0.0.0.0:8090
+    volumes:
+      - pb_data:/pb_data
+      - ./pb_migrations:/pb_migrations
+    ports:
+      - "8090:8090"
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      target: runtime
+    env_file:
+      - .env
+    environment:
+      POCKETBASE_URL: http://pocketbase:8090
+    ports:
+      - "8000:8000"
+    depends_on:
+      - pocketbase
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=5).status==200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  worker:
+    build:
+      context: .
+      target: runtime
+    command: ["uv", "run", "--no-dev", "python", "-m", "worker.main"]
+    env_file:
+      - .env
+    environment:
+      POCKETBASE_URL: http://pocketbase:8090
+    depends_on:
+      - pocketbase
+    restart: unless-stopped
+    # Worker liveness is observable via the API at /health/worker. The process
+    # itself is supervised by the container runtime.
+
+  minio:
+    image: minio/minio:latest
+    profiles: ["s3"]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-book-fork}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-book-fork-dev-secret}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+volumes:
+  pb_data:
+  minio_data:
