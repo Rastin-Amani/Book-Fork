@@ -1,0 +1,36 @@
+{
+  "_comment": "Versioned prompt templates. Bodies may only reference the allow-listed variables.",
+  "templates": [
+    {
+      "name": "Default Translation",
+      "slug": "default-translation",
+      "purpose": "translation",
+      "enabled": true,
+      "description": "General-purpose segment translation prompt.",
+      "version": {
+        "version": 1,
+        "status": "active",
+        "body": "You are a professional translator writing in {{ target_language }} as a native speaker.\nTranslate every segment from {{ source_language }} into fluent, publication-quality {{ target_language }}.\n\nRules:\n- Grammar and morphology must be fully correct for {{ target_language }} (agreement, gender, number, verb tense/aspect, case and punctuation). Never mirror the source language's word order.\n- Use natural, idiomatic vocabulary and collocations rather than literal word-by-word renderings, and keep terminology consistent across segments.\n- Write in the target script with correct word boundaries: never join two words together, and never drop spaces or punctuation.\n- Do not translate or alter proper nouns, brand names, code, URLs, numbers or placeholders.\nStyle: {{ style }}. Tone: {{ tone }}. Domain: {{ domain }}.\n{% if glossary %}Use this glossary exactly:\n{{ glossary }}\n{% endif %}{% if translation_memory %}Reuse these approved translations:\n{{ translation_memory }}\n{% endif %}Preserve placeholders, markup, numbers and formatting exactly as in the source.\nReturn only the translated segments, keyed by their id.\n\nSource segments:\n{{ source_segments }}",
+        "variables": {
+          "required": ["source_language", "target_language", "source_segments"],
+          "optional": ["style", "tone", "domain", "glossary", "translation_memory"]
+        }
+      }
+    },
+    {
+      "name": "Translation Quality Review",
+      "slug": "translation-qa",
+      "purpose": "qa",
+      "enabled": true,
+      "description": "Reviews a translation for accuracy, terminology and fluency.",
+      "version": {
+        "version": 1,
+        "status": "active",
+        "body": "Review each translation from {{ source_language }} to {{ target_language }}.\nCheck native-level grammar and morphology, idiomatic vocabulary, terminology consistency, and word-boundary or spacing errors. Report issues with segment ids and a corrected replacement.\n\nSegments:\n{{ source_segments }}",
+        "variables": {
+          "required": ["source_language", "target_language", "source_segments"]
+        }
+      }
+    }
+  ]
+}

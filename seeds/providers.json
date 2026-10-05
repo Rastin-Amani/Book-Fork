@@ -1,0 +1,55 @@
+{
+  "_comment": "Provider protocol catalog. These are records, not code. Credentials are NEVER seeded.",
+  "providers": [
+    {
+      "name": "OpenAI-compatible",
+      "slug": "openai-compatible",
+      "provider_type": "openai_compatible",
+      "authentication_type": "api_key",
+      "base_url": "https://api.openai.com/v1",
+      "enabled": true,
+      "description": "Any OpenAI-compatible chat completions endpoint.",
+      "capabilities": { "chat": true, "streaming": true }
+    },
+    {
+      "name": "Anthropic",
+      "slug": "anthropic",
+      "provider_type": "anthropic",
+      "authentication_type": "api_key",
+      "base_url": "https://api.anthropic.com/v1",
+      "enabled": true,
+      "description": "Anthropic Messages API.",
+      "capabilities": { "chat": true, "streaming": true }
+    },
+    {
+      "name": "Google Gemini",
+      "slug": "gemini",
+      "provider_type": "gemini",
+      "authentication_type": "api_key",
+      "base_url": "https://generativelanguage.googleapis.com",
+      "enabled": true,
+      "description": "Google Gemini API.",
+      "capabilities": { "chat": true, "streaming": true }
+    },
+    {
+      "name": "Ollama (self-hosted)",
+      "slug": "ollama",
+      "provider_type": "ollama",
+      "authentication_type": "none",
+      "base_url": "http://localhost:11434",
+      "enabled": true,
+      "description": "Local Ollama server.",
+      "capabilities": { "chat": true, "local": true }
+    },
+    {
+      "name": "Custom endpoint",
+      "slug": "custom",
+      "provider_type": "custom",
+      "authentication_type": "custom",
+      "base_url": "",
+      "enabled": true,
+      "description": "Bring your own endpoint, configured per connection.",
+      "capabilities": {}
+    }
+  ]
+}

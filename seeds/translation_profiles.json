@@ -1,0 +1,50 @@
+{
+  "_comment": "System default translation profiles. No provider-specific defaults; provider/model selection is resolved separately by the policy service.",
+  "profiles": [
+    {
+      "name": "Default Translation",
+      "description": "Balanced general-purpose translation.",
+      "quality_mode": "balanced",
+      "is_system_default": true,
+      "enabled": true,
+      "temperature": 0.2,
+      "batch_size": 20,
+      "segmentation_strategy": { "type": "paragraph" },
+      "context_strategy": { "type": "none" },
+      "normalization_pipeline": { "steps": ["unicode_nfkc"] },
+      "translation_memory_policy": { "exact_only": true, "min_quality": 0 },
+      "validation_profile": {},
+      "context_window_policy": { "max_segments": 5 }
+    },
+    {
+      "name": "Fast Draft",
+      "description": "Lower cost, smaller context, faster turnaround.",
+      "quality_mode": "fast",
+      "is_system_default": false,
+      "enabled": true,
+      "temperature": 0.1,
+      "batch_size": 40,
+      "segmentation_strategy": { "type": "paragraph" },
+      "context_strategy": { "type": "none" },
+      "normalization_pipeline": { "steps": ["unicode_nfkc"] },
+      "translation_memory_policy": { "exact_only": true },
+      "validation_profile": {},
+      "context_window_policy": {}
+    },
+    {
+      "name": "Literary Quality",
+      "description": "Higher context and temperature for expressive prose.",
+      "quality_mode": "quality",
+      "is_system_default": false,
+      "enabled": true,
+      "temperature": 0.5,
+      "batch_size": 10,
+      "segmentation_strategy": { "type": "paragraph" },
+      "context_strategy": { "type": "previous_next" },
+      "normalization_pipeline": { "steps": ["unicode_nfkc"] },
+      "translation_memory_policy": { "exact_only": false },
+      "validation_profile": {},
+      "context_window_policy": { "max_segments": 10 }
+    }
+  ]
+}

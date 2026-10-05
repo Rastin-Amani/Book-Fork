@@ -1,0 +1,410 @@
+{
+  "_comment": "Typed system settings. Business defaults live here, never in Python.",
+  "settings": [
+    {
+      "key": "upload.maximum_file_size",
+      "type": "int",
+      "value": 104857600,
+      "category": "upload",
+      "editable": true,
+      "description": "Maximum accepted upload size in bytes."
+    },
+    {
+      "key": "upload.allowed_extensions",
+      "type": "json",
+      "value": [
+        "epub",
+        "pdf",
+        "txt",
+        "docx"
+      ],
+      "category": "upload",
+      "editable": true,
+      "description": "Accepted document file extensions."
+    },
+    {
+      "key": "jobs.maximum_concurrent_jobs",
+      "type": "int",
+      "value": 3,
+      "category": "jobs",
+      "editable": true,
+      "description": "Maximum jobs processed concurrently per worker."
+    },
+    {
+      "key": "jobs.default_lease_seconds",
+      "type": "int",
+      "value": 900,
+      "category": "jobs",
+      "editable": true,
+      "description": "Job lease duration before it can be reclaimed."
+    },
+    {
+      "key": "jobs.heartbeat_seconds",
+      "type": "int",
+      "value": 30,
+      "category": "jobs",
+      "editable": true,
+      "description": "Worker heartbeat interval."
+    },
+    {
+      "key": "jobs.max_attempts",
+      "type": "int",
+      "value": 3,
+      "category": "jobs",
+      "editable": true,
+      "description": "Maximum attempts per translation job."
+    },
+    {
+      "key": "translation.default_batch_size",
+      "type": "int",
+      "value": 20,
+      "category": "translation",
+      "editable": true,
+      "description": "Default number of segments per provider request."
+    },
+    {
+      "key": "translation.default_context_size",
+      "type": "int",
+      "value": 5,
+      "category": "translation",
+      "editable": true,
+      "description": "Default number of surrounding segments used as context."
+    },
+    {
+      "key": "translation.max_output_tokens",
+      "type": "json",
+      "value": null,
+      "category": "translation",
+      "editable": true,
+      "description": "Optional cap on provider output tokens."
+    },
+    {
+      "key": "translation.retry.max_attempts",
+      "type": "int",
+      "value": 3,
+      "category": "translation",
+      "editable": true,
+      "description": "Maximum provider attempts per batch."
+    },
+    {
+      "key": "translation.retry.base_delay_seconds",
+      "type": "float",
+      "value": 0.5,
+      "category": "translation",
+      "editable": true,
+      "description": "Base retry delay in seconds."
+    },
+    {
+      "key": "translation.retry.max_delay_seconds",
+      "type": "float",
+      "value": 8.0,
+      "category": "translation",
+      "editable": true,
+      "description": "Maximum retry delay in seconds."
+    },
+    {
+      "key": "translation.context.strategy",
+      "type": "string",
+      "value": "adaptive",
+      "category": "translation",
+      "editable": true,
+      "description": "Context strategy: minimal | previous_segments | chapter_context | adaptive."
+    },
+    {
+      "key": "translation.context.max_previous_segments",
+      "type": "int",
+      "value": 3,
+      "category": "translation",
+      "editable": true,
+      "description": "Maximum previous segments included as context."
+    },
+    {
+      "key": "translation.context.max_context_tokens",
+      "type": "int",
+      "value": 2000,
+      "category": "translation",
+      "editable": true,
+      "description": "Maximum context tokens per request."
+    },
+    {
+      "key": "translation.context.max_glossary_terms",
+      "type": "int",
+      "value": 50,
+      "category": "translation",
+      "editable": true,
+      "description": "Maximum glossary terms per request."
+    },
+    {
+      "key": "translation.fallback.strategy",
+      "type": "string",
+      "value": "direct",
+      "category": "translation",
+      "editable": true,
+      "description": "Fallback strategy: direct | fallback_model | fallback_provider | optional_pivot."
+    },
+    {
+      "key": "worker.maximum_concurrent_jobs",
+      "type": "int",
+      "value": 2,
+      "category": "worker",
+      "editable": true,
+      "description": "Maximum translation jobs processed concurrently per worker."
+    },
+    {
+      "key": "worker.maximum_provider_concurrency",
+      "type": "int",
+      "value": 4,
+      "category": "worker",
+      "editable": true,
+      "description": "Maximum concurrent provider requests per worker."
+    },
+    {
+      "key": "worker.lease_seconds",
+      "type": "int",
+      "value": 900,
+      "category": "worker",
+      "editable": true,
+      "description": "Job lease duration before a stale job becomes recoverable."
+    },
+    {
+      "key": "worker.heartbeat_seconds",
+      "type": "int",
+      "value": 30,
+      "category": "worker",
+      "editable": true,
+      "description": "Lease heartbeat interval."
+    },
+    {
+      "key": "worker.poll_interval_seconds",
+      "type": "float",
+      "value": 5.0,
+      "category": "worker",
+      "editable": true,
+      "description": "Queue poll interval."
+    },
+    {
+      "key": "worker.retry.max_attempts",
+      "type": "int",
+      "value": 3,
+      "category": "worker",
+      "editable": true,
+      "description": "Maximum worker-level attempts for a segment."
+    },
+    {
+      "key": "worker.retry.initial_delay_seconds",
+      "type": "float",
+      "value": 1.0,
+      "category": "worker",
+      "editable": true,
+      "description": "Initial retry delay."
+    },
+    {
+      "key": "worker.retry.max_delay_seconds",
+      "type": "float",
+      "value": 30.0,
+      "category": "worker",
+      "editable": true,
+      "description": "Maximum retry delay."
+    },
+    {
+      "key": "worker.retry.backoff_multiplier",
+      "type": "float",
+      "value": 2.0,
+      "category": "worker",
+      "editable": true,
+      "description": "Exponential backoff multiplier."
+    },
+    {
+      "key": "worker.retry.jitter",
+      "type": "float",
+      "value": 0.2,
+      "category": "worker",
+      "editable": true,
+      "description": "Jitter fraction applied to retry delays."
+    },
+    {
+      "key": "worker.context_repair.enabled",
+      "type": "bool",
+      "value": true,
+      "category": "worker",
+      "editable": true,
+      "description": "Repair context_too_large errors by reducing context and batch size."
+    },
+    {
+      "key": "worker.context_repair.min_batch_size",
+      "type": "int",
+      "value": 1,
+      "category": "worker",
+      "editable": true,
+      "description": "Lower bound when shrinking batches during context repair."
+    },
+    {
+      "key": "billing.enabled",
+      "type": "bool",
+      "value": true,
+      "category": "billing",
+      "editable": true,
+      "description": "Whether credit reservation/settlement runs for jobs."
+    },
+    {
+      "key": "billing.credits_per_1000_tokens",
+      "type": "float",
+      "value": 1.0,
+      "category": "billing",
+      "editable": true,
+      "description": "Credit charge per 1000 tokens."
+    },
+    {
+      "key": "billing.provider_cost_markup",
+      "type": "float",
+      "value": 0.0,
+      "category": "billing",
+      "editable": true,
+      "description": "Credits charged per unit of provider cost (0 disables markup)."
+    },
+    {
+      "key": "translation.default_prompt_template_slug",
+      "type": "string",
+      "value": "default-translation",
+      "category": "translation",
+      "editable": true,
+      "description": "Fallback prompt template slug."
+    },
+    {
+      "key": "translation.default_profile_name",
+      "type": "string",
+      "value": "Default Translation",
+      "category": "translation",
+      "editable": true,
+      "description": "Name of the system default translation profile."
+    },
+    {
+      "key": "translation.detection_min_confidence",
+      "type": "float",
+      "value": 0.6,
+      "category": "translation",
+      "editable": true,
+      "description": "Minimum language-detection confidence to auto-accept."
+    },
+    {
+      "key": "billing.credit_reservation_multiplier",
+      "type": "float",
+      "value": 1.2,
+      "category": "billing",
+      "editable": true,
+      "description": "Multiplier applied when reserving credits for a job."
+    },
+    {
+      "key": "billing.default_currency",
+      "type": "string",
+      "value": "credits",
+      "category": "billing",
+      "editable": false,
+      "description": "Ledger currency unit."
+    },
+    {
+      "key": "storage.retention_days",
+      "type": "int",
+      "value": 30,
+      "category": "storage",
+      "editable": true,
+      "description": "Document and artifact retention period in days."
+    },
+    {
+      "key": "providers.raw_response_retention",
+      "type": "bool",
+      "value": false,
+      "category": "providers",
+      "editable": true,
+      "description": "Whether raw LLM responses are retained (privacy-conscious default: false)."
+    },
+    {
+      "key": "retention.source_documents_days",
+      "value": 0,
+      "type": "int",
+      "category": "retention",
+      "description": "Delete source documents after this many days (0 = keep).",
+      "editable": true
+    },
+    {
+      "key": "retention.output_documents_days",
+      "value": 0,
+      "type": "int",
+      "category": "retention",
+      "description": "Delete translated outputs after this many days (0 = keep).",
+      "editable": true
+    },
+    {
+      "key": "retention.failed_jobs_days",
+      "value": 0,
+      "type": "int",
+      "category": "retention",
+      "description": "Delete failed/cancelled jobs after this many days (0 = keep).",
+      "editable": true
+    },
+    {
+      "key": "retention.translation_attempts_days",
+      "value": 0,
+      "type": "int",
+      "category": "retention",
+      "description": "Delete translation attempts after this many days (0 = keep).",
+      "editable": true
+    },
+    {
+      "key": "retention.job_events_days",
+      "value": 0,
+      "type": "int",
+      "category": "retention",
+      "description": "Delete job events after this many days (0 = keep).",
+      "editable": true
+    },
+    {
+      "key": "retention.temp_files_hours",
+      "value": 0,
+      "type": "int",
+      "category": "retention",
+      "description": "Delete temporary files after this many hours (0 = keep).",
+      "editable": true
+    },
+    {
+      "key": "limits.uploads_per_day",
+      "value": 0,
+      "type": "int",
+      "category": "limits",
+      "description": "Maximum document uploads per workspace per day (0 = unlimited).",
+      "editable": true
+    },
+    {
+      "key": "limits.jobs_per_day",
+      "value": 0,
+      "type": "int",
+      "category": "limits",
+      "description": "Maximum translation jobs per workspace per day (0 = unlimited).",
+      "editable": true
+    },
+    {
+      "key": "limits.max_concurrent_jobs_per_user",
+      "value": 0,
+      "type": "int",
+      "category": "limits",
+      "description": "Maximum active jobs per workspace (0 = unlimited).",
+      "editable": true
+    },
+    {
+      "key": "limits.retries_per_job",
+      "value": 0,
+      "type": "int",
+      "category": "limits",
+      "description": "Maximum manual retries per job (0 = unlimited).",
+      "editable": true
+    },
+    {
+      "key": "admin.emails",
+      "value": [],
+      "type": "json",
+      "category": "admin",
+      "description": "Email addresses allowed to access the admin area.",
+      "editable": true
+    }
+  ]
+}
