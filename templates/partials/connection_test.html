@@ -1,0 +1,6 @@
+{% if result.ok %}
+<span class="inline-flex items-center gap-1.5 text-[12.5px] text-success"><span class="h-1.5 w-1.5 rounded-full bg-success"></span>{{ result.status.value }}</span>
+{% else %}
+<span class="inline-flex items-center gap-1.5 text-[12.5px] text-error"><span class="h-1.5 w-1.5 rounded-full bg-error"></span>{{ result.status.value }}</span>
+{% endif %}
+<span class="ml-1 text-[12px] text-mid-gray">{{ result.message }}</span>

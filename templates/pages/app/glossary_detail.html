@@ -1,0 +1,50 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}{{ glossary.name }} · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <a href="/app/glossaries" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Glossaries
+  </a>
+  <header class="space-y-1.5">
+    <p class="eyebrow">Glossary</p>
+    <h1 class="t-h1">{{ glossary.name }}</h1>
+    {% if glossary.description %}<p class="text-[14px] text-graphite">{{ glossary.description }}</p>{% endif %}
+  </header>
+
+  <div class="t-card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="t-table">
+        <thead><tr><th>Source</th><th>Target</th><th>Term</th><th>Translation</th><th>Flags</th><th></th></tr></thead>
+        <tbody>
+          {% for term in terms %}{% include "partials/glossary_term_row.html" %}{% else %}
+          <tr><td colspan="6" class="py-10 text-center text-mid-gray">No terms yet. Add the first one below.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="t-card p-6">
+    <h2 class="t-h2 text-[16px]">Add a term</h2>
+    <form hx-post="/app/glossaries/{{ glossary.id }}/terms" hx-target="table tbody" hx-swap="beforeend" class="mt-5 space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="block"><span class="mb-1.5 block text-[13px] font-medium text-ink-black">Source language</span>
+          <input class="input w-full" name="source_language" placeholder="en" required></label>
+        <label class="block"><span class="mb-1.5 block text-[13px] font-medium text-ink-black">Target language</span>
+          <input class="input w-full" name="target_language" placeholder="fa" required></label>
+        <label class="block"><span class="mb-1.5 block text-[13px] font-medium text-ink-black">Source term</span>
+          <input class="input w-full" name="source_term" placeholder="source term" required></label>
+        <label class="block"><span class="mb-1.5 block text-[13px] font-medium text-ink-black">Target term</span>
+          <input class="input w-full" name="target_term" placeholder="target term" required></label>
+      </div>
+      <div class="flex flex-wrap items-center gap-5">
+        <label class="flex items-center gap-2 text-[13px] text-graphite"><input type="checkbox" class="checkbox checkbox-sm" name="preferred" value="1"> Preferred</label>
+        <label class="flex items-center gap-2 text-[13px] text-graphite"><input type="checkbox" class="checkbox checkbox-sm" name="forbidden" value="1"> Forbidden</label>
+        <button class="btn btn-primary ml-auto" type="submit">{{ icon('plus', 'h-4 w-4') }} Add term</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

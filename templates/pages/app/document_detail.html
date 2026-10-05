@@ -1,0 +1,34 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% from "components/status.html" import status_badge %}
+{% block title %}{{ document.display_name or document.original_filename }} · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <header class="space-y-4">
+    <a href="/app/documents" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+      {{ icon('arrow-left', 'h-3.5 w-3.5') }} Documents
+    </a>
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="space-y-2">
+        <p class="eyebrow">Document</p>
+        <h1 class="t-h1">{{ document.display_name or document.original_filename }}</h1>
+        <div>{{ status_badge(document.status) }}</div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a class="btn gap-1.5" hx-boost="false" href="/app/documents/{{ document.id }}/source">{{ icon('download', 'h-4 w-4') }} Download source</a>
+        <a class="btn btn-primary gap-1.5" href="/app/translations/new?document_id={{ document.id }}">{{ icon('translate', 'h-4 w-4') }} Translate</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="t-card p-6">
+    <dl class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+      <div><dt class="eyebrow">Type</dt><dd class="mt-1.5 text-[14px] uppercase tracking-[0.03em]">{{ document.document_type or '—' }}</dd></div>
+      <div><dt class="eyebrow">Size</dt><dd class="mt-1.5 text-[14px]">{{ document.file_size | filesize }}</dd></div>
+      <div><dt class="eyebrow">Source language</dt><dd class="mt-1.5 text-[14px]">{{ document.source_language or '—' }}</dd></div>
+      <div><dt class="eyebrow">Detected</dt><dd class="mt-1.5 text-[14px]">{{ document.detected_language or '—' }}</dd></div>
+      <div><dt class="eyebrow">Filename</dt><dd class="mt-1.5 truncate text-[14px]">{{ document.original_filename or '—' }}</dd></div>
+    </dl>
+  </div>
+</section>
+{% endblock %}

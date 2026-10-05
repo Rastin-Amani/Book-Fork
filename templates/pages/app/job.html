@@ -1,0 +1,33 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}Translation · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <a href="/app/translations" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Translations
+  </a>
+
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div class="space-y-2">
+      <p class="eyebrow">Translation</p>
+      <h1 class="t-h1">{{ document.display_name or document.original_filename }}</h1>
+      <p class="flex flex-wrap items-center gap-2 text-[14px] text-graphite">
+        <span class="font-medium text-ink-black">{{ job.source_language or '?' }} &rarr; {{ job.target_language }}</span>
+        <span class="text-pebble-border">/</span>
+        <span class="font-mono text-[12px]">{{ job.model or 'auto model' }}</span>
+      </p>
+    </div>
+    <a class="btn gap-1.5" href="/app/translations/{{ job.id }}/review">{{ icon('list', 'h-4 w-4') }} Review segments</a>
+  </header>
+
+  <div class="t-card p-6">
+    <div id="job-status"
+         hx-get="/app/translations/{{ job.id }}/status"
+         hx-trigger="every 2s [document.getElementById('job-active')?.value === '1']"
+         hx-target="this"
+         hx-swap="innerHTML">
+      {% include "partials/job_status.html" %}
+    </div>
+  </div>
+</section>
+{% endblock %}

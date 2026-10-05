@@ -1,0 +1,25 @@
+<tr id="provider-{{ connection.id }}">
+  <td class="text-ink-black font-medium">{{ connection.name }}</td>
+  <td class="max-w-[18rem] truncate font-mono text-[12px]">{{ connection.base_url or '—' }}</td>
+  <td>
+    {% if connection.billing_mode.value == 'own_api' %}
+    <span class="inline-flex items-center rounded-[6px] border border-pebble-border bg-warm-cream px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-graphite">Your API</span>
+    {% else %}
+    <span class="inline-flex items-center rounded-[6px] border border-storyboard-blue/20 bg-sketch-blue px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-storyboard-blue">Credits</span>
+    {% endif %}
+  </td>
+  <td>
+    {% if connection.enabled %}
+    <span class="inline-flex items-center gap-1.5 text-[12.5px] text-success"><span class="h-1.5 w-1.5 rounded-full bg-success"></span>Enabled</span>
+    {% else %}
+    <span class="inline-flex items-center gap-1.5 text-[12.5px] text-mid-gray"><span class="h-1.5 w-1.5 rounded-full bg-mid-gray"></span>Disabled</span>
+    {% endif %}
+  </td>
+  <td>
+    <div class="flex flex-wrap items-center justify-end gap-1.5">
+      <span id="test-{{ connection.id }}"><button class="btn btn-ghost btn-xs" hx-post="/app/providers/{{ connection.id }}/test" hx-target="#test-{{ connection.id }}" hx-swap="innerHTML">Test</button></span>
+      <button class="btn btn-ghost btn-xs" hx-post="/app/providers/{{ connection.id }}/toggle" hx-target="#provider-{{ connection.id }}" hx-swap="outerHTML">{{ 'Disable' if connection.enabled else 'Enable' }}</button>
+      <button class="btn btn-ghost btn-xs text-mid-gray hover:text-error" hx-post="/app/providers/{{ connection.id }}/delete" hx-confirm="Delete this provider?" hx-target="#provider-{{ connection.id }}" hx-swap="outerHTML">Delete</button>
+    </div>
+  </td>
+</tr>

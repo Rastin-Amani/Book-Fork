@@ -1,0 +1,27 @@
+{% from "components/icons.html" import icon %}
+<div class="t-card p-6">
+  <div class="flex items-center gap-2.5">
+    <span class="grid h-7 w-7 place-items-center rounded-[6px] bg-sketch-blue text-storyboard-blue">{{ icon('activity', 'h-4 w-4') }}</span>
+    <h2 class="t-h2 text-[16px]">Estimated usage</h2>
+  </div>
+  <dl class="mt-5 grid gap-x-6 gap-y-4 sm:grid-cols-2">
+    <div><dt class="eyebrow">Source words</dt><dd class="mt-1 text-[15px] font-medium text-ink-black">~ {{ estimate.estimate.words }}</dd></div>
+    <div><dt class="eyebrow">Input tokens</dt><dd class="mt-1 text-[15px] font-medium text-ink-black">~ {{ estimate.estimate.input_tokens }}</dd></div>
+    <div><dt class="eyebrow">Provider</dt><dd class="mt-1 text-[14px]">{{ estimate.plan.provider_connection or 'Auto' }}</dd></div>
+    <div><dt class="eyebrow">Model</dt><dd class="mt-1 font-mono text-[13px]">{{ estimate.model_identifier or 'auto' }}</dd></div>
+  </dl>
+  <div class="mt-5 border-t border-stone-gray pt-4">
+    {% if estimate.billing_mode == 'own_api' %}
+    <p class="flex items-center gap-2 text-[14px] text-graphite">
+      <span class="inline-flex items-center rounded-[6px] border border-pebble-border bg-warm-cream px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em]">Your own API</span>
+      No Book Fork credits used.
+    </p>
+    {% else %}
+    <p class="text-[14px] text-graphite">Estimated cost
+      <span class="ml-1 text-[18px] font-semibold text-ink-black">~ {{ '%.1f'|format(estimate.credits) }}</span>
+      <span class="ml-1 text-[12.5px] text-mid-gray">Book Fork credits</span>
+    </p>
+    {% endif %}
+    <p class="mt-2 text-[12px] text-muted-ash">Estimates are approximate and may vary with content.</p>
+  </div>
+</div>

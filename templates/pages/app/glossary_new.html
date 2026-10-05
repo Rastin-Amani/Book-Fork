@@ -1,0 +1,30 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}New glossary · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-xl space-y-6">
+  <a href="/app/glossaries" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Glossaries
+  </a>
+  <header class="space-y-1.5">
+    <p class="eyebrow">New</p>
+    <h1 class="t-h1">Create a glossary</h1>
+  </header>
+
+  <form hx-post="/app/glossaries" class="t-card space-y-5 p-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label class="block">
+      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Name</span>
+      <input class="input w-full" name="name" placeholder="Product terminology" required>
+    </label>
+    <label class="block">
+      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Description <span class="font-normal text-mid-gray">(optional)</span></span>
+      <textarea class="textarea w-full" name="description" rows="3" placeholder="What this glossary is for"></textarea>
+    </label>
+    <div class="flex items-center gap-2 pt-1">
+      <button class="btn btn-primary" type="submit">Create glossary</button>
+      <a class="btn btn-ghost" href="/app/glossaries">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

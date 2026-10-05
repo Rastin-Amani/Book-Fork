@@ -1,0 +1,36 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}Languages · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <a href="/app/settings" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Settings
+  </a>
+  <header class="space-y-1.5">
+    <p class="eyebrow">Registry</p>
+    <h1 class="t-h1">Languages</h1>
+    <p class="text-[14px] text-graphite">Direction, script and native names — never hardcoded in the UI.</p>
+  </header>
+
+  <div class="t-card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="t-table">
+        <thead><tr><th>Code</th><th>Name</th><th>Native</th><th>Direction</th><th>Script</th></tr></thead>
+        <tbody>
+          {% for lang in languages %}
+          <tr>
+            <td class="font-mono text-[12px] uppercase text-ink-black">{{ lang.tag }}</td>
+            <td>{{ lang.name }}</td>
+            <td dir="{{ lang.direction.value }}" class="text-ink-black">{{ lang.native_name or '' }}</td>
+            <td><span class="inline-flex items-center rounded-[6px] border border-pebble-border bg-warm-cream px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-graphite">{{ lang.direction.value }}</span></td>
+            <td>{{ lang.script or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="py-10 text-center text-mid-gray">No languages in the registry.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}Add provider · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl space-y-6">
+  <a href="/app/providers" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Providers
+  </a>
+  <header class="space-y-1.5">
+    <p class="eyebrow">New connection</p>
+    <h1 class="t-h1">Add a provider</h1>
+    <p class="text-[14px] text-graphite">Keys are encrypted at rest and never shown again after saving.</p>
+  </header>
+
+  <form hx-post="/app/providers" hx-target="#msg" hx-swap="innerHTML" class="t-card space-y-5 p-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div id="msg"></div>
+    <div class="grid gap-5 sm:grid-cols-2">
+      <label class="block">
+        <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Name</span>
+        <input class="input w-full" name="name" placeholder="My workspace model" required>
+      </label>
+      <label class="block">
+        <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Protocol</span>
+        <select class="select w-full" name="provider_id" required>
+          {% for provider in catalog %}<option value="{{ provider.id }}">{{ provider.name }}</option>{% endfor %}
+        </select>
+      </label>
+    </div>
+    <label class="block">
+      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Base URL</span>
+      <input class="input w-full font-mono text-[13px]" name="base_url" placeholder="https://api.example.com/v1">
+    </label>
+    <div class="grid gap-5 sm:grid-cols-2">
+      <label class="block">
+        <span class="mb-1.5 block text-[13px] font-medium text-ink-black">API key</span>
+        <input class="input w-full" type="password" name="api_key" autocomplete="new-password" placeholder="sk-…">
+      </label>
+      <label class="block">
+        <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Default model</span>
+        <input class="input w-full font-mono text-[13px]" name="default_model" placeholder="gpt-4o-mini">
+      </label>
+    </div>
+    <label class="block">
+      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Billing</span>
+      <select class="select w-full" name="billing_mode">
+        <option value="own_api">My own API — no Book Fork credits</option>
+        <option value="managed">Book Fork-managed — spend credits</option>
+      </select>
+    </label>
+    <div class="flex items-center gap-2 pt-1">
+      <button class="btn btn-primary" type="submit">Save provider</button>
+      <a class="btn btn-ghost" href="/app/providers">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

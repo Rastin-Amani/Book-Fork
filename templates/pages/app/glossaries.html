@@ -1,0 +1,37 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}Glossaries · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div class="space-y-1.5">
+      <p class="eyebrow">Terminology</p>
+      <h1 class="t-h1">Glossaries</h1>
+      <p class="text-[14px] text-graphite">Pin preferred or forbidden terms across every job.</p>
+    </div>
+    <a href="/app/glossaries/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'h-4 w-4') }} New glossary</a>
+  </header>
+
+  {% if glossaries %}
+  <div class="t-card divide-y divide-stone-gray overflow-hidden">
+    {% for glossary in glossaries %}
+    <a href="/app/glossaries/{{ glossary.id }}" class="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-warm-cream/70">
+      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-[6px] bg-warm-cream text-graphite">{{ icon('book', 'h-4 w-4') }}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block truncate text-[15px] font-medium text-ink-black">{{ glossary.name }}</span>
+        {% if glossary.description %}<span class="block truncate text-[13px] text-mid-gray">{{ glossary.description }}</span>{% endif %}
+      </span>
+      <span class="text-mid-gray">{{ icon('chevron-right', 'h-4 w-4') }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="t-card flex flex-col items-center gap-3 px-6 py-20 text-center">
+    <span class="grid h-12 w-12 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('book', 'h-6 w-6') }}</span>
+    <h2 class="t-h2 text-[17px]">No glossaries yet</h2>
+    <p class="max-w-sm text-[14px] text-graphite">Create one to keep brand names and terminology consistent.</p>
+    <a href="/app/glossaries/new" class="btn btn-primary">Create a glossary</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

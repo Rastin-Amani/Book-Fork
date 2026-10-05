@@ -1,0 +1,73 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}Billing · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <a href="/app/settings" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Settings
+  </a>
+  <header class="space-y-1.5">
+    <p class="eyebrow">Account</p>
+    <h1 class="t-h1">Billing &amp; credits</h1>
+    <p class="text-[14px] text-graphite">Book Fork-managed usage draws from this balance; your own API does not.</p>
+  </header>
+
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div class="t-card p-6 sm:col-span-1">
+      <p class="eyebrow">Credit balance</p>
+      <p class="mt-3 text-[40px] font-semibold leading-none tracking-[-0.02em]">{{ '%.1f'|format(wallet.balance if wallet else 0) }}</p>
+      <p class="mt-2 text-[13px] text-mid-gray">{{ wallet.currency if wallet else 'credits' }}</p>
+    </div>
+    <div class="t-card flex flex-col justify-center gap-2 p-6 sm:col-span-2">
+      <p class="eyebrow">How billing works</p>
+      <p class="text-[14px] leading-relaxed text-graphite">
+        Managed jobs deduct credits per segment based on tokens and quality. Connections using <span class="font-medium text-ink-black">your own API</span> are billed directly by your provider and never touch this balance.
+      </p>
+    </div>
+  </div>
+
+  <div class="t-card overflow-hidden">
+    <div class="border-b border-pebble-border px-5 py-4"><h2 class="t-h2 text-[16px]">Recent transactions</h2></div>
+    <div class="overflow-x-auto">
+      <table class="t-table">
+        <thead><tr><th>Type</th><th>Amount</th><th>Balance after</th><th>Reason</th></tr></thead>
+        <tbody>
+          {% for tx in transactions %}
+          <tr>
+            <td class="text-ink-black font-medium capitalize">{{ tx.type.value }}</td>
+            <td class="font-mono text-[12px]">{{ tx.amount }}</td>
+            <td class="font-mono text-[12px]">{{ tx.balance_after }}</td>
+            <td>{{ tx.reason or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="py-10 text-center text-mid-gray">No transactions yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="t-card overflow-hidden">
+    <div class="border-b border-pebble-border px-5 py-4"><h2 class="t-h2 text-[16px]">Usage</h2></div>
+    <div class="overflow-x-auto">
+      <table class="t-table">
+        <thead><tr><th>Type</th><th>Job</th><th>Input</th><th>Output</th><th>Credits</th><th>When</th></tr></thead>
+        <tbody>
+          {% for event in usage %}
+          <tr>
+            <td class="text-ink-black">{{ event.event_type.value }}</td>
+            <td class="font-mono text-[12px]">{{ event.job or '—' }}</td>
+            <td class="font-mono text-[12px]">{{ event.input_tokens or 0 }}</td>
+            <td class="font-mono text-[12px]">{{ event.output_tokens or 0 }}</td>
+            <td class="font-mono text-[12px]">{{ event.credits or 0 }}</td>
+            <td class="whitespace-nowrap text-[13px]">{{ event.created }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="py-10 text-center text-mid-gray">No usage events yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}New translation · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-3xl space-y-6">
+  <a href="/app/translations" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
+    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Translations
+  </a>
+  <header class="space-y-1.5">
+    <p class="eyebrow">Workflow</p>
+    <h1 class="t-h1">New translation</h1>
+    <p class="text-[14px] text-graphite">Upload or pick a document, choose the pair, then start.</p>
+  </header>
+
+  <form id="translate-form" hx-post="/app/translations" hx-encoding="multipart/form-data"
+        hx-target="#estimate" hx-swap="innerHTML" class="space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <div class="t-card space-y-5 p-6">
+      <div class="flex items-center gap-2.5">
+        <span class="grid h-7 w-7 place-items-center rounded-[6px] bg-warm-cream text-[12px] font-semibold text-storyboard-blue">1</span>
+        <h2 class="t-h2 text-[16px]">Document</h2>
+      </div>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <label class="block">
+          <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Upload EPUB or PDF</span>
+          <input class="file-input w-full" type="file" name="upload" accept=".epub,.pdf">
+        </label>
+        <label class="block">
+          <span class="mb-1.5 block text-[13px] font-medium text-ink-black">…or use an existing document</span>
+          <select class="select w-full" name="document_id">
+            <option value="">—</option>
+            {% for doc in documents %}
+            <option value="{{ doc.id }}" {% if request.query_params.get('document_id') == doc.id %}selected{% endif %}>{{ doc.display_name or doc.original_filename }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="t-card space-y-5 p-6">
+      <div class="flex items-center gap-2.5">
+        <span class="grid h-7 w-7 place-items-center rounded-[6px] bg-warm-cream text-[12px] font-semibold text-storyboard-blue">2</span>
+        <h2 class="t-h2 text-[16px]">Languages</h2>
+      </div>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <label class="block">
+          <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Source language</span>
+          <select class="select w-full" name="source_language">
+            <option value="auto">Auto-detect</option>
+            {% for lang in languages %}
+            <option value="{{ lang.tag }}" data-dir="{{ lang.direction.value }}">{{ lang.native_name or lang.name }} — {{ lang.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="block">
+          <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Target language</span>
+          <select class="select w-full" name="target_language" required>
+            <option value="">Choose…</option>
+            {% for lang in languages %}
+            <option value="{{ lang.tag }}" data-dir="{{ lang.direction.value }}">{{ lang.native_name or lang.name }} — {{ lang.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="t-card space-y-5 p-6">
+      <div class="flex items-center gap-2.5">
+        <span class="grid h-7 w-7 place-items-center rounded-[6px] bg-warm-cream text-[12px] font-semibold text-storyboard-blue">3</span>
+        <h2 class="t-h2 text-[16px]">Provider &amp; quality</h2>
+      </div>
+      <div class="grid gap-5 sm:grid-cols-3">
+        <label class="block">
+          <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Provider</span>
+          <select class="select w-full" name="connection_id">
+            <option value="">Auto (Book Fork)</option>
+            {% for conn in connections %}
+            <option value="{{ conn.id }}">{{ conn.name }}{% if conn.billing_mode.value == 'own_api' %} (your API){% endif %}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="block">
+          <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Profile</span>
+          <select class="select w-full" name="profile_id">
+            <option value="">Auto</option>
+            {% for profile in profiles %}
+            <option value="{{ profile.id }}">{{ profile.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="block">
+          <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Quality</span>
+          <select class="select w-full" name="quality_mode">
+            <option value="">Auto</option>
+            <option value="best">Best</option>
+            <option value="balanced">Balanced</option>
+            <option value="economy">Economy</option>
+            <option value="fast">Fast</option>
+          </select>
+        </label>
+      </div>
+      <label class="flex items-center gap-2.5 text-[13.5px] text-graphite">
+        <input type="checkbox" class="checkbox checkbox-sm" name="persist_memory" value="1">
+        Save translations to memory for reuse
+      </label>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" class="btn gap-1.5"
+              hx-post="/app/translations/estimate" hx-target="#estimate" hx-swap="innerHTML"
+              hx-include="#translate-form">{{ icon('activity', 'h-4 w-4') }} Estimate</button>
+      <button type="submit" class="btn btn-primary gap-1.5">{{ icon('play', 'h-4 w-4') }} Start translation</button>
+    </div>
+  </form>
+
+  <div id="estimate"></div>
+</section>
+{% endblock %}

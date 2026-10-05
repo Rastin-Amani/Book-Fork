@@ -1,0 +1,51 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% from "components/status.html" import status_badge %}
+{% block title %}Translations · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div class="space-y-1.5">
+      <p class="eyebrow">Jobs</p>
+      <h1 class="t-h1">Translations</h1>
+      <p class="text-[14px] text-graphite">Every job in this workspace, newest first.</p>
+    </div>
+    <a href="/app/translations/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'h-4 w-4') }} New translation</a>
+  </header>
+
+  {% if jobs %}
+  <div class="t-card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="t-table">
+        <thead><tr><th>Pair</th><th>Status</th><th class="hidden md:table-cell">Segments</th><th class="hidden sm:table-cell">Progress</th><th></th></tr></thead>
+        <tbody>
+          {% for job in jobs %}
+          <tr>
+            <td class="whitespace-nowrap font-medium text-ink-black">{{ job.source_language or '?' }} &rarr; {{ job.target_language }}</td>
+            <td>{{ status_badge(job.status) }}</td>
+            <td class="hidden font-mono text-[12px] md:table-cell">{{ job.completed_segments or 0 }}/{{ job.total_segments or 0 }}{% if job.failed_segments %} <span class="text-error">&middot; {{ job.failed_segments }} failed</span>{% endif %}</td>
+            <td class="hidden sm:table-cell">
+              <div class="flex items-center gap-2">
+                <div class="h-1.5 w-16 overflow-hidden rounded-full bg-stone-gray sm:w-24">
+                  <div class="h-full rounded-full bg-warm-gold" style="width: {{ job.progress or 0 }}%"></div>
+                </div>
+                <span class="font-mono text-[11px] text-mid-gray">{{ '%.0f'|format(job.progress or 0) }}%</span>
+              </div>
+            </td>
+            <td class="text-right"><a href="/app/translations/{{ job.id }}" class="link whitespace-nowrap">Open</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="t-card flex flex-col items-center gap-3 px-6 py-20 text-center">
+    <span class="grid h-12 w-12 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('translate', 'h-6 w-6') }}</span>
+    <h2 class="t-h2 text-[17px]">No translations yet</h2>
+    <p class="max-w-sm text-[14px] text-graphite">Upload an EPUB or PDF and Book Fork will handle the rest.</p>
+    <a href="/app/translations/new" class="btn btn-primary">Start a translation</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

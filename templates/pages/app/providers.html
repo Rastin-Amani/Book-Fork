@@ -1,0 +1,35 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}Providers · {{ app_name }}{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div class="space-y-1.5">
+      <p class="eyebrow">Connections</p>
+      <h1 class="t-h1">Providers</h1>
+      <p class="text-[14px] text-graphite">Bring an OpenAI-compatible endpoint, or use Book Fork-managed credits.</p>
+    </div>
+    <a href="/app/providers/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'h-4 w-4') }} Add provider</a>
+  </header>
+
+  {% if connections %}
+  <div class="t-card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="t-table">
+        <thead><tr><th>Name</th><th>Base URL</th><th>Billing</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for connection in connections %}{% include "partials/provider_row.html" %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="t-card flex flex-col items-center gap-3 px-6 py-20 text-center">
+    <span class="grid h-12 w-12 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('plug', 'h-6 w-6') }}</span>
+    <h2 class="t-h2 text-[17px]">No providers yet</h2>
+    <p class="max-w-sm text-[14px] text-graphite">Add your own OpenAI-compatible endpoint, or keep using Book Fork-managed credits.</p>
+    <a href="/app/providers/new" class="btn btn-primary">Add a provider</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
