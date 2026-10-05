@@ -30,6 +30,7 @@ static/js/vendor/
 # --- editors / os ---
 .idea/
 .vscode/
+.openchamber/
 .DS_Store
 
 # --- pocketbase binary (dev convenience, not source) ---
