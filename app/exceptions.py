@@ -167,5 +167,3 @@ class UsageLimitError(BookForkError):
     status_code = 429
     code = "USAGE_LIMIT_EXCEEDED"
     message = "You have reached a configured usage limit."
-
-
