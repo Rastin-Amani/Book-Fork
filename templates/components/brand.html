@@ -1,0 +1,6 @@
+{% macro brand(href='/', dark=false, size='md') %}
+<a href="{{ href }}" class="group inline-flex items-center gap-2.5" aria-label="Book Fork — home">
+  <span class="grid place-items-center rounded-[6px] {{ 'bg-pure-white text-ink-black' if dark else 'bg-ink-black text-warm-gold' }} {{ 'h-6 w-6 text-[13px]' if size == 'sm' else 'h-7 w-7 text-[15px]' }} font-bold leading-none transition-transform group-hover:-rotate-3">T</span>
+  <span class="font-bold tracking-[-0.01em] {{ 'text-[15px]' if size == 'sm' else 'text-[17px]' }} {{ 'text-pure-white' if dark else 'text-ink-black' }}">Book Fork</span>
+</a>
+{% endmacro %}

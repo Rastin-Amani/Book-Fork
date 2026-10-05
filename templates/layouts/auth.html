@@ -1,0 +1,51 @@
+{% from "components/brand.html" import brand with context %}
+{% from "components/icons.html" import icon %}
+{% if is_htmx %}<main id="app-content">{{ self.content() }}</main>{% else %}
+<!doctype html>
+<html lang="{{ html_lang }}" dir="{{ html_dir }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/js/vendor/htmx.min.js" defer></script>
+  <script src="/static/js/vendor/alpine.min.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+</head>
+<body class="min-h-screen bg-warm-cream font-sans text-ink-black antialiased">
+  <div class="mx-auto grid min-h-screen max-w-[1200px] lg:grid-cols-[1.05fr_minmax(400px,460px)]">
+    <aside class="hidden flex-col justify-between border-r border-pebble-border p-12 lg:flex">
+      <div>{{ brand('/') }}</div>
+      <div class="max-w-md space-y-5">
+        <p class="eyebrow">Document translation</p>
+        <h2 class="text-[34px] font-semibold leading-[1.15] tracking-[-0.02em]">
+          Any document,<br>between any two languages.
+        </h2>
+        <p class="text-[15px] leading-relaxed text-graphite">
+          Upload an EPUB or PDF, pick your pair, and let a configurable LLM pipeline translate it end to end — with your own key or Book Fork credits.
+        </p>
+        <ul class="space-y-2.5 pt-2 text-[14px] text-graphite">
+          <li class="flex items-center gap-2.5">{{ icon('check', 'h-4 w-4 text-storyboard-blue') }} EPUB and PDF, in and out</li>
+          <li class="flex items-center gap-2.5">{{ icon('check', 'h-4 w-4 text-storyboard-blue') }} Bring your own OpenAI-compatible model</li>
+          <li class="flex items-center gap-2.5">{{ icon('check', 'h-4 w-4 text-storyboard-blue') }} Resumable, glossary-aware, provider-agnostic</li>
+        </ul>
+      </div>
+      <p class="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-ash">Book Fork / translation studio</p>
+    </aside>
+
+    <main class="flex flex-col justify-center px-5 py-10 sm:px-10">
+      <div class="mx-auto mb-8 lg:hidden">{{ brand('/') }}</div>
+      <div class="t-card t-float mx-auto w-full max-w-[440px] p-6 sm:p-8">
+        {% block content %}{% endblock %}
+      </div>
+      <p class="mx-auto mt-6 max-w-[440px] text-center text-[12.5px] leading-relaxed text-mid-gray">
+        Secure sessions, encrypted provider keys, and a flat workspace you can actually read.
+      </p>
+    </main>
+  </div>
+  <div id="global-toast-root">{% include "components/toast.html" %}</div>
+</body>
+</html>
+{% endif %}

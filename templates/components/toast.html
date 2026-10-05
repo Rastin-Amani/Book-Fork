@@ -1,0 +1,19 @@
+<div id="toast-root"
+     x-data="{
+       toast: null,
+       show(event) { this.toast = event.detail; clearTimeout(this._t); this._t = setTimeout(() => this.toast = null, 4200); }
+     }"
+     @show-toast.window="show($event)"
+     class="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4 sm:items-end sm:pr-6"
+     aria-live="polite">
+  <template x-if="toast">
+    <div class="pointer-events-auto t-card t-float flex w-full max-w-[380px] items-start gap-3 px-4 py-3">
+      <span class="mt-[3px] h-2 w-2 shrink-0 rounded-full"
+            :class="toast.type === 'error' ? 'bg-deep-amber' : 'bg-storyboard-blue'"></span>
+      <p class="text-[13.5px] leading-snug text-ink-black" x-text="toast.message"></p>
+      <button type="button" @click="toast = null" class="ml-auto -mr-1 -mt-0.5 rounded p-1 text-mid-gray hover:text-ink-black" aria-label="Dismiss">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </template>
+</div>
