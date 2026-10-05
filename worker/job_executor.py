@@ -34,7 +34,7 @@ from app.documents.model import CanonicalDocument
 from app.documents.safety import safe_temp_dir, sha256_bytes
 from app.documents.segmentation.base import SegmentationConfig, SegmentationStrategy
 from app.documents.service import DocumentEngine
-from app.exceptions import ConfigurationError, BookForkError
+from app.exceptions import BookForkError, ConfigurationError
 from app.jobs.config import WorkerSettings
 from app.jobs.retry import RetryService
 from app.jobs.store import JobStore
