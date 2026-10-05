@@ -1,0 +1,152 @@
+[project]
+name = "book-fork"
+version = "0.1.0"
+description = "Book Fork — configuration-driven multilingual document translation SaaS."
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+authors = [{ name = "Book Fork" }]
+
+# Version floors are the latest stable releases verified at implementation time
+# (see docs/decisions/0001-stack-and-versions.md). uv.lock pins the exact resolved
+# versions. All packages below support Python >= 3.10 (thus 3.14) at those versions.
+dependencies = [
+    "fastapi>=0.142.2",
+    "uvicorn[standard]>=0.54.0",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "jinja2>=3.1.6",
+    "httpx>=0.28.1",
+    "anyio>=4.15.1",
+    "tenacity>=9.1.4",
+    "structlog>=26.1.0",
+    "python-multipart>=0.0.32",
+    "itsdangerous>=2.2.0",
+    "cryptography>=50.0.2",
+    "email-validator>=2.3.0",
+    "boto3>=1.43.108",
+    "langcodes>=3.5.1",
+    "language-data>=1.4.0",
+    "Babel>=2.18.0",
+    "py3langid>=0.4.0",
+    "pymupdf>=1.28.2",
+    "lxml>=6.1.3",
+    "pysbd>=0.3.4",
+]
+
+[project.optional-dependencies]
+# Production PDF rendering. Requires system libraries (pango/cairo/gdk-pixbuf);
+# the default "html" render backend needs none of them.
+pdf = ["weasyprint>=70.0"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.10",
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app", "worker"]
+
+[tool.uv]
+package = true
+
+# ---------------------------------------------------------------------------
+# Ruff
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+src = ["app", "worker", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # flake8-bugbear
+    "UP",       # pyupgrade
+    "S",        # flake8-bandit (security)
+    "T20",      # flake8-print
+    "SIM",      # flake8-simplify
+    "RUF",      # ruff-specific
+    "ASYNC",    # flake8-async
+]
+ignore = [
+    "S101",    # assert is allowed in tests and internal invariants
+    "B008",    # FastAPI uses function calls (Depends) in defaults by design
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "T20"]
+"scripts/**" = ["T20"]
+# Placeholder tokens are private-use unicode sentinels, not secrets.
+"app/documents/placeholders.py" = ["S105", "S107"]
+# Event-name constants (e.g. "password_reset_requested") are not secrets.
+"app/observability/events.py" = ["S105"]
+
+# ---------------------------------------------------------------------------
+# mypy
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.14"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_reexport = true
+pretty = true
+plugins = ["pydantic.mypy"]
+exclude = ["^(static|templates|\\.venv)/"]
+
+[[tool.mypy.overrides]]
+module = ["boto3.*", "botocore.*", "py3langid.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pymupdf", "pymupdf.*"]
+ignore_missing_imports = true
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+module = ["lxml", "lxml.*", "pysbd", "pysbd.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["weasyprint", "weasyprint.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Adapter glue around untyped third-party XML/PDF libraries.
+module = ["app.documents.epub.*", "app.documents.pdf.*", "app.documents.book.*", "app.documents.segmentation.*"]
+disallow_untyped_calls = false
+disallow_any_generics = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+warn_return_any = false
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-q"
+filterwarnings = [
+    "error",
+    # Starlette 1.7 deprecates httpx inside its TestClient (test tooling only;
+    # the application runtime uses httpx directly).
+    "ignore::starlette.exceptions.StarletteDeprecationWarning",
+    # pysbd emits SyntaxWarnings for its own regex literals at import time.
+    "ignore::SyntaxWarning",
+]
