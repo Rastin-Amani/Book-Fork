@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <rect width="256" height="256" fill="#fafaf5"/>
+  <g fill="#121212">
+    <!-- three page-tines -->
+    <rect x="76" y="44" width="26" height="86" rx="13"/>
+    <rect x="115" y="44" width="26" height="86" rx="13"/>
+    <rect x="154" y="44" width="26" height="86" rx="13"/>
+    <!-- book body -->
+    <rect x="72" y="118" width="112" height="98" rx="8"/>
+  </g>
+  <!-- spine hinge -->
+  <rect x="84" y="126" width="4" height="82" fill="#fafaf5"/>
+</svg>
