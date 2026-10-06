@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 256" width="660" height="256">
+  <g transform="translate(20,34) scale(0.74)">
+    <rect x="116" y="132" width="24" height="86" rx="12" fill="#121212"/>
+    <rect x="116" y="48" width="24" height="104" rx="12" transform="rotate(-30 128 132)" fill="#121212"/>
+    <rect x="116" y="48" width="24" height="104" rx="12" transform="rotate(30 128 132)" fill="#121212"/>
+  </g>
+  <text x="240" y="158" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="76" font-weight="700" letter-spacing="-2" fill="#121212">Book Fork</text>
+</svg>
