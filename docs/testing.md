@@ -20,7 +20,7 @@ uv run pytest -k billing # by keyword
 — warnings fail the suite except two documented ignores (Starlette's TestClient
 deprecation and pysbd's import-time `SyntaxWarning`).
 
-Current size: **60 unit test modules** and **4 integration modules** (~323 test
+Current size: **61 unit test modules** and **4 integration modules** (~415 test
 functions).
 
 ## 2. Hermetic by design
@@ -44,7 +44,8 @@ the real routes, middleware, CSRF and HTMX rendering against fakes.
 Focused, dependency-light tests of a single module or service. Groups include:
 
 - **Config & auth:** `test_config`, `test_crypto`, `test_csrf`,
-  `test_ratelimit`, `test_security_headers`, `test_urls`, `test_ssrf_matrix`.
+  `test_ratelimit`, `test_security_headers`, `test_urls`, `test_ssrf_matrix`,
+  `test_configure_auth`.
 - **Repositories & PocketBase:** `test_repositories`, `test_pocketbase_client`,
   `test_push_schema`, `test_storage`, `test_storage_download`.
 - **Documents:** `test_document_engine`, `test_document_model`,
