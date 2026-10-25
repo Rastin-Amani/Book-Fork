@@ -7,6 +7,7 @@ collection fields, so mapping is a direct validation.
 
 from __future__ import annotations
 
+import asyncio
 import builtins
 from collections.abc import Mapping
 from functools import cache
@@ -16,6 +17,11 @@ from pydantic import BaseModel
 
 from app.repositories.pocketbase import PocketBaseClient
 from app.schemas.pocketbase import PocketBaseRecord
+
+# Upper bound on concurrent PocketBase page fetches for ``list_all``. Keeps a
+# huge collection from opening a socket per page while still collapsing the
+# serial round-trip-per-page cost.
+_LIST_ALL_CONCURRENCY = 5
 
 
 def escape_filter_value(value: str) -> str:
@@ -118,22 +124,42 @@ class PocketBaseRepository[M: BaseModel]:
         ``list`` silently returns only the first page (100 by default); any
         caller that must see *all* rows (segments of a large book, attempts,
         events) has to page explicitly.
+
+        Page 1 reveals ``totalPages``; the remainder are fetched concurrently
+        (bounded) so a 1500-segment book costs two round trips instead of
+        three. Bounded so a huge collection cannot open unbounded sockets.
         """
-        results: builtins.list[M] = []
-        page = 1
-        while True:
-            result = await self._client.list_records(
-                self.collection,
-                token=token or self._token,
-                filter=filter,
-                page=page,
-                per_page=per_page,
-                sort=sort,
-            )
-            results.extend(self._to_model(item) for item in result.items)
-            if page >= result.totalPages or not result.items:
-                break
-            page += 1
+        effective_token = token or self._token
+        first = await self._client.list_records(
+            self.collection,
+            token=effective_token,
+            filter=filter,
+            page=1,
+            per_page=per_page,
+            sort=sort,
+        )
+        results: builtins.list[M] = [self._to_model(item) for item in first.items]
+        extra_pages = range(2, first.totalPages + 1) if first.items else ()
+        if not extra_pages:
+            return results
+
+        semaphore = asyncio.Semaphore(_LIST_ALL_CONCURRENCY)
+
+        async def _fetch_page(page: int) -> tuple[int, list[M]]:
+            async with semaphore:
+                result = await self._client.list_records(
+                    self.collection,
+                    token=effective_token,
+                    filter=filter,
+                    page=page,
+                    per_page=per_page,
+                    sort=sort,
+                )
+            return page, [self._to_model(item) for item in result.items]
+
+        batches = await asyncio.gather(*(_fetch_page(page) for page in extra_pages))
+        for _, items in sorted(batches):
+            results.extend(items)
         return results
 
     async def first(

@@ -68,6 +68,10 @@ async def test_list_all_pages_past_the_per_request_cap(pb, fake_pb) -> None:
     everything = await repo.list_all(per_page=2)
     assert sorted(item.language_code for item in everything) == ["x0", "x1", "x2", "x3", "x4"]
 
+    # Parallel page fetches must still be concatenated in page order.
+    ordered = await repo.list_all(per_page=2, sort="language_code")
+    assert [item.language_code for item in ordered] == ["x0", "x1", "x2", "x3", "x4"]
+
 
 def test_empty_string_unset_fields_become_defaults() -> None:
     # PocketBase serializes unset fields as "" (not null). Unset dates must not
