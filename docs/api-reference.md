@@ -34,7 +34,7 @@
 
 | Method | Path | Returns |
 | --- | --- | --- |
-| GET | `/` | Landing page (redirects nothing; shows app if signed in). |
+| GET | `/` | Redirects to `/app` when signed in, otherwise `/login`. |
 | GET | `/login` | Single sign-in/sign-up page (Google/GitHub); redirects to `/app` when already signed in. |
 | GET | `/signup` | Redirects to `/login` — the OAuth page creates the account on first use. |
 | GET | `/dashboard` | Redirects to `/app` (signed in) or `/login`. |
