@@ -48,7 +48,7 @@ limits, retention, rate-limit-adjacent thresholds) lives in PocketBase.
 
 ## Reverse proxy & HTTPS
 
-- `APP_URL` / `ROOT_PATH` describe the external URL and optional sub-path.
+- `APP_BASE_URL` / `ROOT_PATH` describe the external URL and optional sub-path.
 - `TRUSTED_HOSTS` restricts accepted `Host` headers.
 - `COOKIE_SECURE` must be true in production (enforced by settings validation).
 - `FORWARDED_ALLOW_IPS` lists proxies whose `X-Forwarded-*` headers are trusted;
