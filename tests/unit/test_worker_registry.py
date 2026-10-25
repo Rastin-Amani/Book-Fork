@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from app.observability.metrics import metrics
 from app.repositories.workers import WorkerRepository
+from app.version import __version__
 from fastapi.testclient import TestClient
 from worker.heartbeat import WorkerRegistry
 
 
 async def test_worker_register_beat_offline(pb, fake_pb) -> None:
     repository = WorkerRepository(pb)
-    registry = WorkerRegistry(repository, worker_id="w1", version="0.1.0")
+    registry = WorkerRegistry(repository, worker_id="w1", version=__version__)
     await registry.register()
     record = await repository.get_by_worker_id("w1")
     assert record is not None

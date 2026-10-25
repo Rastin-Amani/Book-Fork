@@ -1,8 +1,59 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.1.0** and is described below as delivered phases. Dates
+current release is **0.2.0** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.2.0] — 2026-10-25
+
+**Status: flat per-book pricing and document-quality release.** Managed
+translation is sold as one flat-priced book order instead of token credits, and
+PDF/EPUB output handles structured RTL books correctly.
+
+### Billing
+
+- Replaced token credits and the customer wallet with a flat managed-book price:
+  **$7 per book up to 1,000 pages**, plus $7 per additional 1,000-page block.
+- Own-API connections are free; provider cost is still recorded internally for
+  margin monitoring.
+- Each managed job snapshots its order (pages, blocks, amount, currency) on the
+  job; failed and cancelled jobs are not charged.
+- The billing page lists book orders; payment collection is reconciled outside
+  the app.
+- Removed credit reservation/settlement from the worker and wallet
+  administration from the admin area.
+
+### Documents
+
+- Detect and strip PDF list markers (Latin and Arabic-Indic) and remember
+  ordered/unordered style.
+- Render list items with correct RTL placement in PDF and as real `ul`/`ol`
+  elements in EPUB.
+- Make covers, running heads, contents titles and contents-page page numbers
+  direction-aware.
+- Turn contents rows into reliable internal links, bound and deduplicate the
+  menu, and keep headings from being orphaned at a page bottom.
+- Split font-size chapter titles from weight-only subheads so every bold line no
+  longer starts a page.
+
+### Web & operations
+
+- Root now redirects to the workspace (`/app`) or login instead of a marketing
+  page.
+- Server-rendered release version in both shells, API metadata and worker
+  registration.
+- Removed redundant job-page reads and parallelised settings, policy and paged
+  repository lookups.
+- New Book Fork mark, favicon set, Apple touch icon and web manifest.
+
+### Known limitations at 0.2.0
+
+- Only the `openai_compatible` and `ollama` provider protocols have adapters.
+- No self-service card checkout; book orders are reconciled externally.
+- EPUB and PDF only; ingestion does not accept the `txt`/`docx` extensions listed
+  in the seed settings.
+- Glossary attachment is not exposed in the UI and memory approval is admin-only.
+- Per-process rate limiting and metrics are not shared across replicas.
 
 ## [0.1.0] — 2026-10-05
 
@@ -75,6 +126,9 @@ provider-agnostic multilingual document-translation service.
 
 - EPUB and PDF only (the seeded `upload.allowed_extensions` also lists `txt` and
   `docx`, which ingestion does not accept).
+- Only the `openai_compatible` and `ollama` provider protocols have adapters;
+  the seeded Anthropic, Google Gemini and Custom endpoint records are stubs and
+  return `unsupported_protocol` until an adapter is added.
 - Glossary attachment to a job/profile is not exposed in the UI.
 - Translation-memory approval is admin-only.
 - No self-service credit purchase.
