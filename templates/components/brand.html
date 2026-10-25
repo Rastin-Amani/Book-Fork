@@ -1,6 +1,10 @@
 {% macro brand(href='/', dark=false, size='md') %}
 <a href="{{ href }}" class="group inline-flex items-center gap-2.5" aria-label="Book Fork — home">
-  <span class="grid place-items-center rounded-[6px] {{ 'bg-pure-white text-ink-black' if dark else 'bg-ink-black text-warm-gold' }} {{ 'h-6 w-6 text-[13px]' if size == 'sm' else 'h-7 w-7 text-[15px]' }} font-bold leading-none transition-transform group-hover:-rotate-3">T</span>
+  <span class="grid place-items-center rounded-[6px] {{ 'bg-pure-white text-ink-black' if dark else 'bg-ink-black text-warm-gold' }} {{ 'h-6 w-6' if size == 'sm' else 'h-7 w-7' }} transition-transform group-hover:-rotate-3">
+    <svg viewBox="3 3 26 26" class="{{ 'h-3.5 w-3.5' if size == 'sm' else 'h-4 w-4' }}" fill="currentColor" aria-hidden="true">
+      <path d="M5,4 H10 V15.25 A1.75,1.75 0 0 0 13.5,15.25 V4 H18.5 V15.25 A1.75,1.75 0 0 0 22,15.25 V4 H27 V26 Q27,28 25,28 H7 Q5,28 5,26 Z"/>
+    </svg>
+  </span>
   <span class="font-bold tracking-[-0.01em] {{ 'text-[15px]' if size == 'sm' else 'text-[17px]' }} {{ 'text-pure-white' if dark else 'text-ink-black' }}">Book Fork</span>
 </a>
 {% endmacro %}
