@@ -37,12 +37,6 @@ PROVIDER_ERROR = "provider_error"
 PROVIDER_RETRY = "provider_retry"
 PROVIDER_CONNECTION_TESTED = "provider_connection_tested"
 
-# Billing
-CREDIT_RESERVED = "credit_reserved"
-CREDIT_CONSUMED = "credit_consumed"
-CREDIT_REFUNDED = "credit_refunded"
-CREDIT_ADJUSTED = "credit_adjusted"
-
 # Retention / operations
 RETENTION_SWEEP = "retention_sweep"
 

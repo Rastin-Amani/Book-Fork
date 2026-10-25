@@ -1,4 +1,4 @@
-"""Admin area: authorization, declarative CRUD, prompt and credit operations."""
+"""Admin area: authorization, declarative CRUD, and prompt operations."""
 
 from __future__ import annotations
 
@@ -136,28 +136,3 @@ def test_prompt_version_activation(tmp_path: Any, fake_pb: Any) -> None:
         assert response.headers["HX-Redirect"] == "/admin/prompt-versions"
         assert fake_pb.collections["prompt_versions"][v1["id"]]["status"] == "archived"
         assert fake_pb.collections["prompt_versions"][v2["id"]]["status"] == "active"
-
-
-def test_credit_adjustment_writes_ledger(tmp_path: Any, fake_pb: Any) -> None:
-    app = _admin_app(tmp_path)
-    with TestClient(app) as client:
-        _seed_admin(fake_pb)
-        workspace = fake_pb.seed("workspaces", {"name": "W", "slug": "w", "owner": "u1"})
-        wallet = fake_pb.seed(
-            "credit_wallets",
-            {"workspace": workspace["id"], "balance": 0.0, "currency": "credits"},
-        )
-        _login(client, app, fake_pb)
-        headers = _csrf(client)
-
-        response = client.post(
-            f"/admin/credit-wallets/{wallet['id']}/adjust",
-            data={"amount": "10", "kind": "grant", "reason": "Goodwill"},
-            headers=headers,
-        )
-        assert response.headers["HX-Redirect"].endswith("/ledger")
-        assert fake_pb.collections["credit_wallets"][wallet["id"]]["balance"] == 10.0
-        transactions = list(fake_pb.collections.get("credit_transactions", {}).values())
-        assert len(transactions) == 1
-        assert transactions[0]["amount"] == 10.0
-        assert transactions[0]["reference"].endswith(":grant")

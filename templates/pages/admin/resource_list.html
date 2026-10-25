@@ -37,7 +37,6 @@
                 <form hx-post="/admin/prompt-versions/{{ row.record.id }}/activate" hx-swap="none"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-ghost btn-xs">Activate</button></form>
                 <form hx-post="/admin/prompt-versions/{{ row.record.id }}/archive" hx-swap="none"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-ghost btn-xs">Archive</button></form>
                 {% endif %}
-                {% if resource.slug == 'credit-wallets' %}<a class="btn btn-ghost btn-xs" href="/admin/credit-wallets/{{ row.record.id }}/ledger">Ledger</a>{% endif %}
                 {% if resource.can_delete %}
                 <button class="btn btn-ghost btn-xs text-mid-gray hover:text-error" hx-post="/admin/{{ resource.slug }}/{{ row.record.id }}/delete" hx-confirm="Delete this record?" hx-target="#row-{{ row.record.id }}" hx-swap="outerHTML">Delete</button>
                 {% endif %}

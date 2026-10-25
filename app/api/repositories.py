@@ -8,11 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.repositories.billing import (
-    CreditTransactionRepository,
-    CreditWalletRepository,
-    UsageEventRepository,
-)
 from app.repositories.documents import DocumentRepository, DocumentSectionRepository
 from app.repositories.knowledge import (
     GlossaryRepository,
@@ -60,9 +55,6 @@ class Repositories:
     glossaries: GlossaryRepository
     glossary_terms: GlossaryTermRepository
     memory: TranslationMemoryRepository
-    wallets: CreditWalletRepository
-    transactions: CreditTransactionRepository
-    usage_events: UsageEventRepository
     languages: LanguageRepository
     language_variants: LanguageVariantRepository
     settings: SystemSettingRepository
@@ -91,9 +83,6 @@ def build_repositories(client: PocketBaseClient, *, token: str | None) -> Reposi
         glossaries=GlossaryRepository(client, token=token),
         glossary_terms=GlossaryTermRepository(client, token=token),
         memory=TranslationMemoryRepository(client, token=token),
-        wallets=CreditWalletRepository(client, token=token),
-        transactions=CreditTransactionRepository(client, token=token),
-        usage_events=UsageEventRepository(client, token=token),
         languages=LanguageRepository(client, token=token),
         language_variants=LanguageVariantRepository(client, token=token),
         settings=SystemSettingRepository(client, token=token),

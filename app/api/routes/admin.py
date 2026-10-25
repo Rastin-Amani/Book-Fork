@@ -1,4 +1,4 @@
-"""Administrative area (declarative CRUD + prompt/credit operations).
+"""Administrative area (declarative CRUD + prompt operations).
 
 Access is gated by :func:`require_admin` and every query runs with the superuser
 service token so admins can inspect all workspaces. UI visibility is never the
@@ -23,7 +23,6 @@ from app.admin.registry import (
 )
 from app.api.dependencies import AdminReposDep, AdminUser, CsrfProtected
 from app.api.repositories import Repositories
-from app.billing.ledger import CreditLedger
 from app.exceptions import NotFoundError, ValidationError
 from app.observability.metrics import metrics
 from app.schemas.prompts import PromptStatus
@@ -382,53 +381,6 @@ async def create_prompt_version(
         }
     )
     return _redirect("/admin/prompt-templates")
-
-
-# -- credit administration --------------------------------------------------
-@router.get("/credit-wallets/{wallet_id}/ledger")
-async def wallet_ledger(
-    request: Request, wallet_id: str, admin: AdminUser, repos: AdminReposDep
-) -> Response:
-    wallet = await repos.wallets.get(wallet_id)
-    transactions = await repos.transactions.list_for_wallet(wallet.id)
-    usage = await repos.usage_events.list(
-        filter=f'workspace = "{wallet.workspace}"', sort="-created", per_page=100
-    )
-    return render(
-        request,
-        "pages/admin/wallet_ledger.html",
-        {"wallet": wallet, "transactions": transactions, "usage": usage},
-    )
-
-
-@router.post("/credit-wallets/{wallet_id}/adjust")
-async def adjust_wallet(
-    request: Request,
-    wallet_id: str,
-    admin: AdminUser,
-    repos: AdminReposDep,
-    amount: Annotated[float, Form()],
-    _csrf: CsrfProtected = None,
-    reason: Annotated[str, Form()] = "Manual adjustment",
-    kind: Annotated[str, Form()] = "adjustment",
-) -> Response:
-    wallet = await repos.wallets.get(wallet_id)
-    ledger = CreditLedger(repos.wallets, repos.transactions, currency=wallet.currency)
-    if kind == "grant":
-        await ledger.adjust(
-            wallet.workspace, abs(amount), reference=f"admin:{wallet.id}:grant", reason=reason
-        )
-    elif kind == "remove":
-        await ledger.adjust(
-            wallet.workspace, -abs(amount), reference=f"admin:{wallet.id}:remove", reason=reason
-        )
-    elif kind == "refund":
-        await ledger.refund(wallet.workspace, amount, reference=f"admin:{wallet.id}:refund")
-    else:
-        await ledger.adjust(
-            wallet.workspace, amount, reference=f"admin:{wallet.id}:adjustment", reason=reason
-        )
-    return _redirect(f"/admin/credit-wallets/{wallet.id}/ledger")
 
 
 def _require(slug: str) -> AdminResource:

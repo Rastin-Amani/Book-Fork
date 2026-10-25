@@ -157,12 +157,6 @@ class OutputGenerationFailedError(BookForkError):
     message = "The translated document could not be generated."
 
 
-class InsufficientCreditsError(BookForkError):
-    status_code = 402
-    code = "INSUFFICIENT_CREDITS"
-    message = "There are not enough credits to perform this action."
-
-
 class UsageLimitError(BookForkError):
     status_code = 429
     code = "USAGE_LIMIT_EXCEEDED"
