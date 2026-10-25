@@ -7,6 +7,7 @@ model capabilities — never from scattered ``if/elif`` checks in job code.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
@@ -97,7 +98,18 @@ class TranslationPolicyService:
 
     async def resolve(self, request: TranslationPolicyRequest) -> ResolvedTranslationPolicy:
         reasons: list[str] = []
-        profile = await self._select_profile(request)
+        # Profile, connection and capability lookups are mutually independent;
+        # fetch them together rather than paying three serial round trips to the
+        # (often remote) PocketBase.
+        profile, connection, capabilities = await asyncio.gather(
+            self._select_profile(request),
+            self._select_connection(request),
+            self._capabilities.list_for_pair(
+                request.source_language, request.target_language, token=self._token
+            ),
+        )
+        connection_id, provider_id, billing_mode = connection
+
         quality_mode = (
             request.quality_mode
             or (profile.quality_mode if profile else None)
@@ -108,14 +120,12 @@ class TranslationPolicyService:
         elif profile:
             reasons.append("quality mode from profile")
 
-        connection_id, provider_id = await self._select_connection(request)
-        model_id = await self._select_model(request, connection_id, quality_mode)
-        prompt_template, prompt_version = await self._select_prompt(profile)
-
-        billing_mode = "managed"
-        if connection_id:
-            connection = await self._connections.get(connection_id, token=self._token)
-            billing_mode = connection.billing_mode.value
+        # Model and prompt resolution both depend only on the first stage and
+        # are independent of each other.
+        model_id, (prompt_template, prompt_version) = await asyncio.gather(
+            self._select_model(request, connection_id, quality_mode, capabilities),
+            self._select_prompt(profile),
+        )
 
         return ResolvedTranslationPolicy(
             quality_mode=quality_mode,
@@ -159,35 +169,41 @@ class TranslationPolicyService:
 
     async def _select_connection(
         self, request: TranslationPolicyRequest
-    ) -> tuple[str | None, str | None]:
+    ) -> tuple[str | None, str | None, str]:
+        """Return ``(connection_id, provider_id, billing_mode)``.
+
+        The billing mode travels with the connection so ``resolve`` does not
+        have to re-fetch the record it just read.
+        """
         if request.preferred_connection_id:
             connection = await self._connections.get(
                 request.preferred_connection_id, token=self._token
             )
-            return connection.id, connection.provider
+            return connection.id, connection.provider, connection.billing_mode.value
         if request.workspace_id:
             connections = await self._connections.list_for_workspace(
                 request.workspace_id, token=self._token
             )
             enabled = [c for c in connections if c.enabled]
             if enabled:
-                return enabled[0].id, enabled[0].provider
-        return None, None
+                return enabled[0].id, enabled[0].provider, enabled[0].billing_mode.value
+        return None, None, "managed"
 
     async def _select_model(
         self,
         request: TranslationPolicyRequest,
         connection_id: str | None,
         quality_mode: QualityMode,
+        capabilities: Any,
     ) -> str | None:
-        capabilities = await self._capabilities.list_for_pair(
-            request.source_language, request.target_language, token=self._token
-        )
         supported = [c for c in capabilities if c.supported]
         if supported:
+            # Model records are independent of each other; fetch in parallel.
+            models = await asyncio.gather(
+                *(self._models.get(capability.model, token=self._token) for capability in supported)
+            )
             scored: list[tuple[float, str]] = []
-            for capability in supported:
-                model = await self._models.get(capability.model, token=self._token)
+            for capability, model in zip(supported, models, strict=True):
                 if not model.enabled:
                     continue
                 quality = capability.quality_score or model.quality_score or 0.0

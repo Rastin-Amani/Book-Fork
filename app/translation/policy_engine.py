@@ -9,12 +9,13 @@ decisions are made — the worker never contains them.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
 from typing import Any
 
 from app.billing.estimation import estimate_from_texts
-from app.billing.pricing import CreditPricing, ProviderPricing
+from app.billing.pricing import BookPricing, ProviderPricing
 from app.exceptions import ConfigurationError
 from app.language.models import Direction, Language
 from app.language.registry import PocketBaseLanguageRegistry
@@ -23,7 +24,6 @@ from app.repositories.providers import ProviderModelRepository
 from app.settings.service import SettingsService
 from app.translation.plan import (
     ContextPolicy,
-    CreditPolicy,
     FallbackPolicy,
     LanguageSpec,
     RetryPolicy,
@@ -31,6 +31,12 @@ from app.translation.plan import (
     UsageEstimate,
 )
 from app.translation.policy import TranslationPolicyRequest, TranslationPolicyService
+
+
+async def _none() -> None:
+    """Awaitable placeholder for a conditional concurrent fetch."""
+    return None
+
 
 # Setting keys (business defaults live in the database, not here).
 KEY_RETRY_MAX = "translation.retry.max_attempts"
@@ -41,11 +47,11 @@ KEY_CONTEXT_PREVIOUS = "translation.context.max_previous_segments"
 KEY_CONTEXT_TOKENS = "translation.context.max_context_tokens"
 KEY_GLOSSARY_TERMS = "translation.context.max_glossary_terms"
 KEY_DEFAULT_BATCH = "translation.default_batch_size"
-KEY_RESERVATION_MULTIPLIER = "billing.credit_reservation_multiplier"
 KEY_FALLBACK_STRATEGY = "translation.fallback.strategy"
 KEY_MAX_OUTPUT_TOKENS = "translation.max_output_tokens"
-KEY_CREDITS_PER_1K = "billing.credits_per_1000_tokens"
-KEY_PROVIDER_MARKUP = "billing.provider_cost_markup"
+KEY_BOOK_PRICE = "billing.book_price_usd"
+KEY_PAGES_PER_BLOCK = "billing.pages_per_block"
+KEY_WORDS_PER_PAGE = "billing.words_per_page"
 KEY_CURRENCY = "billing.default_currency"
 
 _DEFAULTS: dict[str, Any] = {
@@ -57,12 +63,12 @@ _DEFAULTS: dict[str, Any] = {
     KEY_CONTEXT_TOKENS: 2000,
     KEY_GLOSSARY_TERMS: 50,
     KEY_DEFAULT_BATCH: 20,
-    KEY_RESERVATION_MULTIPLIER: 1.2,
     KEY_FALLBACK_STRATEGY: "direct",
     KEY_MAX_OUTPUT_TOKENS: None,
-    KEY_CREDITS_PER_1K: 1.0,
-    KEY_PROVIDER_MARKUP: 0.0,
-    KEY_CURRENCY: "credits",
+    KEY_BOOK_PRICE: 7.0,
+    KEY_PAGES_PER_BLOCK: 1000,
+    KEY_WORDS_PER_PAGE: 300,
+    KEY_CURRENCY: "USD",
 }
 
 
@@ -100,8 +106,11 @@ class TranslationPolicyEngine:
     async def build_plan(
         self, request: PlanRequest, *, segments: Sequence[str] = ()
     ) -> TranslationPlan:
-        source = await self._languages.resolve(request.source_language)
-        target = await self._languages.resolve(request.target_language)
+        # Source and target resolution are independent.
+        source, target = await asyncio.gather(
+            self._languages.resolve(request.source_language),
+            self._languages.resolve(request.target_language),
+        )
         if source is None:
             raise ConfigurationError(f"Unknown source language {request.source_language!r}.")
         if target is None:
@@ -111,39 +120,38 @@ class TranslationPolicyEngine:
         if source.iso639_1 == target.iso639_1 and source.tag == target.tag:
             reasons.append("source and target languages are identical")
 
-        quality = request.quality_mode
         resolved = await self._policy.resolve(
             TranslationPolicyRequest(
                 source_language=source.iso639_1 or source.tag,
                 target_language=target.iso639_1 or target.tag,
-                quality_mode=_quality(quality),
+                quality_mode=_quality(request.quality_mode),
                 workspace_id=request.workspace_id,
                 preferred_connection_id=request.provider_connection_id,
             )
         )
         reasons.extend(resolved.reasons)
 
+        # Model and prompt-version records both depend only on the resolved
+        # policy; fetch them concurrently.
+        model, version = await asyncio.gather(
+            self._models.get(resolved.model) if resolved.model else _none(),
+            self._prompt_versions.get(resolved.prompt_version)
+            if resolved.prompt_version
+            else _none(),
+        )
         model_identifier = None
         provider_pricing = ProviderPricing()
-        if resolved.model:
-            model = await self._models.get(resolved.model)
+        if model is not None:
             model_identifier = model.model_identifier
             provider_pricing = ProviderPricing.from_model(model)
             if not model.enabled:
                 raise ConfigurationError("The selected model is disabled.")
-
-        prompt_body = None
-        if resolved.prompt_version:
-            version = await self._prompt_versions.get(resolved.prompt_version)
-            prompt_body = version.body
+        prompt_body = version.body if version is not None else None
 
         profile_snapshot = resolved.profile.model_dump(mode="json") if resolved.profile else {}
 
         context_policy = await self._build_context_policy(profile_snapshot)
         retry_policy = await self._build_retry_policy()
-        credit_policy = CreditPolicy(
-            reservation_multiplier=float(await self._setting(KEY_RESERVATION_MULTIPLIER))
-        )
         fallback = FallbackPolicy(
             strategy=str(await self._setting(KEY_FALLBACK_STRATEGY)),
         )
@@ -178,7 +186,6 @@ class TranslationPolicyEngine:
             temperature=profile_snapshot.get("temperature"),
             max_output_tokens=await self._setting(KEY_MAX_OUTPUT_TOKENS),
             retry_policy=retry_policy,
-            credit_policy=credit_policy,
             fallback=fallback,
             billing_mode=resolved.billing_mode,
             pricing=asdict(provider_pricing),
@@ -200,24 +207,28 @@ class TranslationPolicyEngine:
     ) -> UsageEstimate | None:
         if not plan_inputs:
             return None
-        credit_pricing = CreditPricing(
+        book_pricing = BookPricing(
             billing_mode=billing_mode,
-            credits_per_1000_tokens=float(await self._setting(KEY_CREDITS_PER_1K)),
-            provider_cost_markup=float(await self._setting(KEY_PROVIDER_MARKUP)),
+            price_per_book=float(await self._setting(KEY_BOOK_PRICE)),
+            pages_per_block=int(await self._setting(KEY_PAGES_PER_BLOCK)),
+            words_per_page=int(await self._setting(KEY_WORDS_PER_PAGE)),
             currency=str(await self._setting(KEY_CURRENCY)),
         )
         estimate = estimate_from_texts(
             list(plan_inputs),
             provider_pricing=provider_pricing,
-            credit_pricing=credit_pricing,
+            book_pricing=book_pricing,
         )
         return UsageEstimate(
             input_tokens=estimate.input_tokens,
             output_tokens=estimate.output_tokens,
             words=estimate.words,
             characters=estimate.characters,
+            pages=estimate.pages,
+            blocks=estimate.blocks,
+            price=estimate.price,
+            currency=estimate.currency,
             provider_cost=estimate.provider_cost,
-            credits=estimate.credits,
             estimated=True,
         )
 
