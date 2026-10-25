@@ -139,8 +139,8 @@ prefix:
   max context tokens, max glossary terms), `fallback.strategy`,
   `default_prompt_template_slug`, `default_profile_name`,
   `detection_min_confidence`.
-- **`billing.*`** — `enabled`, `credits_per_1000_tokens`, `provider_cost_markup`,
-  `credit_reservation_multiplier`, `default_currency` (non-editable).
+- **`billing.*`** — `book_price_usd`, `pages_per_block`, `words_per_page`,
+  `default_currency` (non-editable).
 - **`providers.*`** — `raw_response_retention` (default `false`).
 - **`storage.*`** — `retention_days`.
 - **`limits.*`** and **`retention.*`** — as above.
@@ -162,7 +162,7 @@ snapshots, never in the environment:
   models, capabilities;
 - temperature, token limits, chunk/batch sizes, retry counts/delays;
 - translation/system prompts, glossary and translation-memory rules;
-- pricing, credit conversion, provider costs, quality profiles;
+- per-book pricing, provider costs, quality profiles;
 - document file-size/page limits, retention, concurrency.
 
 The only exception is infrastructure secrets (above), which must not live in the

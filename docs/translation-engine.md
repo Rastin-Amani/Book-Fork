@@ -12,7 +12,7 @@ memory, normalization, validation, retries/fallback/pivot. Full detail in
 > The Python codebase provides reusable translation/document-processing
 > capabilities. Persisted configuration determines what Book Fork actually does.
 
-Consequently no language pair, vendor, model, prompt, pricing rule, credit price,
+Consequently no language pair, vendor, model, prompt, pricing rule, book price,
 direction, normalization library or chunk length is hardcoded. Jobs persist their
 plan snapshot so re-runs are deterministic and auditable. See
 [`security-audit.md`](security-audit.md) for the hardcoding audit.

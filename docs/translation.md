@@ -29,7 +29,7 @@ settings. `plan.snapshot()` yields a JSON-serializable, reproducible record.
 
 `TranslationPolicyEngine.build_plan(PlanRequest)` validates both languages,
 resolves the profile/connection/model (via model capabilities), selects the
-active prompt version, and reads retry/context/credit/fallback defaults from
+active prompt version, and reads retry/context/pricing/fallback defaults from
 **system settings** (never Python constants). Model routing is capability-driven:
 a model may be strong for German→Japanese and weak for Japanese→Persian. There is
 no `if source == "de" and target == "ja"`.

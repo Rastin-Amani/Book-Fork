@@ -112,9 +112,10 @@ startup via `app/jobs/config.py`:
 | `worker.heartbeat_seconds` | 30 | Lease refresh interval. |
 | `worker.retry.*` | 3 attempts, 1 s→30 s, ×2, 0.2 jitter | Segment retry policy. |
 | `worker.context_repair.enabled` | true | Shrink context/batch on `context_too_large`. |
-| `billing.enabled` | true | Whether credit reservation/settlement runs. |
-| `billing.credits_per_1000_tokens` | 1.0 | Credit price per 1k tokens. |
-| `billing.provider_cost_markup` | 0.0 | Credits per unit of provider cost. |
+| `billing.book_price_usd` | 7.0 | Flat price per managed book block. |
+| `billing.pages_per_block` | 1000 | Pages covered by one block. |
+| `billing.words_per_page` | 300 | Page estimate factor. |
+| `billing.default_currency` | USD | Order currency (non-editable). |
 
 ---
 
@@ -125,7 +126,7 @@ startup via `app/jobs/config.py`:
   limitation) — use sticky limits at the proxy for strict enforcement.
 - **Workers:** safe to run several. Each claims with a unique `worker_id` and a
   lease; a stale lease is recovered and requeued without duplicating segments or
-  credits. Bound total provider load with `worker.maximum_provider_concurrency`
+  book orders. Bound total provider load with `worker.maximum_provider_concurrency`
   per worker.
 - **PocketBase:** the single data authority; scale it per PocketBase's own
   guidance.
@@ -206,9 +207,8 @@ change a job's resolved configuration.
 ### Worker crash mid-job
 
 - The lease expires after `worker.lease_seconds`; `recover_stale()` requeues the
-  job. Already-validated segments are skipped, the credit reservation is
-  reference-guarded (`job:<id>:reserve`), and output goes to a deterministic key
-  — so recovery does not double-charge or duplicate work.
+  job. Already-validated segments are skipped, the book order lives on the job,
+  and output goes to a deterministic key — so recovery does not duplicate work.
 
 ### PocketBase unavailable
 

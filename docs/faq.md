@@ -38,18 +38,21 @@ direction (LTR/RTL) and script are derived from CLDR data. See
 
 **Do I have to use Book Fork's own AI?**
 
-No. Use **Book Fork-managed** connections (spend credits) or connect **your own**
-OpenAI-compatible endpoint (billed by your provider, zero Book Fork credits).
-The mode is a per-connection setting.
+No. Use a **Book Fork-managed** connection ($7 per book) or connect **your own**
+OpenAI-compatible endpoint (free from Book Fork; your provider bills you). The
+mode is a per-connection setting.
 
 ---
 
 **Which providers can I connect?**
 
-Any OpenAI-compatible chat-completions endpoint. The seed catalog also lists
-Anthropic, Google Gemini, Ollama (self-hosted) and Custom endpoint records; the
-generic adapter covers OpenAI-compatible gateways, Ollama, vLLM and similar.
-Adding a distinct protocol later is one adapter — the engine is untouched.
+Any OpenAI-compatible chat-completions endpoint, plus Ollama (self-hosted) —
+these are the only protocols with an adapter today. The seed catalog also lists
+Anthropic, Google Gemini and Custom endpoint records, but selecting them returns
+`unsupported_protocol` until an adapter is written; a vendor reachable through
+an OpenAI-compatible gateway can be used via the OpenAI-compatible protocol. The
+generic adapter also covers vLLM and similar gateways. Adding a distinct
+protocol later is one adapter — the engine is untouched.
 
 ---
 
@@ -95,25 +98,27 @@ terms.
 
 **Do I get charged for reused translations?**
 
-Reusing an **approved** translation-memory entry makes no provider call and costs
-no credits. New pairs are stored but not auto-approved; only approved entries are
-reused, and always per exact language pair.
+Reusing an **approved** translation-memory entry makes no provider call, so it
+adds no cost. New pairs are stored but not auto-approved; only approved entries
+are reused, and always per exact language pair.
 
 ---
 
-**How do credits work?**
+**How does billing work?**
 
-Managed jobs estimate → **reserve** → translate → **settle** (charge actual) →
-**refund** unused. The ledger is append-only and reference-guarded
-(`job:<id>:reserve`), so a crash cannot double-charge. Own-API jobs cost zero
-Book Fork credits. See [Billing & credits](billing.md).
+A managed job is one book order: **$7 flat, up to 1,000 pages**, and +$7 for each
+extra 1,000-page block. The estimate is based on page count, never tokens, and is
+shown before you start. Failed or cancelled jobs are not charged. The billing
+page lists every order; payment is reconciled outside the app. See
+[Billing](billing.md).
 
 ---
 
-**Can I buy credits in the app?**
+**Can I pay in the app?**
 
-Not currently. Purchasing/crediting is an administrative action
-(`/admin/credit-wallets/{id}/adjust`). There is no self-service checkout UI.
+There is no self-service card checkout yet. The app records book orders and
+your operator handles collection through their payment provider or invoice
+system.
 
 ---
 
@@ -151,7 +156,7 @@ Add their email to the `admin.emails` system setting. They can then reach
 **Can I change the prompts, models, prices or limits?**
 
 Yes — all are configuration records, not code: prompts (versioned), models,
-capabilities, pricing, credit pricing, limits and retention. See
+capabilities, pricing, book price, limits and retention. See
 [Configuration](configuration.md) and the [Admin Guide](admin-guide.md).
 
 ---

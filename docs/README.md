@@ -17,7 +17,7 @@ question it answers.
 ### I run or administer Book Fork
 
 - [Admin Guide](admin-guide.md) — the `/admin` area: resources, prompts, models,
-  languages, credits, settings.
+  languages, pricing, settings.
 - [Operations Runbook](operations.md) — services, health, scaling, retention,
   backups, upgrades, incidents.
 - [Deployment](deployment.md) — containers, topology, reverse proxy, environment.
@@ -37,7 +37,7 @@ question it answers.
 - [Durable worker](worker.md) — lifecycle, leases, execution pipeline, retries,
   cancellation, idempotency.
 - [Providers, routing & billing](providers-and-billing.md) — modes, adapters,
-  credential security, SSRF, capability routing, credit accounting.
+  credential security, SSRF, capability routing, book orders.
 - [Product UI & UX](ui.md) — routes, shell, new-translation workflow, job page,
   RTL, accessibility.
 - [Design system](../DESIGN.md) — the “Warm Paper Workspace” visual system.
@@ -48,14 +48,15 @@ question it answers.
   expectations.
 - [Development](development.md) — prerequisites, commands, PocketBase, seeding.
 - [Testing](testing.md) — test layout, fixtures, invariants, quality gates.
-- [Architecture Decision Records](decisions/) — the recorded “why” for each phase.
+- [Architecture Decision Records](decisions/README.md) — the recorded “why” for
+  each phase.
 - [Changelog](../CHANGELOG.md) — what shipped, by phase.
 
 ### Short canonical references
 
 These are deliberately brief; each points at the deep document:
 
-- [Providers](providers.md) · [Billing & credits](billing.md) ·
+- [Providers](providers.md) · [Billing](billing.md) ·
   [Document engine reference](document-engine.md) ·
   [Translation engine reference](translation-engine.md).
 
@@ -67,7 +68,7 @@ Keep these terms consistent when writing about Book Fork:
 
 | Term | Meaning |
 | --- | --- |
-| **Workspace** | The tenancy boundary that owns documents, jobs, glossaries, connections, wallets. Every user gets a personal workspace. |
+| **Workspace** | The tenancy boundary that owns documents, jobs, glossaries and connections. Every user gets a personal workspace. |
 | **Document** | An uploaded, immutable EPUB/PDF source. |
 | **Translation job** | A queued/running/finished unit of work translating a document to one target language. |
 | **Segment** | A translatable unit within a job (paragraph or sentence). |
@@ -75,8 +76,8 @@ Keep these terms consistent when writing about Book Fork:
 | **Plan / snapshot** | The immutable resolved configuration a job executes. |
 | **Provider** | A protocol catalog record (e.g. OpenAI-compatible). |
 | **Provider connection** | A per-workspace endpoint + auth + billing mode. |
-| **Billing mode** | `managed` (Book Fork credits) or `own_api` (user's provider). |
-| **Book Fork credit** | Internal currency, distinct from provider cost. |
+| **Billing mode** | `managed` ($7 book order) or `own_api` (user's provider, free). |
+| **Book order** | One flat-priced managed job; stored on the job snapshot. |
 | **Profile** | A translation profile: quality mode, prompt, temperature, segmentation, context. |
 | **Quality mode** | `best` · `balanced` · `quality` · `fast` · `economy` — routing tiers, not model names. |
 | **Glossary** | Language-pair-scoped preferred/forbidden terminology. |

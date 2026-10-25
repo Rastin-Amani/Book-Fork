@@ -2,8 +2,8 @@
 
 Multilingual document-translation SaaS. Book Fork translates **EPUB and PDF
 documents between arbitrary source and target languages** using configurable LLM
-providers. Users either spend Book Fork-managed AI credits or connect their own LLM
-endpoint and pay the provider directly.
+providers. Users either buy a Book Fork-managed book ($7 flat) or connect their own
+LLM endpoint and use Book Fork free, paying the provider directly.
 
 It is configuration-driven, modular, resumable, and provider-agnostic: nothing
 about translation behaviour (languages, providers, models, prompts, limits,
@@ -17,7 +17,7 @@ pricing) is hardcoded.
 > ([`docs/providers-and-billing.md`](docs/providers-and-billing.md)), Phase 7
 > product UI ([`docs/ui.md`](docs/ui.md)), Phase 8 admin/testing/security/
 > observability/deployment. The admin area is declarative CRUD plus prompt, model,
-> language and credit management; see [`docs/security-audit.md`](docs/security-audit.md),
+> language management; see [`docs/security-audit.md`](docs/security-audit.md),
 > [`docs/deployment.md`](docs/deployment.md) and [`docs/configuration.md`](docs/configuration.md).
 > The UI carries a bespoke "Warm Paper Workspace" design system — a custom
 > daisyUI theme, self-hosted DM Sans, and a flat cream/amber visual language.

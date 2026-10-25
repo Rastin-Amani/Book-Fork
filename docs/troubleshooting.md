@@ -45,7 +45,6 @@ automatically; no need to recreate them.
 | `MODEL_UNSUPPORTED` | No configured model capability for the pair. | Add a `model-capabilities` record for the pair (admin). |
 | `TRANSLATION_VALIDATION_FAILED` | Response missing segments or failing glossary/placeholder checks. | Retry; inspect attempts; check the prompt version. |
 | `OUTPUT_GENERATION_FAILED` | Book render failed. | Check worker logs; verify `DOCUMENT_OUTPUT_FORMATS` and font dir. |
-| `INSUFFICIENT_CREDITS` | Managed balance too low at reservation. | Add credits (admin) or use an own-API connection. |
 | `DOCUMENT_*` | Bad or oversized source. | Re-upload a valid EPUB/PDF within the size limit. |
 
 **Resolve:** when the status is `failed`, use **Retry failed** on the job page.

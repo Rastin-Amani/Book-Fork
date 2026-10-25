@@ -34,3 +34,11 @@ separate from raw provider cost.
   conflate.
 - The estimate service is ready for the frontend to surface pre-confirmation;
   wiring the endpoint/UI is deferred to the frontend phase.
+
+> **Update (Phase 7).** The wiring is complete: `POST /app/translations/estimate`
+> renders the pre-confirmation estimate and the new-translation workflow consumes
+> it. See [`../ui.md`](../ui.md) and the [User Guide](../user-guide.md).
+
+> **Update (ADR 0008).** Credit pricing and the customer wallet were replaced by
+> flat per-book pricing: BYOK free, managed $7 per 1,000-page block. See
+> [`0008-flat-book-pricing.md`](0008-flat-book-pricing.md).

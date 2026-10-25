@@ -43,7 +43,7 @@ A claim sets `worker_id`, `lease_id`, `lease_expires_at`, `last_heartbeat` and
 moves the job to `preparing`. The lease is verified after claiming (best-effort
 optimistic claim). `LeaseHeartbeat` refreshes it while the job runs. If the
 worker dies, the lease expires and `recover_stale()` returns the job to
-`queued` — without duplicating the source, segments, or credits.
+`queued` — without duplicating the source, segments, or book order.
 
 ```
 # ponytail: best-effort optimistic claim; wrap in a PocketBase transaction /
@@ -63,16 +63,14 @@ gated by a global semaphore. No Redis is required.
 ## Execution pipeline
 
 ```
-prepare → reserve credits → parse → segment → persist → translate →
-finalize → export → upload → settle credits → complete
+prepare → parse → segment → persist → translate → finalize → export →
+upload → complete
 ```
 
 Each stage is idempotent enough to re-run after a crash:
 
 - segments exist → parsing/segmenting is skipped;
 - completed segments (validated + translated) are never retranslated;
-- credit reservation uses a stable reference (`job:<id>:reserve`) so it cannot
-  double-reserve (the ledger dedupes by reference);
 - output is written to a deterministic storage key with a checksum.
 
 ## Segment execution

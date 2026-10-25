@@ -51,7 +51,7 @@ ignore exceptions).
 Book Fork has a few load-bearing conventions. Please respect them:
 
 1. **No hardcoded translation behaviour.** Languages, pairs, direction, providers,
-   models, prompts, pricing, credit prices, chunk/batch sizes and file limits are
+   models, prompts, pricing, book prices, chunk/batch sizes and file limits are
    **data** (PocketBase records / job snapshots), never Python constants. See
    `docs/architecture.md` and the hardcoding audit in `docs/security-audit.md`.
 2. **Respect the boundaries.** Raw PocketBase HTTP lives only in

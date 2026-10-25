@@ -1,8 +1,8 @@
 # Data model & configuration engine
 
 Phase 2 makes Book Fork configuration-driven: languages, providers, models, prompts,
-profiles, capabilities, glossaries, memory, credits and settings are **records**,
-not Python constants.
+profiles, capabilities, glossaries, memory, book pricing and settings are
+**records**, not Python constants.
 
 Schema is defined by reproducible PocketBase migrations in `pb_migrations/` and
 populated by idempotent seeds in `seeds/`.
@@ -22,9 +22,8 @@ PocketBase rules enforce isolation using back-relation filters, e.g.:
 workspace.workspace_members_via_workspace.user ?= @request.auth.id
 ```
 
-Documents, sections, jobs, segments, attempts, events, glossaries, connections,
-wallets and usage are all gated by that expression (directly or through their
-parent). The application additionally enforces ownership in
+Documents, sections, jobs, segments, attempts, events, glossaries and
+connections are all gated by that expression (directly or through their parent). The application additionally enforces ownership in
 `app/workspaces/authz.py` (`WorkspaceAccess`). This is defense in depth: UI
 visibility is never authorization.
 
@@ -54,9 +53,10 @@ CLDR (`app/language/normalize.py`) and overridable per record.
 
 ### Translation
 - `translation_jobs` — languages, profile/connection/model/prompt_version
-  references, `status`, progress counters, reserved/actual credits, lease fields
+  references, `status`, progress counters, provider-cost counters, lease fields
   (`worker_id`, `lease_id`, `lease_expires_at`, `last_heartbeat`), errors, and a
-  `snapshot` JSON capturing the resolved configuration.
+  `snapshot` JSON capturing the resolved configuration. A managed job's
+  `metadata.order` holds its flat book quote (pages, blocks, amount, currency).
 - `translation_segments` — stable segment ids, source/target text, block type,
   per-segment token/cost counters, `attempt_count`.
 - `translation_attempts` — append-only per attempt: provider/model/prompt
@@ -95,12 +95,9 @@ owned by a workspace.
   (never by source hash alone).
 
 ### Billing
-- `credit_wallets` — cached running `balance` per workspace/currency.
-- `credit_transactions` — the audit trail and source of truth:
-  `purchase | bonus | reservation | consumption | refund | adjustment |
-  expiration`, with `balance_before`, `amount`, `balance_after`, `job`,
-  `reference` (idempotency).
-- `usage_events` — token/cost/credit usage per workspace.
+Book orders live on `translation_jobs.metadata.order` (one managed job = one
+order). There is no customer wallet. Legacy `credit_*` and `usage_events`
+collections remain in old databases but are no longer read or written.
 
 ### Configuration
 `system_settings` — typed (`string | int | float | bool | json`) key/value records

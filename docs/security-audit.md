@@ -65,8 +65,8 @@ Sensitive operations are rate limited per user/IP: auth, signup, password reset,
 upload, provider connection test, translation creation and retry. Thresholds are
 environment configuration. Business limits (uploads/day, jobs/day, concurrent jobs
 per workspace, retries per job) are read from `system_settings` and default to
-unlimited when unset. Credit reservation prevents double-spend; ledger references
-make reservation/settlement/refund idempotent.
+unlimited when unset. The book price is snapshotted on the job when it is
+created, so a settings change cannot reprice an order that is already running.
 
 ## Logging & privacy
 
@@ -82,7 +82,7 @@ Searched the codebase for business leakage. Findings and dispositions:
 |---|---|
 | `English`, `Persian`, `German`, `Japanese`, `Arabic` in `app/`/`worker/` | Only a comment in `language/models.py`; all language data is seeded. |
 | vendor names (`openai`, `anthropic`, …) | Provider **type enum** and the generic OpenAI-compatible adapter — an implementation capability, not a hidden default translator. |
-| `temperature=0.3`, `chunk_size=500`, `RTL_LANGUAGES`, `book_chunks`, `credits=` | Not present as behaviour. `chunk_size` occurrences are I/O buffer sizes. |
+| `temperature=0.3`, `chunk_size=500`, `RTL_LANGUAGES`, `book_chunks`, `price_per_book=` | Not present as behaviour. `chunk_size` occurrences are I/O buffer sizes. |
 | `sleep(2)` | Not present. |
 | `if language == "…"` | Not present. |
 | `BackgroundTasks` | Not used; the durable worker is a separate process. |

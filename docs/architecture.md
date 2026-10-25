@@ -8,12 +8,12 @@ and translation is executed by provider-adapters behind a stable interface.
 
 1. **No translation behaviour is hardcoded.** Languages, language pairs,
    providers, models, endpoints, prompts, temperature, token limits, chunk/batch
-   sizes, retries, glossary/TM rules, pricing, credit conversion, quality
-   profiles, capabilities and document limits all live in configuration
+   sizes, retries, glossary/TM rules, book pricing, quality profiles,
+   capabilities and document limits all live in configuration
    (PocketBase records / job snapshots), not in Python.
 2. **Capabilities stay in code.** Parsers, segmenters, placeholder protection,
-   provider adapters, validation, exporters, the credit ledger, the worker and
-   the retry mechanism are reusable *capabilities*, not business configuration.
+   provider adapters, validation, exporters, pricing engines, the worker and the
+   retry mechanism are reusable *capabilities*, not business configuration.
 3. **Language-agnostic.** No `if language == "fa"`, no embedded RTL list. Language
    metadata (BCP-47, ISO 639, script, region, direction, native name, family)
    comes from the language registry.
@@ -49,7 +49,7 @@ Boundaries enforced by design:
 `app.state.ctx`. There is no module-level mutable global state; HTTP clients and
 storage are owned by the context and closed in the FastAPI lifespan.
 
-## 3. Module map (Phase 1)
+## 3. Module map
 
 | Area | Location | Responsibility |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ storage are owned by the context and closed in the FastAPI lifespan.
 | Language | `app/language/` | Data-driven language model + registry interface. |
 | Providers | `app/providers/` | Provider protocol, OpenAI-compatible adapter, encrypted credentials. |
 | Translation | `app/translation/` | Plan, policy engine, translation engine, context, memory, glossary, validation, normalization. |
-| Billing | `app/billing/` | Credit ledger, provider/credit pricing engines, estimation. |
+| Billing | `app/billing/` | Provider-cost and flat per-book pricing engines, estimation. |
 | Jobs | `app/jobs/` | Persistent job store, leases, retry policy, worker config. |
 | Services | `app/services/` | Health/readiness aggregation, data seeding. |
 | Documents | `app/documents/` | Canonical model, EPUB/PDF adapters, segmentation, OCR, placeholders, safety. |
@@ -73,14 +73,15 @@ storage are owned by the context and closed in the FastAPI lifespan.
 
 Phase 2 added: `app/workspaces/` (ownership/authz), `app/translation/policy.py`
 (policy resolver), `app/prompts/renderer.py` (safe prompt rendering),
-`app/billing/ledger.py` (credit ledger), `app/settings/service.py` (typed
+`app/billing/pricing.py` (provider cost and book pricing), `app/settings/service.py` (typed
 settings), `app/language/` (registry, normalization, detection), the typed
 repositories in `app/repositories/`, and the PocketBase schema/seeds. See
 `docs/data-model.md`.
 
-`app/validation/` and `app/normalization/` remain deferred: they are executable
-translation-phase capabilities that plug into the existing profile/policy
-configuration rather than new patterns.
+Validation and normalization are implemented as translation-phase capabilities
+(`app/translation/validation.py`, `app/translation/normalization.py`) that plug
+into the existing profile/policy configuration rather than new patterns. There
+are no top-level `app/validation/` or `app/normalization/` packages.
 
 ## 4. Request lifecycle (browser)
 
@@ -201,13 +202,13 @@ health, assets). **Phase 2** delivered the configuration-driven data model
 (`docs/translation.md`). **Phase 5** delivered the durable worker (`docs/worker.md`). **Phase 6** made it
 commercially usable: pluggable providers with managed/own-API billing modes,
 encrypted user keys, SSRF-protected custom endpoints, connection testing,
-capability- and cost-aware model routing with quality tiers, generic pricing, and
-auditable credit accounting (`docs/providers-and-billing.md`). **Phase 7**
+capability- and cost-aware model routing with quality tiers, generic provider
+costing, and flat per-book orders (`docs/providers-and-billing.md`). **Phase 7**
 delivered the product UI: application shell, dashboard, new-translation workflow
 with estimates, job pages with HTMX progress and actions, review, providers,
 glossaries, memory, settings and protected admin pages (`docs/ui.md`). **Phase 8**
 hardened and completed it: a declarative admin area (CRUD for every collection,
-prompt versioning, model/language and credit management), stable machine-readable
+prompt versioning, model/language and pricing management), stable machine-readable
 error codes, structured events and lightweight metrics, security headers, expanded
 rate limiting and settings-driven abuse limits, configurable data retention,
 worker liveness, production containers with health checks, and a security audit

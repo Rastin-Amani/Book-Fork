@@ -1,28 +1,32 @@
-# Providers, model routing & credit accounting
+# Providers, model routing & book billing
 
 Phase 6 makes Book Fork commercially usable: pluggable providers, encrypted user
-credentials, SSRF protection, capability/cost-aware routing, and auditable
-credit accounting distinct from provider cost.
+credentials, SSRF protection, capability/cost-aware routing, and flat per-book
+pricing distinct from provider cost.
 
 ## Provider modes
 
 A `provider_connections` record has a `billing_mode`:
 
-- **`managed`** — a Book Fork-owned connection; usage consumes Book Fork credits.
-- **`own_api`** — the user's endpoint/key; **zero Book Fork credits** (the provider
-  cost is the user's), though usage metadata is still recorded.
+- **`managed`** — a Book Fork-owned connection; the job becomes a $7 book order.
+- **`own_api`** — the user's endpoint/key; **free** (the provider cost is the
+  user's), though provider cost is still recorded for diagnostics.
 
 Book Fork-managed vs user-owned is therefore data, not a hardcoded branch. When a
 user selects their own connection, the policy engine uses it (unless invalid/
-unavailable) and never silently spends Book Fork credits elsewhere.
+unavailable) and never silently falls back to a managed connection.
 
 ## Adapters
 
 `TranslationProvider` (the `LLMProvider` abstraction) is protocol-agnostic;
 `OpenAICompatibleProvider` serves any chat-completions endpoint and the factory
-maps configured protocol types to adapters. Adding Anthropic/Gemini/Azure/Ollama
-later means one adapter each — the engine is untouched. Ollama already works via
-the OpenAI-compatible adapter.
+maps configured protocol types to adapters. **Implemented today:
+`openai_compatible` and `ollama`** (the latter via the OpenAI-compatible
+adapter). The `anthropic`, `gemini` and `custom` records in the seed catalog are
+protocol stubs with no adapter yet — building one raises a `ConfigurationError`,
+surfaced by the connection test as `unsupported_protocol`. Adding Anthropic,
+Gemini, Azure or another protocol later means one adapter each — the engine is
+untouched.
 
 ## Credential security
 
@@ -67,39 +71,28 @@ provider names. The policy engine ranks candidate models by mode:
 
 No model name is embedded in a tier's meaning.
 
-## Credit accounting
+## Book orders and provider cost
 
-Provider cost and Book Fork credits are kept separate. The worker tracks estimated
-and actual values for both:
+Provider cost and customer price are kept separate. Each managed job stores an
+order snapshot (`metadata.order`: pages, blocks, amount, currency) and the worker
+records actual provider cost on the job for margin monitoring. There is no
+prepaid wallet.
 
-```
-estimated provider cost   actual provider cost
-estimated credits         reserved credits   actual credits   refund
-```
-
-Flow: **estimate → reserve → translate → settle (release hold, charge actual) →
-refund unused**. Reservations are reference-guarded (`job:<id>:reserve`), so a
-worker crash cannot double-charge.
-
-### Ledger
-
-`credit_transactions` types: `purchase`, `bonus`, `reservation`, `consumption`,
-`refund`, `adjustment`, `expiration`; each carries amount, type, workspace,
-`job`, `reference`, `balance_before`, `balance_after`. History is append-only.
+Flow: **estimate pages → quote book price → translate → record actual provider
+cost**. The customer price never changes with token usage.
 
 ### Own-API mode
 
-`CreditPricingEngine` returns **0 credits** when `billing_mode == own_api`, while
-provider cost is still computed and recorded. This is configuration, not a
-special branch in the worker.
+`BookPricingEngine` returns **$0** when `billing_mode == own_api`, while provider
+cost is still computed and recorded. This is configuration, not a special branch
+in the worker.
 
 ## Cost & estimation engines
 
-- `ProviderPricingEngine` — model pricing × usage → provider cost.
-- `CreditPricingEngine` — tokens and/or provider cost → Book Fork credits (per
-  1000 tokens and/or a markup on provider cost), honouring billing mode.
+- `ProviderPricingEngine` — model pricing × usage → provider cost (internal).
+- `BookPricingEngine` — estimated pages → book blocks and flat price.
 - `estimate_from_texts` — source words, characters, estimated input/output
-  tokens, estimated provider cost and estimated credits. Everything is marked
+  tokens, estimated pages, provider cost and book price. Everything is marked
   `estimated`.
 
 Formulas live in `app/billing/`, never scattered through the worker.
@@ -107,9 +100,9 @@ Formulas live in `app/billing/`, never scattered through the worker.
 ## UI-facing estimates
 
 `app/billing/estimation.py` provides the reusable estimate shown before
-confirmation ("~ N source words, ~ M credits"). It is wired into the
+confirmation ("~ N source words, ~ M pages, $7"). It is wired into the
 new-translation workflow: `POST /app/translations/estimate` renders
-`partials/estimate.html` with source words, estimated input tokens, the resolved
-provider/model and either the estimated credits or a "your own API" notice. The
+`partials/estimate.html` with source words, estimated pages, the resolved
+provider/model and either the book price or a "free with your key" notice. The
 estimate is always labelled approximate. See [`ui.md`](ui.md) and the
 [User Guide](user-guide.md).

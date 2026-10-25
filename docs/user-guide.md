@@ -18,9 +18,10 @@ Book Fork translates **EPUB and PDF documents between arbitrary source and targe
 languages** using a configurable large-language-model (LLM) provider. You can
 either:
 
-- let Book Fork use a **managed** provider and spend Book Fork credits, or
-- connect **your own** OpenAI-compatible API and pay that provider directly
-  (no Book Fork credits are used).
+- let Book Fork use a **managed** provider and pay **$7 per book** (up to
+  1,000 pages), or
+- connect **your own** OpenAI-compatible API and use Book Fork free, paying that
+  provider directly.
 
 Every finished translation produces downloadable book files (PDF and EPUB by
 default) regardless of the source format.
@@ -81,8 +82,8 @@ currently informational.
 
 After logging in you land on the dashboard (`/app`). It shows:
 
-- **Active jobs**, **Completed**, **Documents** and **Credit balance** summary
-  cards.
+- **Active jobs**, **Completed**, **Documents** and **Managed book** price
+  summary cards.
 - A **Recent translations** table with the language pair, a status badge, a
   progress bar and an **Open** link.
 - A **Quick start** panel: *Translate a document*, *Connect a provider*,
@@ -124,7 +125,7 @@ maximum upload size (default **100 MiB / 104,857,600 bytes**, set by the
 
 ### Step 3 — Provider & quality
 
-- **Provider** — **Auto (Book Fork)** for managed credits, or one of your
+- **Provider** — **Auto (Book Fork)** for a managed book, or one of your
   connections (marked *(your API)* when it is your own key).
 - **Profile** — **Auto**, or a specific translation profile (for example
   *Default Translation*, *Fast Draft*, *Literary Quality*).
@@ -136,10 +137,10 @@ maximum upload size (default **100 MiB / 104,857,600 bytes**, set by the
 
 Choose **Estimate** to see a server-rendered estimate card:
 
-- **Source words** and **Input tokens** (approximate).
+- **Source words** and **estimated pages** (approximate).
 - The resolved **Provider** and **Model**.
-- Either **Book Fork credits** (managed) or a **Your own API** badge stating
-  *“No Book Fork credits used.”*
+- Either the flat **book price** (managed) or a **Your own API** badge stating
+  *“Free with your key — no Book Fork charge.”*
 
 Estimates are approximate and labelled as such.
 
@@ -233,13 +234,17 @@ Open **Providers** (`/app/providers`) to connect your own OpenAI-compatible
 endpoint. Choose **Add provider** and fill in:
 
 - **Name** — a label for this connection.
-- **Protocol** — the provider type from the catalog (OpenAI-compatible,
-  Anthropic, Google Gemini, Ollama (self-hosted), Custom endpoint).
+- **Protocol** — the provider type from the catalog. **Only
+  OpenAI-compatible and Ollama (self-hosted) currently have adapters.** The
+  catalog also lists Anthropic, Google Gemini and Custom endpoint records, but
+  selecting one fails the connection test with `unsupported_protocol` until an
+  adapter is added. An Anthropic or Gemini endpoint can still be used if it is
+  reachable through an OpenAI-compatible gateway (choose *OpenAI-compatible*
+  and point the base URL at it).
 - **Base URL** — the endpoint, e.g. `https://api.example.com/v1`.
 - **API key** — encrypted at rest and **never shown again** after saving.
 - **Default model** — e.g. `gpt-4o-mini`.
-- **Billing** — *My own API — no Book Fork credits* or *Book Fork-managed —
-  spend credits*.
+- **Billing** — *My own API — free* or *Book Fork-managed — $7 per book*.
 
 Each row offers:
 
@@ -300,25 +305,24 @@ Approval currently happens in the admin area (see the
 - **Languages** — the registry with direction, script and native names.
 - **Translation profiles** — quality mode and segmentation strategy per profile,
   and whether it is a system default.
-- **Billing & credits** — balance, transaction history and usage.
+- **Billing** — per-book pricing and your orders.
 - **Providers**, **Glossaries**, **Translation memory**.
 
 ### Billing page
 
 `/app/settings/billing` shows:
 
-- **Credit balance** and currency;
-- an explanation of managed vs. your-own-API billing;
-- **Recent transactions** — type, amount, balance after, reason;
-- **Usage** — type, job, input/output tokens, credits and when.
+- the two plans: **free with your key** and **$7 per managed book**;
+- the **book total** for completed managed jobs;
+- **Book orders** — one row per job with pages, blocks, amount and status.
 
-Managed jobs **reserve** credits before translating and **settle** to the actual
-cost afterwards, refunding any unused reservation. Your-own-API jobs never touch
-the balance.
+A managed job is priced when it is created: **$7 flat up to 1,000 pages**, then
++$7 for each extra 1,000-page block. Failed and cancelled jobs are **No charge**.
+Your-own-API jobs are **Free**. There is no prepaid wallet.
 
-> **Note.** Adding credits (purchase or grant) is an administrative action in the
-> current build; there is no self-service checkout UI. See the
-> [Admin Guide](admin-guide.md).
+> **Note.** Payment collection is outside the app: `/app/settings/billing` is the
+> order history your operator reconciles through their payment provider or
+> invoice system.
 
 ---
 
@@ -329,10 +333,13 @@ the balance.
   mentioning `txt` and `docx`, ingestion accepts only EPUB and PDF.
 - **Email requires a PocketBase mailer.** Password reset and verification emails
   are sent by PocketBase, not by Book Fork.
+- **Only OpenAI-compatible and Ollama provider adapters are implemented.** The
+  Anthropic, Google Gemini and Custom endpoint catalog records have no adapter
+  yet; testing or using them returns `unsupported_protocol`.
 - **Glossary attachment** to a job/profile is not yet exposed in the UI.
 - **Memory approval** is admin-only; the user review flow does not approve
   memory entries.
-- **No self-service credit purchase** UI.
+- **No self-service card checkout**; book orders are reconciled outside the app.
 - **Single personal workspace per user.** Multi-user workspace invitations are
   modelled in data but not exposed as a user flow.
 

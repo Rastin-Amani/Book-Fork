@@ -21,7 +21,7 @@ render either the full document or just the content region based on
 ## Routes
 
 ```
-/                         landing
+/                         → /app (or /login when signed out)
 /login /signup            auth
 /app                      dashboard
 /app/translations         list
@@ -54,8 +54,8 @@ user's own token). All resources are workspace-scoped.
 
 Upload (or pick) a document → source/target language → profile → provider →
 quality → review the estimate → start. The estimate is rendered server-side
-(`partials/estimate.html`) with words/tokens, provider/model, and whether Book Fork
-credits or the user's own API are used.
+(`partials/estimate.html`) with words, estimated pages, provider/model, and the
+flat book price or a "free with your key" notice.
 
 - **Language picker** options come from the language registry (native names,
   direction), never a hardcoded list. Source supports **Auto-detect**; when
@@ -69,7 +69,7 @@ credits or the user's own API are used.
 ## Job page
 
 Shows document, source→target, status, progress bar, completed/total/failed
-segments, provider/model, credits. HTMX polls
+segments and provider/model. HTMX polls
 `/app/translations/{id}/status` every 2s **only while the job is active**
 (rendered `job-active` flag), returning `partials/job_status.html`. Actions are
 state-gated: Cancel while active, Retry-failed when failed, Download when an

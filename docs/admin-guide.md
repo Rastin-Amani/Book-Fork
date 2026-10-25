@@ -2,7 +2,7 @@
 
 This guide is for administrators who configure and operate Book Fork: enabling
 the admin area, managing configuration records, curating prompts and models,
-granting or removing credits, and overseeing jobs and workers.
+pricing managed books, and overseeing jobs and workers.
 
 > **Verification status.** Every route, resource slug, field and action below was
 > checked against `app/api/routes/admin.py`, `app/admin/registry.py`, the admin
@@ -64,11 +64,6 @@ The hub is at **`/admin`**. Resources are grouped into categories:
 
 **Glossaries & memory**
 - `glossaries`, `glossary-terms`, `translation-memory`.
-
-**Credits & usage**
-- `credit-wallets` — with an **adjust** action.
-- `credit-transactions` — the append-only ledger (read-only).
-- `usage-events` — token/cost/credit usage (read-only).
 
 **System**
 - `system-settings` — typed business defaults (create allowed, delete blocked).
@@ -132,7 +127,10 @@ Routing is entirely data-driven — there is no model-specific code.
 
 1. **Providers** (`/admin/providers`): ensure a protocol record exists. The
    seed catalog includes OpenAI-compatible, Anthropic, Google Gemini, Ollama
-   (self-hosted) and Custom endpoint.
+   (self-hosted) and Custom endpoint records, but **only `openai_compatible`
+   and `ollama` have adapters implemented** (`app/providers/factory.py`). A
+   connection whose protocol has no adapter fails with `unsupported_protocol`.
+   Add an adapter before enabling the others.
 2. **Models** (`/admin/models`): add the model identifier, context window, output
    limits, structured/vision/temperature support, and generic pricing
    (`input_cost_per_million_tokens`, `output_cost_per_million_tokens`, optional
@@ -159,24 +157,18 @@ BCP-47 code; leave name/script/direction to CLDR defaults or override them.
 
 ---
 
-## 7. Credits and the ledger
+## 7. Book pricing and orders
 
-Credits are an append-only ledger; the wallet's `balance` is a cached running
-total.
+There is no customer credit wallet. A managed job is a book order priced at
+**$7 flat up to 1,000 pages**, plus **$7 per extra 1,000-page block**. The order
+snapshot is stored on the job (`metadata.order`) and shown on the customer's
+billing page at `/app/settings/billing`.
 
-- **Credit wallets** (`/admin/credit-wallets`) list per-workspace balances.
-- The **adjust** action posts to
-  `/admin/credit-wallets/{id}/adjust` with an `amount`, a `reason` and a `kind`:
-  - `grant` — add `abs(amount)`;
-  - `remove` — subtract `abs(amount)`;
-  - `refund` — refund `amount`;
-  - anything else — a manual `adjustment` of `amount`.
-- Every adjustment writes a `credit_transactions` row (with balance-before/after
-  and an `admin:<wallet>:…` reference) — balances are never changed silently.
-- `/admin/credit-wallets/{id}/ledger` shows the wallet's transactions and usage.
-
-Transaction types are `purchase`, `bonus`, `reservation`, `consumption`,
-`refund`, `adjustment` and `expiration`.
+Operators reconcile orders through their payment provider or invoice system.
+Failed and cancelled jobs are not charged. Pricing is configured with
+`billing.book_price_usd`, `billing.pages_per_block` and
+`billing.words_per_page`; provider cost is still recorded on each job for margin
+monitoring.
 
 ---
 
@@ -189,7 +181,7 @@ edit instead. Key groups include:
 - `upload.*` — maximum file size and allowed extensions.
 - `jobs.*` and `worker.*` — concurrency, lease, heartbeat, poll and retries.
 - `translation.*` — batch size, context, prompts, profiles, detection threshold.
-- `billing.*` — credit pricing, reservation multiplier, currency, enable switch.
+- `billing.*` — book price, pages per block, words per page, currency.
 - `limits.*` — uploads/day, jobs/day, concurrent jobs, retries per job
   (0 = unlimited).
 - `retention.*` — automatic deletion windows (0 = keep).

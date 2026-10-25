@@ -154,8 +154,6 @@ listed in the [Admin Guide](admin-guide.md).
 | POST | `/admin/prompt-versions/{id}/archive` | Archive. |
 | GET | `/admin/prompt-templates/{id}/new-version` | New-version form. |
 | POST | `/admin/prompt-templates/{id}/new-version` | `body`, `notes`, `status`. |
-| GET | `/admin/credit-wallets/{id}/ledger` | Wallet ledger + usage. |
-| POST | `/admin/credit-wallets/{id}/adjust` | `amount`, `reason`, `kind` (`grant`/`remove`/`refund`/other). |
 
 ## 6. Health and metrics
 
@@ -201,7 +199,6 @@ Phase 8 added the upper-case codes below.
 | `PROVIDER_UNAVAILABLE` | 502 | Provider unavailable. |
 | `TRANSLATION_VALIDATION_FAILED` | 422 | A translation failed validation. |
 | `OUTPUT_GENERATION_FAILED` | 500 | Translated document could not be generated. |
-| `INSUFFICIENT_CREDITS` | 402 | Not enough credits. |
 | `USAGE_LIMIT_EXCEEDED` | 429 | A configured usage limit was reached. |
 
 The fallback codes `http_error` and `internal_error` are used for framework and
