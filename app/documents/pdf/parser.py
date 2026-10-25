@@ -40,7 +40,13 @@ from app.documents.model import (
 )
 from app.exceptions import ValidationError
 
-_LIST_MARKER = re.compile(r"^\s*(?:[-*•‣]|\(?\d{1,3}[.)]|[a-z][.)])\s+")
+_BULLET_CHARS = "•‣◦●○▪▫·∙⋅*+\u2013\u2014-"
+_NUMBER_MARKER = r"\(?[0-9\u06f0-\u06f9\u0660-\u0669]{1,3}[.)]"
+_LETTER_MARKER = r"[a-zA-Z][.)]"
+_LIST_MARKER = re.compile(
+    rf"^\s*({_NUMBER_MARKER}|{_LETTER_MARKER}|[{re.escape(_BULLET_CHARS)}])\s+"
+)
+_LONE_MARKER = re.compile(rf"^\s*[{re.escape(_BULLET_CHARS)}]\s*$")
 _GENERIC_HEADINGS = {"CHAPTER", "PART", "SECTION", "CONTENTS"}
 _LOWER_UPPER = re.compile(r"(?<=[a-z])(?=[A-Z])")
 _ACRONYM_WORD = re.compile(r"(?<=[A-Z])(?=[A-Z][a-z])")
@@ -60,6 +66,22 @@ def _repair_spacing(text: str) -> str:
     text = _LOWER_UPPER.sub(" ", text)
     text = _ACRONYM_WORD.sub(" ", text)
     return _WHITESPACE.sub(" ", text).strip()
+
+
+def _split_list_marker(text: str) -> tuple[str, str, bool] | None:
+    """Return ``(marker, body, ordered)`` when a line opens a list item.
+
+    The marker is removed from the translatable text (a translator must not be
+    asked to translate a bullet) and remembered so the renderer can put it back
+    on the correct side for the target direction.
+    """
+    match = _LIST_MARKER.match(text)
+    if not match:
+        return None
+    marker = match.group(1)
+    body = text[match.end() :].strip()
+    ordered = marker[0].isdigit() or marker[0] in "(\u06f0\u0660" or marker[0].isalpha()
+    return marker, body, ordered
 
 
 def _line_text(line: dict[str, Any]) -> str:
@@ -122,30 +144,61 @@ def _page_lines(page: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _page_blocks(
-    page: dict[str, Any], *, body_size: float, allow_headings: bool = True
+    page: dict[str, Any],
+    *,
+    body_size: float,
+    bold_level: int = 1,
+    allow_headings: bool = True,
 ) -> list[dict[str, Any]]:
     lines = _page_lines(page)
     if not lines:
         return []
     margin = min(line["x0"] for line in lines)
     blocks: list[dict[str, Any]] = []
+    previous_is_list = False
     for line in lines:
         indented = line["x0"] > margin + _INDENT
         larger = body_size > 0 and line["size"] >= body_size * 1.35
         is_heading = (line["bold"] or larger) and allow_headings and len(line["text"]) >= 3
+        level = 1 if larger else bold_level
+        is_list = bool(_LIST_MARKER.match(line["text"]) or _LONE_MARKER.match(line["text"]))
         gap = line["y0"] - blocks[-1]["lines"][-1]["y1"] if blocks else 0.0
         if (
             not blocks
             or line["bold"]
             or larger
             or indented
+            or is_list
+            # a list item must not absorb (or be absorbed by) neighbouring prose
+            or previous_is_list
             or blocks[-1]["heading"]
             or gap > _PARAGRAPH_GAP
         ):
-            blocks.append({"lines": [line], "heading": is_heading})
+            blocks.append({"lines": [line], "heading": is_heading, "level": level, "list": is_list})
         else:
             blocks[-1]["lines"].append(line)
+        previous_is_list = is_list
     return blocks
+
+
+def _has_large_headings(pages: list[dict[str, Any]], body_size: float) -> bool:
+    """True when chapter titles are marked by size, not weight.
+
+    Books whose titles differ from the body by size get font-size headings
+    (level 1) and weight-only subheads (level 2), so every bold line no longer
+    starts a new page. Books where weight is the only signal keep bold as the
+    chapter marker.
+    """
+    if body_size <= 0:
+        return False
+    found = 0
+    for page in pages:
+        for line in _page_lines(page):
+            if len(line["text"]) >= 3 and line["size"] >= body_size * 1.35:
+                found += 1
+                if found >= 2:
+                    return True
+    return False
 
 
 def _allow_headings(page_count: int, page_number: int) -> bool:
@@ -228,6 +281,7 @@ class PdfParser:
             asset_counter = 0
             pages = [pdf[index].get_text("dict") for index in range(pdf.page_count)]
             body_size = _body_size(pages)
+            bold_level = 2 if _has_large_headings(pages, body_size) else 1
             column = _document_column(pages)
             xref_assets: dict[int, Asset] = {}
             for page_number, page in enumerate(pages):
@@ -247,6 +301,7 @@ class PdfParser:
                 raw_blocks = _page_blocks(
                     page,
                     body_size=body_size,
+                    bold_level=bold_level,
                     allow_headings=_allow_headings(pdf.page_count, page_number),
                 )
                 if _looks_like_toc(raw_blocks):
@@ -282,18 +337,35 @@ class PdfParser:
                         )
                 items.sort(key=lambda item: (round(item[0], 1), item[1]))
 
+                pending_bullet = False
                 for _y, _x, item in items:
                     if item["kind"] == "text":
                         raw = item["raw"]
                         text = " ".join(line["text"] for line in raw["lines"]).strip()
                         if not text:
                             continue
+                        if _LONE_MARKER.match(text) and not _LIST_MARKER.match(text):
+                            # A bullet on its own line: the item text follows.
+                            pending_bullet = True
+                            continue
+                        attrs: dict[str, Any] = {}
                         if raw["heading"] and text.strip().upper() not in _GENERIC_HEADINGS:
-                            block_type, level = BlockType.HEADING, 1
-                        elif _LIST_MARKER.match(text):
-                            block_type, level = BlockType.LIST_ITEM, None
+                            block_type, level = BlockType.HEADING, raw.get("level", 1)
                         else:
-                            block_type, level = BlockType.PARAGRAPH, None
+                            split = _split_list_marker(text)
+                            if split is not None:
+                                marker, body, ordered = split
+                                block_type, level = BlockType.LIST_ITEM, None
+                                attrs["list_marker"] = marker
+                                attrs["list_style"] = "ordered" if ordered else "unordered"
+                                if body:
+                                    text = body
+                            elif pending_bullet:
+                                block_type, level = BlockType.LIST_ITEM, None
+                                attrs["list_style"] = "unordered"
+                            else:
+                                block_type, level = BlockType.PARAGRAPH, None
+                        pending_bullet = False
                         section.blocks.append(
                             TextBlock(
                                 id="pending",
@@ -307,6 +379,7 @@ class PdfParser:
                                     "page_number": page_number + 1,
                                     "bbox": raw["lines"][0]["bbox"],
                                     "font_size": max(line["size"] for line in raw["lines"]),
+                                    **attrs,
                                 },
                             )
                         )

@@ -59,6 +59,35 @@ def test_repairs_glued_words_from_text_layer() -> None:
     assert _repair_spacing("normal text stays") == "normal text stays"
 
 
+def test_list_markers_are_stripped_typed_and_kept_separate(tmp_path: Path) -> None:
+    document = pymupdf.open()
+    page = document.new_page()
+    page.insert_text((72, 72), "Cover Title", fontname="hebo", fontsize=24)
+    y = 110
+    for line in ("• First item", "• Second item", "1. Numbered item", "plain paragraph"):
+        page.insert_text((72, y), line, fontsize=12)
+        y += 22
+    second = document.new_page()
+    second.insert_text((72, 72), "Chapter One", fontname="hebo", fontsize=24)
+    second.insert_text((72, 112), "Bold Subhead", fontname="hebo", fontsize=12)
+    second.insert_text((72, 146), "Body text that is not bold at all.", fontsize=12)
+    path = tmp_path / "lists.pdf"
+    document.save(str(path))
+    document.close()
+
+    parsed = _parse(path).document
+    items = [b for b in parsed.iter_blocks() if b.type is BlockType.LIST_ITEM]
+    assert [b.source_text for b in items] == ["First item", "Second item", "Numbered item"]
+    assert items[0].attributes["list_style"] == "unordered"
+    assert items[1].attributes["list_style"] == "unordered"
+    assert items[2].attributes["list_style"] == "ordered"
+    assert items[2].attributes["list_marker"] == "1."
+
+    levels = {b.source_text: b.level for b in parsed.iter_blocks() if b.type is BlockType.HEADING}
+    assert levels.get("Chapter One") == 1
+    assert levels.get("Bold Subhead") == 2  # size marks the chapters, weight the subheads
+
+
 def test_bold_line_is_detected_as_heading(tmp_path: Path) -> None:
     document = pymupdf.open()
     page = document.new_page()
