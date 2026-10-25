@@ -39,6 +39,7 @@ RUN uv sync --frozen --no-dev
 # Run as a non-root user. The runtime cache lives under /app so `uv run` has a
 # writable cache without a home directory.
 RUN useradd --system --uid 1001 book-fork \
+    && mkdir -p /app/var/storage \
     && rm -rf /app/.cache \
     && mkdir -p /app/.cache/uv \
     && chown -R book-fork:book-fork /app
