@@ -91,8 +91,6 @@ daisyUI theme mapping (`@plugin "daisyui/theme"`, name `book-fork`):
   a disclosure panel. `max-w-[1200px]`.
 - Auth (`layouts/auth.html`): split panel — value proposition left, carded form
   right; stacks on mobile.
-- Marketing (`layouts/marketing.html`): top bar + footer, alternating cream/white
-  sections, one dark band.
 - Internal navigation is HTMX-boosted and swaps only `#app-content`; layouts emit
   just `<main id="app-content">` for `HX-Request`.
 
@@ -103,13 +101,12 @@ radii, separate with hairline borders, use DM Sans ≥400, keep mono for technic
 text.
 
 **Don't** use white as the page background, put two amber CTAs in one view, add
-drop shadows to cards, exceed 12px radius, use chromatic colour as decoration, or
-extend the dark surface beyond the single landing band.
+drop shadows to cards, exceed 12px radius, or use chromatic colour as decoration.
 
 ## Files
 
 - `static/css/input.css` — tokens, daisyUI theme, `@font-face`, component classes.
 - `static/fonts/dm-sans-*.woff2` — self-hosted font (CSP is `font-src 'self'`).
-- `static/favicon.svg` — ink square + gold "T".
-- `templates/components/` — `brand`, `icons`, `nav`, `toast`, `status`, `hero_preview`.
-- `templates/layouts/` — `base` (app), `auth`, `marketing`.
+- `static/favicon.svg` — ink tile + gold Book Fork mark (book with a fork cut into its edge).
+- `templates/components/` — `brand`, `icons`, `nav`, `toast`, `status`.
+- `templates/layouts/` — `base` (app), `auth`.
