@@ -5,13 +5,14 @@ scripts (Arabic/Persian) are shaped and reordered correctly, then composited
 over a drawn background. The same image is used as the PDF cover page and as the
 EPUB cover (which Kindle/Apple Books show in the library).
 
-Text is laid out centered so the cover reads correctly for both LTR and RTL
-books, and it uses the Story DOM API (not CSS alignment) which is stable across
-PyMuPDF versions.
+Text is laid out centered as direction-aware HTML so it reads correctly for both
+LTR and RTL books; the low-level Story text API reorders RTL runs and must not be
+used for this.
 """
 
 from __future__ import annotations
 
+import html
 import io
 from dataclasses import dataclass
 
@@ -89,7 +90,15 @@ def _render_cover_text(spec: CoverSpec, font: BookFont) -> pymupdf.Document:
     mediabox = pymupdf.Rect(0, 0, COVER_WIDTH, COVER_HEIGHT)
     device = writer.begin_page(mediabox)
     for text, top, bottom, size, bold, color in placements:
-        story = _story(text, font=font, css=css, size=size, bold=bold, color=color)
+        story = _story(
+            text,
+            font=font,
+            css=css,
+            size=size,
+            bold=bold,
+            color=color,
+            direction=spec.direction,
+        )
         rect = pymupdf.Rect(
             _MARGIN + 40, COVER_HEIGHT * top, COVER_WIDTH - _MARGIN - 40, COVER_HEIGHT * bottom
         )
@@ -108,18 +117,22 @@ def _story(
     size: int,
     bold: bool,
     color: tuple[int, int, int],
+    direction: str,
 ) -> pymupdf.Story:
-    story = pymupdf.Story(archive=pymupdf.Archive(str(font.regular.parent)), user_css=css)
-    body = story.body
-    body.set_properties(font=font.family)
-    paragraph = body.add_paragraph()
-    paragraph.set_align(pymupdf.TEXT_ALIGN_CENTER)
-    paragraph.set_font(font.family)
-    paragraph.set_bold(bold)
-    paragraph.set_fontsize(size)
-    paragraph.set_color(color)
-    paragraph.add_text(text)
-    return story
+    weight = "bold" if bold else "normal"
+    ink = "#{:02x}{:02x}{:02x}".format(*color)
+    story_css = (
+        css
+        + f"body{{margin:0;font-family:'{font.family}';direction:{direction};}}"
+        + f"p{{margin:0;font-size:{size}px;font-weight:{weight};"
+        + f"text-align:center;color:{ink};}}"
+    )
+    html_text = f"<html><body><p>{html.escape(text)}</p></body></html>"
+    return pymupdf.Story(
+        html=html_text,
+        archive=pymupdf.Archive(str(font.regular.parent)),
+        user_css=story_css,
+    )
 
 
 __all__ = ["COVER_HEIGHT", "COVER_WIDTH", "CoverSpec", "render_cover_png"]

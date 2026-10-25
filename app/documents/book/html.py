@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import html
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 
 from lxml import etree
 
@@ -221,6 +221,11 @@ def block_text(block: TextBlock) -> str:
     return block.translated_text if block.translated_text is not None else (block.source_text or "")
 
 
+def block_anchor(block: TextBlock) -> str:
+    """Stable HTML element id for a block (used for pagination/links)."""
+    return f"blk-{block.id}"
+
+
 def render_blocks(
     blocks: Sequence[TextBlock],
     *,
@@ -236,51 +241,88 @@ def render_blocks(
             continue
         if block.type is B.LIST_ITEM:
             if not in_list:
-                parts.append("<ul>")
+                parts.append('<div class="list">')
                 in_list = True
-            item_dir = text_direction(strip_markup(block_text(block)), direction)
-            parts.append(
-                f'<li style="direction:{item_dir}">{sanitize_inline(block_text(block))}</li>'
-            )
+            parts.append(_render_list_item(block, direction))
             continue
         if in_list:
-            parts.append("</ul>")
+            parts.append("</div>")
             in_list = False
-        parts.append(_render_block(block, image_src, direction))
+        rendered = _render_block(block, image_src, direction)
+        if rendered:
+            parts.append(rendered)
     if in_list:
-        parts.append("</ul>")
+        parts.append("</div>")
     return "\n".join(part for part in parts if part)
+
+
+def _render_list_item(block: TextBlock, direction: str) -> str:
+    """Render one list item as an indented paragraph.
+
+    PyMuPDF's Story engine places ``<ul>`` markers on the wrong side for RTL
+    text and can drop them onto their own line, so the marker is emitted as the
+    first logical character of the item. Markers recovered from the source are
+    stripped by the PDF parser and kept in ``attributes`` (ordered lists keep
+    their numbering, unordered lists get a bullet).
+    """
+    text = block_text(block)
+    item_dir = text_direction(strip_markup(text), direction)
+    marker = block.attributes.get("list_marker")
+    style = block.attributes.get("list_style")
+    bullet = marker if style == "ordered" and marker else "•"
+    indent = "right" if item_dir == "rtl" else "left"
+    return (
+        f'<p id="{block_anchor(block)}" class="list-item" '
+        f'style="direction:{item_dir};padding-{indent}:14pt;text-indent:-14pt">'
+        f"{html.escape(str(bullet))} {sanitize_inline(text)}</p>"
+    )
 
 
 def _render_block(block: TextBlock, image_src: Mapping[str, str], direction: str) -> str:
     text = block_text(block)
     block_dir = text_direction(strip_markup(text), direction)
+    anchor = block_anchor(block)
     if block.type is B.HEADING:
         level = min(max(block.level or 1, 1), 6)
         return (
-            f'<h{level} class="heading level-{level}" style="direction:{block_dir}">'
-            f"{sanitize_inline(text)}</h{level}>"
+            f'<h{level} id="{anchor}" class="heading level-{level}" '
+            f'style="direction:{block_dir}">{sanitize_inline(text)}</h{level}>'
         )
     if block.type is B.QUOTE:
-        return f'<blockquote style="direction:{block_dir}">{sanitize_inline(text)}</blockquote>'
+        return (
+            f'<blockquote id="{anchor}" style="direction:{block_dir}">'
+            f"{sanitize_inline(text)}</blockquote>"
+        )
     if block.type is B.CODE:
-        return f'<pre class="code">{html.escape(block.plain_text)}</pre>'
+        return f'<pre id="{anchor}" class="code">{html.escape(block.plain_text)}</pre>'
     if block.type is B.CAPTION:
-        return f'<p class="caption" style="direction:{block_dir}">{sanitize_inline(text)}</p>'
+        return (
+            f'<p id="{anchor}" class="caption" style="direction:{block_dir}">'
+            f"{sanitize_inline(text)}</p>"
+        )
     if block.type is B.TABLE:
-        return f'<div class="table" style="direction:{block_dir}">{sanitize_inline(text)}</div>'
+        return (
+            f'<div id="{anchor}" class="table" style="direction:{block_dir}">'
+            f"{sanitize_inline(text)}</div>"
+        )
     if block.type is B.SEPARATOR:
-        return "<hr/>"
+        return f'<hr id="{anchor}"/>'
     if block.type is B.IMAGE:
         return _render_image(block, image_src)
     if block.type is B.LIST_ITEM:
-        return f'<li style="direction:{block_dir}">{sanitize_inline(text)}</li>'
+        return _render_list_item(block, direction)
     if "<" in text:  # inline markup present: keep one directional block
-        return f'<p style="direction:{block_dir}">{sanitize_inline(text)}</p>'
+        return f'<p id="{anchor}" style="direction:{block_dir}">{sanitize_inline(text)}</p>'
     paragraphs = directional_paragraphs(text, direction)
+    if len(paragraphs) == 1:
+        piece_dir, piece = paragraphs[0]
+        return (
+            f'<p id="{anchor}" style="direction:{piece_dir}">{sanitize_inline(piece.strip())}</p>'
+        )
     return "\n".join(
-        f'<p style="direction:{piece_dir}">{sanitize_inline(piece.strip())}</p>'
-        for piece_dir, piece in paragraphs
+        f'<p id="{anchor if index == 0 else f"{anchor}-{index}"}" '
+        f'style="direction:{piece_dir}">{sanitize_inline(piece.strip())}</p>'
+        for index, (piece_dir, piece) in enumerate(paragraphs)
     )
 
 
@@ -292,7 +334,7 @@ def _render_image(block: TextBlock, image_src: Mapping[str, str]) -> str:
     align = _image_align(block)
     style = _image_size_style(block)
     return (
-        f'<div class="image" style="text-align:{align}">'
+        f'<div id="{block_anchor(block)}" class="image" style="text-align:{align}">'
         f'<img src="{html.escape(src, quote=True)}" alt="{alt}" style="{style}"/></div>'
     )
 
@@ -321,11 +363,16 @@ def render_body_html(
     language: str,
     direction: str,
     image_src: Mapping[str, str] | None = None,
+    break_before: Iterable[str] = (),
 ) -> str:
     """Render the full book body as a single HTML document.
 
     For PDF sources the first page is the rendered cover, so its text is not
     repeated in the body. Chapter titles and level-1 headings start a new page.
+
+    ``break_before`` names element ids (``blk-…``/``sec-…``) that must start a
+    new page; the PDF paginator uses it to keep headings from being orphaned
+    (PyMuPDF's Story engine ignores ``page-break-after: avoid``).
     """
     parts: list[str] = []
     titled = False
@@ -346,6 +393,8 @@ def render_body_html(
     if not titled:
         body = body.replace('class="heading level-1"', 'class="heading level-1 first"', 1)
     css = _body_css(font, direction)
+    if break_before:
+        css += "".join(f"#{name}{{page-break-before:always;}}" for name in break_before)
     return (
         "<!DOCTYPE html>\n"
         f'<html lang="{html.escape(language, quote=True)}">\n'
@@ -377,6 +426,8 @@ def _body_css(font: BookFont, direction: str) -> str:
         + ".caption{font-size:9pt;opacity:0.85;}"
         + ".table table{border-collapse:collapse;}"
         + ".table td,.table th{border:0.5pt solid #999;padding:3pt 5pt;}"
+        + ".list{margin:0 0 8pt;}"
+        + ".list-item{margin:0 0 4pt;}"
         + ".image{text-align:center;margin:10pt 0;}"
         + "img{max-width:100%;height:auto;}"
     )

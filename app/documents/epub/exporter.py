@@ -36,6 +36,13 @@ from app.exceptions import ConfigurationError
 
 XHTML_NS = "http://www.w3.org/1999/xhtml"
 EPUB_NS = "http://www.idpf.org/2007/ops"
+_NAV_TITLES = {
+    "fa": "فهرست",
+    "ar": "المحتويات",
+    "ur": "فہرست",
+    "he": "תוכן העניינים",
+    "ps": "منځپانګه",
+}
 _CONTAINER_XML = (
     '<?xml version="1.0" encoding="UTF-8"?>\n'
     '<container version="1.0" '
@@ -300,8 +307,24 @@ class EpubExporter:
             heading.text = section.title
 
         list_stack: list[tuple[str, etree._Element]] = []
+        synthetic_list: etree._Element | None = None
+        synthetic_ordered: bool | None = None
         for block in section.blocks:
             text = self._block_text(block) or ""
+            # Items from a PDF source have no <ul>/<ol> container; group runs of
+            # them so the output is valid XHTML and gets real bullets/numbers.
+            if block.type is B.LIST_ITEM and not list_stack:
+                ordered = block.attributes.get("list_style") == "ordered"
+                if synthetic_list is None or synthetic_ordered is not ordered:
+                    synthetic_list = etree.SubElement(
+                        body, f"{{{XHTML_NS}}}{'ol' if ordered else 'ul'}"
+                    )
+                    synthetic_ordered = ordered
+                item = etree.SubElement(synthetic_list, f"{{{XHTML_NS}}}li")
+                item.set("dir", text_direction(strip_markup(text), direction))
+                _append_inner(item, self._block_text(block))
+                continue
+            synthetic_list = None
             if block.type is B.PARAGRAPH and text and "<" not in text:
                 pieces = directional_paragraphs(text, direction)
                 if len(pieces) > 1:
@@ -469,7 +492,9 @@ class EpubExporter:
         nav = etree.SubElement(
             body, f"{{{XHTML_NS}}}nav", attrib={f"{{{EPUB_NS}}}type": "toc", "id": "toc"}
         )
-        etree.SubElement(nav, f"{{{XHTML_NS}}}h1").text = "Contents"
+        etree.SubElement(nav, f"{{{XHTML_NS}}}h1").text = _NAV_TITLES.get(
+            language.split("-", 1)[0].lower(), "Contents"
+        )
         ordered = etree.SubElement(nav, f"{{{XHTML_NS}}}ol")
         for name, section in content_files:
             item = etree.SubElement(ordered, f"{{{XHTML_NS}}}li")

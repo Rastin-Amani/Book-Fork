@@ -22,8 +22,9 @@ import pymupdf
 from app.documents.adapters.base import ExportOptions
 from app.documents.book.cover import CoverSpec, render_cover_png
 from app.documents.book.fonts import BookFont, book_font, font_face_css
-from app.documents.book.html import render_body_html
-from app.documents.model import CanonicalDocument
+from app.documents.book.html import block_text, render_body_html, strip_markup
+from app.documents.model import BlockType as B
+from app.documents.model import CanonicalDocument, Section
 
 _PAGE_SIZES = {"a4": "a4", "a5": "a5", "b5": "b5", "letter": "letter", "legal": "legal", "a6": "a6"}
 _MARGIN = 45
@@ -56,14 +57,18 @@ def render_book_pdf(document: CanonicalDocument, options: ExportOptions) -> byte
     authors = tuple(a for a in document.metadata.authors if a)
 
     archive, image_src = _build_archive(document, font, options)
-    body_html = render_body_html(
-        document, font=font, language=language, direction=direction, image_src=image_src
-    )
     media = _page_rect(options.page_size)
     body_doc, toc_entries = _render_body(
-        body_html, font=font, media=media, archive=archive, fallback_head=title
+        document,
+        font=font,
+        language=language,
+        direction=direction,
+        image_src=image_src,
+        media=media,
+        archive=archive,
+        fallback_head=title,
     )
-    toc_doc = _render_toc(
+    toc_doc, toc_links = _render_toc(
         toc_entries, font=font, media=media, archive=archive, language=language, direction=direction
     )
 
@@ -72,6 +77,7 @@ def render_book_pdf(document: CanonicalDocument, options: ExportOptions) -> byte
         cover_png=cover_png,
         generated_cover=generated_cover,
         toc_doc=toc_doc,
+        toc_links=toc_links,
         toc_entries=toc_entries,
         body_doc=body_doc,
         media=media,
@@ -151,32 +157,131 @@ def _build_archive(
 
 
 # -- body --------------------------------------------------------------------
+_MAX_ORPHAN_PASSES = 4
+
+
 def _render_body(
+    document: CanonicalDocument,
+    *,
+    font: BookFont,
+    language: str,
+    direction: str,
+    image_src: dict[str, str],
+    media: pymupdf.Rect,
+    archive: pymupdf.Archive,
+    fallback_head: str,
+) -> tuple[pymupdf.Document, list[TocEntry]]:
+    """Lay out the body, keeping headings from being orphaned.
+
+    PyMuPDF's Story engine ignores ``page-break-after/inside: avoid`` (only
+    ``always`` is honoured), so a heading that lands at the bottom of a page is
+    separated from the text it introduces. We render once, detect headings that
+    ended a page, force a page break before them, and repeat until the layout is
+    stable. The final pass is the document we keep (it also carries the TOC
+    entries and running heads).
+    """
+    breaks: set[str] = set()
+    last_block = _last_block_anchor(document)
+    titles = _heading_titles(document)
+    doc: pymupdf.Document | None = None
+    entries: list[TocEntry] = []
+    # ponytail: up to _MAX_ORPHAN_PASSES full layouts; a per-block measuring
+    # engine would be one pass, but this needs no reimplementation of Story.
+    for _ in range(_MAX_ORPHAN_PASSES):
+        body_html = render_body_html(
+            document,
+            font=font,
+            language=language,
+            direction=direction,
+            image_src=image_src,
+            break_before=breaks,
+        )
+        doc, entries, orphans = _place_body(
+            body_html,
+            font=font,
+            media=media,
+            archive=archive,
+            fallback_head=fallback_head,
+            direction=direction,
+            last_block=last_block,
+            titles=titles,
+        )
+        new = {anchor for anchor in orphans if anchor not in breaks}
+        if not new:
+            return doc, entries
+        breaks |= new
+    assert doc is not None
+    return doc, entries
+
+
+def _last_block_anchor(document: CanonicalDocument) -> str | None:
+    """The anchor of the final rendered block (never force a break before it)."""
+    anchors = [
+        f"blk-{block.id}" for section in _book_sections(document) for block in section.blocks
+    ]
+    return anchors[-1] if anchors else None
+
+
+def _book_sections(document: CanonicalDocument) -> list[Section]:
+    """Sections actually rendered (a PDF source's first page is its cover)."""
+    return [
+        section
+        for index, section in enumerate(document.sections)
+        if not (document.source_type == "pdf" and index == 0)
+    ]
+
+
+def _heading_titles(document: CanonicalDocument) -> dict[str, str]:
+    """Map each heading anchor to its source text.
+
+    ``element_positions`` normalizes the text it reports (it can drop the space
+    beside a Latin island), so the TOC and running heads take their labels from
+    the canonical model instead.
+    """
+    titles: dict[str, str] = {}
+    for section in _book_sections(document):
+        if section.title:
+            titles[f"sec-{section.id}"] = strip_markup(section.title)
+        for block in section.blocks:
+            if block.type is B.HEADING:
+                titles[f"blk-{block.id}"] = strip_markup(block_text(block))
+    return titles
+
+
+def _place_body(
     body_html: str,
     *,
     font: BookFont,
     media: pymupdf.Rect,
     archive: pymupdf.Archive,
     fallback_head: str,
-) -> tuple[pymupdf.Document, list[TocEntry]]:
+    direction: str,
+    last_block: str | None,
+    titles: dict[str, str],
+) -> tuple[pymupdf.Document, list[TocEntry], list[str]]:
     story = pymupdf.Story(html=body_html, archive=archive, user_css=font_face_css(font))
     content = _content_rect(media)
     head_rect = _header_rect(media)
     entries: list[TocEntry] = []
     current = {"head": fallback_head}
     state = {"page": 0, "opened": False}
+    placed: list[list[tuple[str, int, float]]] = []
 
     def record(position: object) -> None:
         if not (getattr(position, "open_close", 0) & 1):
             return
         heading = getattr(position, "heading", 0) or 0
-        text = getattr(position, "text", "") or ""
+        rect = getattr(position, "rect", (0, 0, 0, 0))
+        anchor = getattr(position, "id", "") or ""
+        text = titles.get(anchor) or (getattr(position, "text", "") or "")
         if heading > 0:
-            rect = getattr(position, "rect", (0, 0, 0, 0))
             entries.append(TocEntry(level=heading, title=text, page=state["page"] + 1, y=rect[1]))
             if heading == 1:
                 current["head"] = text
                 state["opened"] = True
+        while len(placed) <= state["page"]:
+            placed.append([])
+        placed[state["page"]].append((anchor, heading, float(rect[3])))
 
     buffer = io.BytesIO()
     writer = pymupdf.DocumentWriter(buffer)
@@ -190,7 +295,9 @@ def _render_body(
         story.element_positions(record)
         story.draw(device)
         if not state["opened"]:
-            head = _text_story(current["head"], font=font, archive=archive, size=9)
+            head = _running_head(
+                current["head"], font=font, archive=archive, size=9, direction=direction
+            )
             head.place(head_rect)
             head.draw(device)
         writer.end_page()
@@ -201,10 +308,37 @@ def _render_body(
     doc = pymupdf.open("pdf", buffer)
     if doc.page_count == 0:
         doc.new_page(width=media.width, height=media.height)
-    return doc, entries
+    return doc, entries, _orphan_headings(placed, last_block=last_block)
+
+
+def _orphan_headings(
+    placed: list[list[tuple[str, int, float]]], *, last_block: str | None
+) -> list[str]:
+    """Anchors of headings that ended a page (or split across a page break).
+
+    A heading is orphaned when it is the lowest element placed on its page and
+    its text continues elsewhere; forcing a page break before it moves the
+    heading to the next page with the text it introduces. The very first page
+    and the document's final block are left alone.
+
+    ponytail: bottom-of-page heuristic — no widow/orphan control for ordinary
+    paragraphs; add line-level measurement if a real book complains.
+    """
+    orphans: list[str] = []
+    for index, elements in enumerate(placed):
+        if not elements or (index == 0 and len(elements) == 1):
+            continue
+        anchor, heading, _bottom = max(elements, key=lambda item: item[2])
+        if heading > 0 and anchor and anchor != last_block and anchor not in orphans:
+            orphans.append(anchor)
+    return orphans
 
 
 # -- table of contents -------------------------------------------------------
+_TOC_MAX_LEVEL = 2
+_TOC_MAX_ENTRIES = 400
+
+
 def _render_toc(
     entries: list[TocEntry],
     *,
@@ -213,41 +347,78 @@ def _render_toc(
     archive: pymupdf.Archive,
     language: str,
     direction: str,
-) -> pymupdf.Document | None:
-    if not entries:
-        return None
+) -> tuple[pymupdf.Document | None, list[tuple[int, pymupdf.Rect, TocEntry]]]:
+    visible = _toc_entries(entries)
+    if not visible:
+        return None, []
     heading = _TOC_TITLES.get(language.split("-", 1)[0].lower(), "Contents")
     rows = "".join(
-        f'<tr class="lvl{entry.level}"><td class="t">{_escape(entry.title)}</td>'
+        f'<tr id="toc-{index}" class="lvl{entry.level}">'
+        f'<td class="t">{_escape(entry.title)}</td>'
         f'<td class="p">{entry.page}</td></tr>'
-        for entry in entries
-        if entry.level <= 3
+        for index, entry in enumerate(visible)
     )
     html_text = f'<h1 class="toc-title">{_escape(heading)}</h1><table class="toc">{rows}</table>'
     page_number_side = "left" if direction == "rtl" else "right"
+    title_side = "right" if direction == "rtl" else "left"
+    indent_side = "right" if direction == "rtl" else "left"
     css = (
         font_face_css(font)
         + f"body{{font-family:{font.family_stack()};margin:0;font-size:11pt;"
         + f"direction:{direction};}}"
         + ".toc-title{font-size:20pt;font-weight:bold;margin:0 0 16pt;}"
-        + ".toc{width:100%;border-collapse:collapse;}"
-        + ".toc td{padding:3pt 0;vertical-align:top;border:0;}"
-        + ".toc td.t{border:0;}"
-        + f".toc td.p{{text-align:{page_number_side};width:12%;}}"
-        + ".toc tr.lvl2 td.t{padding-left:18pt;padding-right:18pt;opacity:0.85;}"
-        + ".toc tr.lvl3 td.t{padding-left:36pt;padding-right:36pt;opacity:0.75;}"
+        # A fixed layout with an explicit number column keeps the page number at
+        # the outer edge instead of letting it cling to the title (RTL included).
+        + ".toc{table-layout:fixed;width:100%;border-collapse:collapse;}"
+        + ".toc td{padding:3pt 0;vertical-align:top;border:0;overflow:hidden;}"
+        + f".toc td.t{{border:0;text-align:{title_side};}}"
+        + f".toc td.p{{text-align:{page_number_side};width:44pt;}}"
+        + f".toc tr.lvl2 td.t{{padding-{indent_side}:18pt;opacity:0.85;}}"
     )
     story = pymupdf.Story(html=html_text, archive=archive, user_css=css)
+    links: list[tuple[int, pymupdf.Rect, TocEntry]] = []
     buffer = io.BytesIO()
     writer = pymupdf.DocumentWriter(buffer)
     more = 1
+    page_index = 0
     while more:
         device = writer.begin_page(media)
         more, _ = story.place(_content_rect(media))
+
+        def record(position: object, *, _page: int = page_index) -> None:
+            if not (getattr(position, "open_close", 0) & 1):
+                return
+            anchor = getattr(position, "id", "") or ""
+            if not anchor.startswith("toc-"):
+                return
+            index = int(anchor[4:])
+            rect = getattr(position, "rect", None)
+            if rect and 0 <= index < len(visible):
+                links.append((_page, pymupdf.Rect(rect), visible[index]))
+
+        story.element_positions(record)
         story.draw(device)
         writer.end_page()
+        page_index += 1
     writer.close()
-    return pymupdf.open("pdf", buffer)
+    return pymupdf.open("pdf", buffer), links
+
+
+def _toc_entries(entries: list[TocEntry]) -> list[TocEntry]:
+    """Keep a readable menu: top levels only, no duplicate titles, bounded size."""
+    visible: list[TocEntry] = []
+    seen: set[tuple[int, str]] = set()
+    for entry in entries:
+        if entry.level > _TOC_MAX_LEVEL or not entry.title.strip():
+            continue
+        key = (entry.level, entry.title)
+        if key in seen:
+            continue
+        seen.add(key)
+        visible.append(entry)
+        if len(visible) >= _TOC_MAX_ENTRIES:
+            break
+    return visible
 
 
 # -- assembly ----------------------------------------------------------------
@@ -256,6 +427,7 @@ def _assemble(
     cover_png: bytes,
     generated_cover: bool,
     toc_doc: pymupdf.Document | None,
+    toc_links: list[tuple[int, pymupdf.Rect, TocEntry]],
     toc_entries: list[TocEntry],
     body_doc: pymupdf.Document,
     media: pymupdf.Rect,
@@ -273,12 +445,13 @@ def _assemble(
     toc_pages = toc_doc.page_count if toc_doc is not None else 0
     if toc_doc is not None:
         out.insert_pdf(toc_doc)
+    toc_offset = 1  # the cover occupies page 0
     body_start = out.page_count  # 0-based index of the first body page
     out.insert_pdf(body_doc)
 
-    _number_pages(out, toc_start=1, toc_count=toc_pages, body_start=body_start)
-    if toc_doc is not None:
-        _link_toc(out, toc_entries, body_start=body_start)
+    _number_pages(out, toc_start=toc_offset, toc_count=toc_pages, body_start=body_start)
+    if toc_links:
+        _link_toc(out, toc_links, toc_offset=toc_offset, body_start=body_start)
     _set_outline(out, toc_entries, body_start=body_start, title=title)
     _set_language(out, language, direction)
 
@@ -329,29 +502,30 @@ def _number_pages(
         page += 1
 
 
-def _link_toc(doc: pymupdf.Document, entries: list[TocEntry], *, body_start: int) -> None:
-    toc_pages = range(1, body_start)
-    for entry in entries:
-        if entry.level > 3 or not entry.title:
-            continue
+def _link_toc(
+    doc: pymupdf.Document,
+    links: list[tuple[int, pymupdf.Rect, TocEntry]],
+    *,
+    toc_offset: int,
+    body_start: int,
+) -> None:
+    """Make every contents row a jump link (as an annotation, so it stays black).
+
+    The row rectangles are captured while the contents page is laid out, so this
+    works for shaped scripts where ``search_for`` cannot find the title.
+    """
+    for toc_page, rect, entry in links:
         target = body_start + entry.page - 1
-        if target >= doc.page_count:
+        if target >= doc.page_count or target < body_start:
             continue
-        for index in toc_pages:
-            page = doc[index]
-            found = page.search_for(entry.title)
-            if not found:
-                continue
-            for rect in found:
-                page.insert_link(
-                    {
-                        "kind": pymupdf.LINK_GOTO,
-                        "from": rect,
-                        "to": pymupdf.Point(0, entry.y),
-                        "page": target,
-                    }
-                )
-            break
+        doc[toc_page + toc_offset].insert_link(
+            {
+                "kind": pymupdf.LINK_GOTO,
+                "from": rect,
+                "to": pymupdf.Point(rect.x0, entry.y),
+                "page": target,
+            }
+        )
 
 
 def _set_outline(
@@ -426,15 +600,22 @@ def _roman(value: int) -> str:
     return result
 
 
-def _text_story(text: str, *, font: BookFont, archive: pymupdf.Archive, size: int) -> pymupdf.Story:
-    story = pymupdf.Story(archive=archive, user_css=font_face_css(font))
-    paragraph = story.body.add_paragraph()
-    paragraph.set_align(pymupdf.TEXT_ALIGN_CENTER)
-    paragraph.set_font(font.family)
-    paragraph.set_fontsize(size)
-    paragraph.set_color((110, 110, 110))
-    paragraph.add_text(text)
-    return story
+def _running_head(
+    text: str, *, font: BookFont, archive: pymupdf.Archive, size: int, direction: str
+) -> pymupdf.Story:
+    """The page header as an HTML story so RTL text and parentheses stay correct.
+
+    The low-level paragraph API lays Arabic out in visual order, reversing RTL
+    runs and mirroring the mixed Latin islands a converted book's titles
+    contain; HTML carries the base direction through to the shaper.
+    """
+    css = (
+        font_face_css(font)
+        + f"body{{margin:0;font-family:{font.family_stack()};direction:{direction};}}"
+        + f"p{{margin:0;font-size:{size}pt;text-align:center;color:#6e6e6e;}}"
+    )
+    html_text = f"<html><body><p>{_escape(text)}</p></body></html>"
+    return pymupdf.Story(html=html_text, archive=archive, user_css=css)
 
 
 def _escape(text: str) -> str:

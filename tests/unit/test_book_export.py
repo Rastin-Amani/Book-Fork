@@ -143,6 +143,150 @@ def test_pdf_book_has_cover_toc_outline_and_fonts(tmp_path: Path) -> None:
         assert any("Vazirmatn" in name for name in body_fonts)
 
 
+def test_pdf_toc_rows_are_internal_links(tmp_path: Path) -> None:
+    import pymupdf
+
+    export = PdfExporter().export(
+        _document(),
+        ExportOptions(
+            target_language="fa",
+            target_direction="rtl",
+            page_size="a5",
+            output_dir=tmp_path / "out",
+        ),
+    )
+    with pymupdf.open(export.path) as doc:
+        toc_links = doc[1].get_links()  # cover is page 0
+        assert toc_links
+        assert {link["kind"] for link in toc_links} == {pymupdf.LINK_GOTO}
+
+
+def test_toc_entries_bounded_deduped_and_top_levels_only() -> None:
+    from app.documents.book.pdf import TocEntry, _toc_entries
+
+    duplicates = [TocEntry(level=1, title="Same", page=i, y=0) for i in range(50)]
+    assert len(_toc_entries(duplicates)) == 1
+    deep = [TocEntry(level=4, title=f"x{i}", page=i, y=0) for i in range(10)]
+    assert _toc_entries(deep) == []
+
+
+def test_render_body_html_emits_break_before() -> None:
+    html_text = render_body_html(
+        _document(),
+        font=book_font("fa"),
+        language="fa",
+        direction="rtl",
+        break_before={"blk-b1"},
+    )
+    assert "#blk-b1{page-break-before:always;}" in html_text
+
+
+def test_orphan_headings_detects_only_headings_ending_a_page() -> None:
+    from app.documents.book.pdf import _orphan_headings
+
+    placed = [
+        [("blk-p1", 0, 100.0), ("blk-h", 2, 500.0)],  # heading at page bottom
+        [("blk-f", 0, 60.0)],
+    ]
+    assert _orphan_headings(placed, last_block="blk-z") == ["blk-h"]
+    # a paragraph ending the page is not an orphan
+    assert _orphan_headings([[("blk-p", 0, 500.0)]], last_block="blk-z") == []
+    # the final block of the book is never forced onto a new page
+    assert _orphan_headings([[("blk-h", 1, 500.0)]], last_block="blk-h") == []
+    # a heading alone on the very first page stays put
+    assert _orphan_headings([[("blk-h", 1, 500.0)]], last_block="blk-z") == []
+
+
+def _orphan_document(paragraphs: int) -> CanonicalDocument:
+    def block(
+        text: str, bid: str, *, kind: BlockType = BlockType.PARAGRAPH, level: int | None = None
+    ):
+        return TextBlock(
+            id=bid,
+            type=kind,
+            source_order=0,
+            source_text=text,
+            translated_text=text,
+            level=level,
+            attributes={"plain_text": text},
+        )
+
+    blocks = [
+        block(f"پاراگراف {i} با متن بیشتر برای پر کردن صفحه و خط.", f"p{i}")
+        for i in range(paragraphs)
+    ]
+    blocks.append(block("UNIQUESUBHEAD", "h", kind=BlockType.HEADING, level=2))
+    blocks.append(block("UNIQUEFOLLOWMARKER", "f"))
+    blocks.append(block("متن پایانی.", "z"))
+    return CanonicalDocument(
+        document_id="doc-1",
+        metadata=DocumentMetadata(title="تست", language="fa"),
+        sections=[Section(id="section_000", source_order=0, title=None, blocks=blocks)],
+    )
+
+
+def test_pdf_heading_is_not_orphaned_on_a_page(tmp_path: Path) -> None:
+    import pymupdf
+
+    for paragraphs in (18, 37):
+        export = PdfExporter().export(
+            _orphan_document(paragraphs),
+            ExportOptions(
+                target_language="fa",
+                target_direction="rtl",
+                page_size="a5",
+                output_dir=tmp_path / f"out{paragraphs}",
+            ),
+        )
+        with pymupdf.open(export.path) as doc:
+            head_page = next(
+                (
+                    page - 1
+                    for _lvl, title, page in doc.get_toc()
+                    if title.strip() == "UNIQUESUBHEAD"
+                ),
+                None,
+            )
+            follow_page = next(
+                (i for i in range(doc.page_count) if "UNIQUEFOLLOWMARKER" in doc[i].get_text()),
+                None,
+            )
+            assert head_page is not None and follow_page is not None
+            assert head_page == follow_page
+
+
+def test_pdf_rtl_list_bullet_sits_on_the_right(tmp_path: Path) -> None:
+    import pymupdf
+
+    block = TextBlock(
+        id="li1",
+        type=BlockType.LIST_ITEM,
+        source_order=0,
+        source_text="آیتم فهرست",
+        translated_text="آیتم فهرست",
+        attributes={"plain_text": "آیتم فهرست", "list_style": "unordered"},
+    )
+    document = CanonicalDocument(
+        document_id="doc-1",
+        metadata=DocumentMetadata(title="تست", language="fa"),
+        sections=[Section(id="section_000", source_order=0, title="فصل", blocks=[block])],
+    )
+    export = PdfExporter().export(
+        document,
+        ExportOptions(
+            target_language="fa",
+            target_direction="rtl",
+            page_size="a5",
+            output_dir=tmp_path / "out",
+        ),
+    )
+    with pymupdf.open(export.path) as doc:
+        found = [rect for page in doc for rect in page.search_for("•")]
+        assert found
+        midpoint = doc[0].rect.width / 2
+        assert all(rect.x0 > midpoint for rect in found)
+
+
 def test_html_backend_still_available(tmp_path: Path) -> None:
     export = PdfExporter().export(
         _document(),
@@ -191,6 +335,40 @@ def test_epub_export_has_cover_nav_ncx_and_roundtrips(tmp_path: Path) -> None:
     # The cover page and nav are not translatable chapters.
     reparsed = EpubParser().parse(export.path, ParseOptions(document_id="reparsed"))
     assert len(reparsed.document.sections) == len(document.sections)
+
+
+def test_epub_groups_pdf_list_items_into_a_real_list(tmp_path: Path) -> None:
+    items = [
+        TextBlock(
+            id=f"li{index}",
+            type=BlockType.LIST_ITEM,
+            source_order=index,
+            source_text=text,
+            translated_text=text,
+            attributes={"plain_text": text, "list_style": "unordered"},
+        )
+        for index, text in enumerate(("آیتم یک", "آیتم دو"))
+    ]
+    document = CanonicalDocument(
+        document_id="doc-1",
+        source_type="pdf",
+        metadata=DocumentMetadata(title="کتاب", language="fa"),
+        sections=[Section(id="section_000", source_order=0, title="فصل", blocks=items)],
+    )
+    export = EpubExporter().export(
+        document,
+        ExportOptions(target_language="fa", target_direction="rtl", output_dir=tmp_path / "out"),
+    )
+    with zipfile.ZipFile(export.path) as archive:
+        chapter = next(
+            name
+            for name in archive.namelist()
+            if name.endswith(".xhtml") and "cover" not in name and "nav" not in name
+        )
+        xhtml = archive.read(chapter).decode("utf-8")
+    assert "<ul>" in xhtml
+    assert xhtml.count("<li ") == 2
+    assert "<body><li" not in xhtml
 
 
 # -- download selection ------------------------------------------------------
