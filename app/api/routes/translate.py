@@ -122,8 +122,9 @@ async def create_translation(
     upload: Annotated[UploadFile | None, File()] = None,
 ) -> Response:
     ctx = get_ctx(request)
+    settings = build_settings_service(repos)
     limits = build_limit_service(
-        repos, build_settings_service(repos), fallback_upload_bytes=ctx.settings.max_request_bytes
+        repos, settings, fallback_upload_bytes=ctx.settings.max_request_bytes
     )
     if upload is not None and upload.filename:
         data = await upload.read()
@@ -149,7 +150,7 @@ async def create_translation(
 
     await limits.check_job_create(workspace.id)
     source = await _resolve_source(request, repos, workspace.id, document, source_language)
-    job_service = build_job_service(repos, build_settings_service(repos))
+    job_service = build_job_service(repos, settings)
     plan = await job_service.build_plan(
         workspace_id=workspace.id,
         source_language=source,
@@ -177,12 +178,13 @@ async def job_page(
 ) -> Response:
     job = await _owned_job(repos, workspace.id, job_id)
     document = await repos.documents.get(job.document)
-    segments = await repos.segments.list_for_job(job_id)
-    events = await repos.job_events.list_for_job(job_id)
+    # The job page renders status + progress only; segments and events are
+    # loaded lazily by the review page / status poll. Fetching them here cost a
+    # paged round trip per 500 rows on every view for data nothing rendered.
     return render(
         request,
         "pages/app/job.html",
-        {"job": job, "document": document, "segments": segments, "events": events},
+        {"job": job, "document": document},
     )
 
 
@@ -199,8 +201,7 @@ async def cancel_job(
     request: Request, job_id: str, workspace: WorkspaceDep, repos: ReposDep, _csrf: CsrfProtected
 ) -> Response:
     job = await _owned_job(repos, workspace.id, job_id)
-    await repos.jobs.update(job.id, {"cancellation_requested": True})
-    job = await repos.jobs.get(job.id)
+    job = await repos.jobs.update(job.id, {"cancellation_requested": True})
     return render(request, "partials/job_status.html", {"job": job})
 
 
@@ -222,7 +223,7 @@ async def retry_job(
     metadata = dict(job.metadata or {})
     metadata["retry_mode"] = "failed_only"
     metadata["retry_count"] = int(metadata.get("retry_count", 0)) + 1
-    await repos.jobs.update(
+    job = await repos.jobs.update(
         job.id,
         {
             "status": "queued",
@@ -232,7 +233,6 @@ async def retry_job(
             "metadata": metadata,
         },
     )
-    job = await repos.jobs.get(job.id)
     return render(request, "partials/job_status.html", {"job": job})
 
 
@@ -307,8 +307,14 @@ def _output_filename(
 async def review(
     request: Request, job_id: str, workspace: WorkspaceDep, repos: ReposDep
 ) -> Response:
-    job = await _owned_job(repos, workspace.id, job_id)
-    segments = await repos.segments.list_for_job(job_id)
+    # Authorization (job ownership) and the segment page are independent; the
+    # ownership read is still awaited before rendering, so an unauthorized
+    # caller gets the 404 and the segment fetch is discarded. Saves a round
+    # trip on every review open.
+    job, segments = await asyncio.gather(
+        _owned_job(repos, workspace.id, job_id),
+        repos.segments.list_for_job(job_id),
+    )
     return render(request, "pages/app/review.html", {"job": job, "segments": segments})
 
 
