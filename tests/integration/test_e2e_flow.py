@@ -95,11 +95,7 @@ def _login(client: TestClient, app: FastAPI, fake_pb: Any) -> str:
     app.state.ctx.auth = FakeAuthProvider()
     client.get("/login")
     csrf = client.cookies.get("book_fork_csrf") or ""
-    client.post(
-        "/auth/login",
-        data={"identity": "a@b.co", "password": "secret123"},
-        headers={"X-CSRF-Token": csrf},
-    )
+    client.get("/auth/oauth2/callback?code=good-code&state=st-google", follow_redirects=False)
     return csrf
 
 

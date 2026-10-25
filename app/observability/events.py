@@ -16,8 +16,6 @@ _logger = get_logger("book_fork.events")
 # Auth lifecycle
 LOGIN = "login"
 LOGOUT = "logout"
-SIGNUP = "signup"
-PASSWORD_RESET_REQUESTED = "password_reset_requested"
 ADMIN_ACCESS_DENIED = "admin_access_denied"
 
 # Documents

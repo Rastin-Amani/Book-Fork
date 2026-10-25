@@ -123,13 +123,31 @@ class PocketBaseClient:
         )
         return str(response.json()["token"])
 
-    async def auth_with_password(
-        self, collection: str, *, identity: str, password: str
+    async def auth_methods(self, collection: str) -> dict[str, Any]:
+        """Enabled auth methods and their per-request OAuth2 state."""
+        response = await self._request("GET", f"/api/collections/{collection}/auth-methods")
+        data: dict[str, Any] = response.json()
+        return data
+
+    async def auth_with_oauth2(
+        self,
+        collection: str,
+        *,
+        provider: str,
+        code: str,
+        code_verifier: str,
+        redirect_url: str,
     ) -> PocketBaseAuthResponse:
         response = await self._request(
             "POST",
-            f"/api/collections/{collection}/auth-with-password",
-            json={"identity": identity, "password": password},
+            f"/api/collections/{collection}/auth-with-oauth2",
+            json={
+                "provider": provider,
+                "code": code,
+                "codeVerifier": code_verifier,
+                "redirectURL": redirect_url,
+                "createData": {"emailVisibility": False},
+            },
         )
         return PocketBaseAuthResponse.model_validate(response.json())
 
@@ -197,28 +215,3 @@ class PocketBaseClient:
             "GET", f"/api/collections/{collection}/records", token=token, params=params
         )
         return PocketBaseListResponse.model_validate(response.json())
-
-    # -- password reset / verification --------------------------------------
-    async def request_password_reset(self, collection: str, *, email: str) -> None:
-        await self._request(
-            "POST", f"/api/collections/{collection}/request-password-reset", json={"email": email}
-        )
-
-    async def confirm_password_reset(
-        self, collection: str, *, token: str, password: str, password_confirm: str
-    ) -> None:
-        await self._request(
-            "POST",
-            f"/api/collections/{collection}/confirm-password-reset",
-            json={"token": token, "password": password, "passwordConfirm": password_confirm},
-        )
-
-    async def request_verification(self, collection: str, *, email: str) -> None:
-        await self._request(
-            "POST", f"/api/collections/{collection}/request-verification", json={"email": email}
-        )
-
-    async def confirm_verification(self, collection: str, *, token: str) -> None:
-        await self._request(
-            "POST", f"/api/collections/{collection}/confirm-verification", json={"token": token}
-        )

@@ -67,6 +67,9 @@ make worker-once                               # process one queued job, then ex
 
 # 5. Seed reference data (idempotent; needs a superuser credential)
 POCKETBASE_SERVICE_CREDENTIAL='admin@example.com:password' uv run python scripts/seed.py
+
+# 6. Sign-in providers (Google / GitHub; credentials in .env, idempotent)
+uv run python scripts/configure_auth.py
 ```
 
 Open http://localhost:8000.

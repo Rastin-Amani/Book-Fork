@@ -87,10 +87,6 @@ async def build_context(settings: Settings) -> AppContext:
     health = HealthService(pocketbase=pocketbase, storage=storage)
     auth_limiter = RateLimiter(settings.rate_limit_auth_per_minute, window_seconds=60.0)
     limiters = {
-        "signup": RateLimiter(settings.rate_limit_signup_per_minute, window_seconds=60.0),
-        "password_reset": RateLimiter(
-            settings.rate_limit_password_reset_per_minute, window_seconds=60.0
-        ),
         "upload": RateLimiter(settings.rate_limit_upload_per_minute, window_seconds=60.0),
         "provider_test": RateLimiter(
             settings.rate_limit_provider_test_per_minute, window_seconds=60.0

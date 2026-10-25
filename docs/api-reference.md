@@ -35,28 +35,32 @@
 | Method | Path | Returns |
 | --- | --- | --- |
 | GET | `/` | Landing page (redirects nothing; shows app if signed in). |
-| GET | `/login` | Login page; redirects to `/app` when already signed in. |
-| GET | `/signup` | Signup page; redirects to `/app` when already signed in. |
-| GET | `/forgot-password` | Password-reset request page. |
-| GET | `/reset-password?token=…` | Set-new-password page. |
-| GET | `/verify-email?token=…` | Email-verification page. |
+| GET | `/login` | Single sign-in/sign-up page (Google/GitHub); redirects to `/app` when already signed in. |
+| GET | `/signup` | Redirects to `/login` — the OAuth page creates the account on first use. |
 | GET | `/dashboard` | Redirects to `/app` (signed in) or `/login`. |
 
 ## 3. Authentication (`/auth/*`)
 
-State-changing routes require CSRF and are rate-limited (`RATE_LIMIT_AUTH_PER_MINUTE`,
-plus a per-purpose limit). Success responses are HTTP 200 with `HX-Redirect`, or
-an HTMX fragment in `partials/auth_error.html` / `partials/auth_success.html`.
+Sign-in is **OAuth2-only** (Google or GitHub) through PocketBase's manual code
+exchange. `/login` lists the providers enabled in PocketBase; there is no
+password, reset or verification flow. The callback is a top-level browser
+navigation, so every failure redirects to `/login?error=<code>` rather than
+returning JSON:
 
-| Method | Path | Form fields | Success | Notes |
-| --- | --- | --- | --- | --- |
-| POST | `/auth/login` | `identity`, `password` | `HX-Redirect: /app` | 401 *“Invalid email or password.”* on failure. |
-| POST | `/auth/signup` | `email`, `password`, `name` (optional) | `HX-Redirect: /app` | Password ≥ 8 chars (422 otherwise); 409 if email exists; signs in automatically. |
-| POST | `/auth/logout` | — | `HX-Redirect: /login` | Clears the session cookie. |
-| POST | `/auth/password-reset` | `email` | success fragment | Always success (never reveals account existence). |
-| POST | `/auth/password-reset/confirm` | `token`, `password`, `password_confirm` | `HX-Redirect: /login` | 422 on mismatch/short/invalid token. |
-| POST | `/auth/verify-email` | `email` | success fragment | Always success. |
-| POST | `/auth/verify-email/confirm` | `token` | success fragment | 422 on invalid/expired token. |
+| Code | Message |
+| --- | --- |
+| `cancelled` | Sign-in was cancelled. |
+| `state` | That sign-in link expired. Please try again. |
+| `unavailable` | Could not reach the sign-in service. Please try again. |
+| `failed` | We could not complete sign-in. Please try again. |
+| `password` | Password sign-in is no longer available. Continue with Google or GitHub. |
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/auth/oauth2/callback` | Provider redirect target. Validates the signed `state` cookie, exchanges the code, sets the encrypted session cookie, then `303` to `/app`. |
+| POST | `/login` | Removed password form. Old/cached forms get `303` (or `HX-Redirect`) to `/login?error=password`. |
+| POST | `/auth/logout` | CSRF-protected. Clears the session and state cookies; returns `HX-Redirect: /login`. |
+
 
 ### `GET /api/me`
 

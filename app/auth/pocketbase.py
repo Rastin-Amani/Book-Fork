@@ -6,7 +6,9 @@ Maps PocketBase auth responses onto the provider-agnostic types in
 
 from __future__ import annotations
 
-from app.auth.base import AuthSession, AuthUser
+from typing import Any
+
+from app.auth.base import OAUTH_PROVIDERS, AuthSession, AuthUser, OAuthProvider
 from app.repositories.pocketbase import PocketBaseClient
 from app.schemas.pocketbase import PocketBaseRecord
 
@@ -27,23 +29,35 @@ class PocketBaseAuthProvider:
         self._client = client
         self._collection = users_collection
 
-    async def login(self, *, identity: str, password: str) -> AuthSession:
-        result = await self._client.auth_with_password(
-            self._collection, identity=identity, password=password
+    async def oauth_providers(self) -> list[OAuthProvider]:
+        methods: dict[str, Any] = await self._client.auth_methods(self._collection)
+        oauth2 = methods.get("oauth2") or {}
+        if not oauth2.get("enabled"):
+            return []
+
+        found: dict[str, OAuthProvider] = {}
+        for item in oauth2.get("providers") or []:
+            name = str(item.get("name") or "")
+            auth_url = str(item.get("authUrl") or item.get("authURL") or "")
+            state = str(item.get("state") or "")
+            verifier = str(item.get("codeVerifier") or "")
+            if name in OAUTH_PROVIDERS and auth_url and state and verifier:
+                found[name] = OAuthProvider(
+                    name=name, auth_url=auth_url, state=state, verifier=verifier
+                )
+        return [found[name] for name in OAUTH_PROVIDERS if name in found]
+
+    async def login_with_oauth2(
+        self, *, provider: str, code: str, code_verifier: str, redirect_url: str
+    ) -> AuthSession:
+        result = await self._client.auth_with_oauth2(
+            self._collection,
+            provider=provider,
+            code=code,
+            code_verifier=code_verifier,
+            redirect_url=redirect_url,
         )
         return AuthSession(token=result.token, user=_to_user(result.record))
-
-    async def signup(self, *, email: str, password: str, name: str | None = None) -> AuthSession:
-        data: dict[str, object] = {
-            "email": email,
-            "password": password,
-            "passwordConfirm": password,
-        }
-        if name:
-            data["name"] = name
-        await self._client.create_record(self._collection, data)
-        # PocketBase record creation does not return an auth token; log in.
-        return await self.login(identity=email, password=password)
 
     async def refresh(self, *, token: str) -> AuthSession:
         result = await self._client.auth_refresh(self._collection, token=token)
@@ -53,19 +67,3 @@ class PocketBaseAuthProvider:
         # PocketBase stateless tokens cannot be revoked server-side without an
         # auth store; clearing the client cookie is the effective logout.
         return None
-
-    async def request_password_reset(self, *, email: str) -> None:
-        await self._client.request_password_reset(self._collection, email=email)
-
-    async def confirm_password_reset(
-        self, *, token: str, password: str, password_confirm: str
-    ) -> None:
-        await self._client.confirm_password_reset(
-            self._collection, token=token, password=password, password_confirm=password_confirm
-        )
-
-    async def request_verification(self, *, email: str) -> None:
-        await self._client.request_verification(self._collection, email=email)
-
-    async def confirm_verification(self, *, token: str) -> None:
-        await self._client.confirm_verification(self._collection, token=token)

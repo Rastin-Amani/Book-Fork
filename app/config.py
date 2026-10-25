@@ -55,6 +55,14 @@ class Settings(BaseSettings):
     cookie_secure: bool | None = None  # derived from app_env when unset
     cookie_samesite: SameSite = "lax"
 
+    # -- OAuth sign-in (Google / GitHub) ------------------------------------
+    # Pushed into PocketBase's users collection by scripts/configure_auth.py.
+    # The callback registered at each provider is <APP_BASE_URL>/auth/oauth2/callback.
+    google_oauth_client_id: str = ""
+    google_oauth_client_secret: SecretStr | None = None
+    github_oauth_client_id: str = ""
+    github_oauth_client_secret: SecretStr | None = None
+
     # -- secrets management --------------------------------------------------
     encryption_key: SecretStr
 
@@ -99,8 +107,6 @@ class Settings(BaseSettings):
     # -- rate limiting -------------------------------------------------------
     rate_limit_enabled: bool = True
     rate_limit_auth_per_minute: int = 30
-    rate_limit_signup_per_minute: int = 10
-    rate_limit_password_reset_per_minute: int = 10
     rate_limit_upload_per_minute: int = 20
     rate_limit_provider_test_per_minute: int = 20
     rate_limit_translation_per_minute: int = 30

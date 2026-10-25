@@ -43,6 +43,7 @@ Visit http://localhost:8000. Health: `/health`, readiness: `/health/ready`.
 | `uv run fastapi dev app/main.py` | Development server. |
 | `uv run python -m worker.main` | Worker process. |
 | `uv run python scripts/seed.py` | Apply seeds (idempotent). |
+| `uv run python scripts/configure_auth.py` | Push Google/GitHub OAuth credentials into PocketBase and enforce OAuth-only sign-in. |
 | `uv run python scripts/push_schema.py` | Push schema to a remote PocketBase. |
 | `uv run pytest` | Test suite (hermetic; no PocketBase needed). |
 | `uv run ruff check .` | Lint. |
@@ -82,6 +83,21 @@ pocketbase serve --http=0.0.0.0:8090 --migrationsDir=./pb_migrations
 
 `--automigrate` is on by default, so collection edits made in the Dashboard
 generate migration files here — review and commit them.
+
+### OAuth sign-in providers
+
+`1750000140_oauth_only_auth.js` disables password/OTP/MFA sign-in and allows user
+records to be created only by the OAuth2 code exchange. The client ids and
+secrets are not schema; put them in `.env` and apply them:
+
+```bash
+# GOOGLE_OAUTH_CLIENT_ID / _SECRET, GITHUB_OAUTH_CLIENT_ID / _SECRET
+uv run python scripts/configure_auth.py
+```
+
+Register `<APP_BASE_URL>/auth/oauth2/callback` as the redirect URI at both
+providers. The script is idempotent and leaves providers that have no
+credentials in the environment untouched.
 
 ### Seeding
 

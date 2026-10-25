@@ -166,8 +166,6 @@ UploadRateLimited = Annotated[None, Depends(rate_limit("upload"))]
 TranslationRateLimited = Annotated[None, Depends(rate_limit("translation"))]
 RetryRateLimited = Annotated[None, Depends(rate_limit("retry"))]
 ProviderTestRateLimited = Annotated[None, Depends(rate_limit("provider_test"))]
-SignupRateLimited = Annotated[None, Depends(rate_limit("signup"))]
-PasswordResetRateLimited = Annotated[None, Depends(rate_limit("password_reset"))]
 
 
 async def get_admin_repositories(ctx: CtxDep) -> Repositories:

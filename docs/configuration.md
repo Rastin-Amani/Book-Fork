@@ -19,7 +19,7 @@ uv run python scripts/generate_secrets.py
 | `APP_ENV` | no | `development` | `development` \| `test` \| `production`. |
 | `APP_NAME` | no | `Book Fork` | Display name. |
 | `APP_BASE_URL` | no | `http://localhost:8000` | Canonical URL. |
-| `APP_SECRET_KEY` | **yes** | — | Signs CSRF tokens. |
+| `APP_SECRET_KEY` | **yes** | — | Signs CSRF and OAuth state tokens. |
 | `DEBUG` | no | `false` | |
 | `LOG_LEVEL` | no | `INFO` | |
 | `LOG_JSON` | no | `false` | JSON logs for production. |
@@ -31,6 +31,24 @@ uv run python scripts/generate_secrets.py
 | `POCKETBASE_URL` | no | `http://127.0.0.1:8090` | |
 | `POCKETBASE_SERVICE_CREDENTIAL` | no | — | For trusted server-side admin ops. |
 | `POCKETBASE_USERS_COLLECTION` | no | `users` | Auth collection name. |
+
+### OAuth sign-in (Google / GitHub)
+
+The app reads the enabled providers from PocketBase at `/login`; these variables
+only feed `scripts/configure_auth.py`, which writes them into the users
+collection. Register `<APP_BASE_URL>/auth/oauth2/callback` as the authorized
+redirect URI (Google) / callback URL (GitHub).
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `GOOGLE_OAUTH_CLIENT_ID` | no | Google Cloud OAuth 2.0 Web client. |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | no | Never exposed to the browser. |
+| `GITHUB_OAUTH_CLIENT_ID` | no | GitHub OAuth App. |
+| `GITHUB_OAUTH_CLIENT_SECRET` | no | Never exposed to the browser. |
+
+```bash
+uv run python scripts/configure_auth.py
+```
 
 ### Sessions / cookies
 
@@ -94,8 +112,6 @@ user-facing file-size limit is the `upload.maximum_file_size` system setting.
 | `ROOT_PATH` | no | — | When mounted under a sub-path. |
 | `RATE_LIMIT_ENABLED` | no | `true` | Master switch. |
 | `RATE_LIMIT_AUTH_PER_MINUTE` | no | `30` | Per client IP. |
-| `RATE_LIMIT_SIGNUP_PER_MINUTE` | no | `10` | |
-| `RATE_LIMIT_PASSWORD_RESET_PER_MINUTE` | no | `10` | |
 | `RATE_LIMIT_UPLOAD_PER_MINUTE` | no | `20` | Per user/IP. |
 | `RATE_LIMIT_PROVIDER_TEST_PER_MINUTE` | no | `20` | |
 | `RATE_LIMIT_TRANSLATION_PER_MINUTE` | no | `30` | |

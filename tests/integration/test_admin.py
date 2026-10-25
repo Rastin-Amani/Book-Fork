@@ -32,12 +32,7 @@ def _login(client: TestClient, app: FastAPI, fake_pb: Any) -> None:
     app.state.ctx.pocketbase = PocketBaseClient("http://pb", client=fake_pb.client())
     app.state.ctx.auth = FakeAuthProvider()
     client.get("/login")
-    csrf = client.cookies.get("book_fork_csrf")
-    client.post(
-        "/auth/login",
-        data={"identity": "a@b.co", "password": "secret123"},
-        headers={"X-CSRF-Token": csrf},
-    )
+    client.get("/auth/oauth2/callback?code=good-code&state=st-google", follow_redirects=False)
 
 
 def _csrf(client: TestClient) -> dict[str, str]:

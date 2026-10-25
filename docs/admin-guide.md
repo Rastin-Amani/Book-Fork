@@ -34,7 +34,7 @@ workspaces.
 The hub is at **`/admin`**. Resources are grouped into categories:
 
 **Access**
-- `users` — accounts (read-only creation; created through signup).
+- `users` — accounts (read-only creation; created through OAuth first sign-in).
 - `workspaces` — name, slug, owner, plan.
 - `workspace-members` — workspace ↔ user links with role
   (`owner | admin | member | viewer`).

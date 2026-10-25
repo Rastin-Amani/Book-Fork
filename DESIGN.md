@@ -89,8 +89,8 @@ daisyUI theme mapping (`@plugin "daisyui/theme"`, name `book-fork`):
 - App shell (`layouts/base.html`): sticky cream top bar, brand left, primary nav
   centred-left, dark "New translation" + account menu right. Mobile collapses to
   a disclosure panel. `max-w-[1200px]`.
-- Auth (`layouts/auth.html`): split panel — value proposition left, carded form
-  right; stacks on mobile.
+- Auth (`layouts/auth.html`): split panel — value proposition left, carded
+  provider buttons right; stacks on mobile.
 - Internal navigation is HTMX-boosted and swaps only `#app-content`; layouts emit
   just `<main id="app-content">` for `HX-Request`.
 

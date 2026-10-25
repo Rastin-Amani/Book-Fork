@@ -61,8 +61,8 @@ overridable with `CONTENT_SECURITY_POLICY`.
 
 ## Rate limiting & abuse prevention
 
-Sensitive operations are rate limited per user/IP: auth, signup, password reset,
-upload, provider connection test, translation creation and retry. Thresholds are
+Sensitive operations are rate limited per user/IP: authentication, upload,
+provider connection test, translation creation and retry. Thresholds are
 environment configuration. Business limits (uploads/day, jobs/day, concurrent jobs
 per workspace, retries per job) are read from `system_settings` and default to
 unlimited when unset. The book price is snapshotted on the job when it is

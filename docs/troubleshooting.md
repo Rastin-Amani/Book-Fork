@@ -139,24 +139,46 @@ with broken archives or symlinked ZIP members.
 
 ## D. Accounts and sessions
 
-### Login fails with *“Invalid email or password.”*
+### “Sign-in is not configured yet.”
 
-The credentials are wrong, or PocketBase is unreachable. When the identity
-service is down, protected pages surface an upstream error (503) and a login
-attempt itself generally returns a server error rather than "invalid
-credentials". Verify PocketBase with `GET /health/ready`.
+**Cause:** PocketBase reports OAuth2 disabled, or neither Google nor GitHub
+provider has both a client id and secret. This is an operator state, not an
+outage.
 
-### Password-reset or verification email never arrives
+**Resolve:** set `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` and/or
+`GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET`, then run:
 
-**Cause:** Book Fork delegates these emails to **PocketBase**; it does not send
-mail itself. Without an SMTP/mailer configured in PocketBase, the request still
-returns success but no message is delivered.
+```bash
+uv run python scripts/configure_auth.py
+```
 
-**Verify:** check PocketBase's mailer settings and its logs. In development,
-PocketBase can log the message instead of sending it.
+Alternatively paste the credentials in PocketBase → Collections → `users` →
+Options → OAuth2. Password/OTP/MFA sign-in is intentionally disabled.
 
-**Resolve:** configure PocketBase's SMTP mailer (`/api/settings` or the
-Dashboard's Settings → Mail settings), or run a local mail catcher.
+### “Could not reach the sign-in service.”
+
+PocketBase is unreachable or returned a 5xx while the login page asked for
+`auth-methods`, or while the code exchange ran. Verify it with
+`GET /health/ready` and check PocketBase logs.
+
+### Provider says “redirect_uri_mismatch”
+
+The callback registered at Google/GitHub does not match the URL the browser
+used. Register exactly:
+
+```
+<APP_BASE_URL>/auth/oauth2/callback
+```
+
+(including scheme and port). The app builds the callback from the request origin,
+so opening the app on `localhost:8000` requires that exact URL to be registered
+for local development too.
+
+### “That sign-in link expired. Please try again.”
+
+The signed `oauth_state` cookie is missing, older than 10 minutes, or belongs to
+another browser tab/domain. Start again from `/login`. A `state` error also
+appears when a callback URL is opened without first loading the login page.
 
 ### Session loops back to login
 

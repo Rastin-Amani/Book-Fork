@@ -99,6 +99,11 @@ are no top-level `app/validation/` or `app/normalization/` packages.
 
 - PocketBase is the identity system; the application depends only on the
   `AuthProvider` protocol (`app/auth/base.py`).
+- Sign-in is **OAuth2-only** (Google / GitHub). `/login` asks PocketBase for the
+  enabled providers, keeps each one-off `state` + PKCE verifier in a signed,
+  HttpOnly 10-minute cookie, and exchanges the authorization code at
+  `/auth/oauth2/callback`. Sign-up is the same action: PocketBase creates the
+  record on first sign-in and links existing users by verified email.
 - The PocketBase bearer token is **never** exposed to JavaScript. It is encrypted
   with Fernet (`ENCRYPTION_KEY`) and stored in an **HttpOnly**, signed-by-
   construction session cookie.

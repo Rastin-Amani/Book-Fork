@@ -14,13 +14,10 @@ def _login(client: TestClient, app: Any, fake_pb: Any) -> None:
     app.state.ctx.pocketbase = PocketBaseClient("http://pb", client=fake_pb.client())
     app.state.ctx.auth = FakeAuthProvider()
     client.get("/login")
-    csrf = client.cookies.get("book_fork_csrf")
-    response = client.post(
-        "/auth/login",
-        data={"identity": "a@b.co", "password": "secret123"},
-        headers={"X-CSRF-Token": csrf},
+    response = client.get(
+        "/auth/oauth2/callback?code=good-code&state=st-google", follow_redirects=False
     )
-    assert response.headers["HX-Redirect"] == "/app"
+    assert response.headers["location"] == "/app"
 
 
 def _seed_languages(fake_pb: Any) -> None:

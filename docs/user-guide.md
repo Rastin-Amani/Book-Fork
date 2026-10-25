@@ -30,51 +30,41 @@ default) regardless of the source format.
 
 ## 2. Create an account and log in
 
-### Create an account
+Sign-in and sign-up are the same action, using **Google** or **GitHub**. There
+are no passwords: the first sign-in creates your account (PocketBase links an
+existing record by verified email), and every later sign-in uses the same
+provider.
 
-1. Open the site root (`/`) and choose **Create an account** (or go to
-   `/signup`).
-2. Enter a **Name** (optional), your **Email**, and a **Password** of at least
-   8 characters.
-3. Choose **Create account**.
+### Sign in for the first time
 
-On success you are signed in automatically and redirected to your dashboard
-(`/app`). Your personal workspace is created on first use.
+1. Open `/login` (or choose **Start translating free** on the marketing site).
+2. Choose **Continue with Google** or **Continue with GitHub**.
+3. Approve the provider's request. Book Fork receives only your name, email
+   address and profile picture.
+4. You land on your dashboard (`/app`). Your personal workspace is created on
+   first use.
 
-### Log in
+`/signup` redirects to the same page, so there is nothing separate to fill in.
 
-1. Go to `/login`.
-2. Enter your **Email** and **Password**.
-3. Choose **Log in**.
+### Sign in again
 
-If the email or password is wrong, Book Fork shows *“Invalid email or password.”*
-It does not reveal whether an account exists.
+Go to `/login` and choose the same provider. If you are already signed in,
+`/login` sends you straight to `/app`.
 
 ### Log out
 
 Use the account menu in the top bar and choose **Log out**. The session cookie is
 cleared.
 
-### Reset a forgotten password
+### Recovering access
 
-1. Go to `/forgot-password`.
-2. Enter your **Email** and choose **Send reset link**.
-3. Book Fork always shows *“If that email exists, a reset link has been sent.”*
-   (it never confirms whether the account exists).
-4. Open the link from the email. It takes you to `/reset-password` with a token.
-5. Enter and confirm a new password (at least 8 characters), then choose
-   **Update password**. You are redirected to the login page.
+There is no password to reset. If a provider account is lost, sign in with the
+other provider using the same verified email, or contact an administrator. A
+deactivated account cannot sign in.
 
-> **Note.** Book Fork does not send these emails itself — it asks PocketBase to
-> send them. PocketBase must have a mailer (SMTP) configured, or no email will
-> arrive. See [Troubleshooting](troubleshooting.md).
-
-### Verify your email
-
-Email verification is available at `/verify-email` (enter your email to request a
-link; open the link and choose **Confirm verification**). **The application does
-not require a verified email before you can translate.** Verification is
-currently informational.
+> **Note.** If the page says **“Sign-in is not configured yet.”**, an
+> administrator still has to enable Google/GitHub in PocketBase. See
+> [Development](development.md) and [Troubleshooting](troubleshooting.md).
 
 ---
 

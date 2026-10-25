@@ -22,7 +22,7 @@ render either the full document or just the content region based on
 
 ```
 /                         → /app (or /login when signed out)
-/login /signup            auth
+/login /signup            single OAuth page (Google/GitHub)
 /app                      dashboard
 /app/translations         list
 /app/translations/new     upload + options + estimate

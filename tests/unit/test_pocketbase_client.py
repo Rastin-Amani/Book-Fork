@@ -26,6 +26,8 @@ def _client(handler: Handler) -> tuple[PocketBaseClient, httpx.AsyncClient]:
 
 async def test_auth_success_parses_session() -> None:
     async def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/api/collections/users/auth-with-oauth2"
+        assert b'"codeVerifier"' in request.content
         return httpx.Response(
             200,
             json={"token": "tok", "record": {"id": "u1", "email": "a@b.co", "verified": True}},
@@ -33,9 +35,28 @@ async def test_auth_success_parses_session() -> None:
 
     pb, http = _client(handler)
     try:
-        result = await pb.auth_with_password("users", identity="a@b.co", password="x")
+        result = await pb.auth_with_oauth2(
+            "users",
+            provider="google",
+            code="code",
+            code_verifier="verifier",
+            redirect_url="https://app.test/auth/oauth2/callback",
+        )
         assert result.token == "tok"
         assert result.record.id == "u1"
+    finally:
+        await http.aclose()
+
+
+async def test_auth_methods_returns_providers() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/api/collections/users/auth-methods"
+        return httpx.Response(200, json={"oauth2": {"enabled": True, "providers": []}})
+
+    pb, http = _client(handler)
+    try:
+        methods = await pb.auth_methods("users")
+        assert methods["oauth2"]["enabled"] is True
     finally:
         await http.aclose()
 
@@ -47,7 +68,13 @@ async def test_auth_401_maps_to_authentication_error() -> None:
     pb, http = _client(handler)
     try:
         with pytest.raises(AuthenticationError):
-            await pb.auth_with_password("users", identity="a", password="b")
+            await pb.auth_with_oauth2(
+                "users",
+                provider="github",
+                code="bad",
+                code_verifier="v",
+                redirect_url="https://app.test/auth/oauth2/callback",
+            )
     finally:
         await http.aclose()
 
