@@ -26,7 +26,7 @@ class AuthType(StrEnum):
 
 
 class BillingMode(StrEnum):
-    """Whether a connection draws Book Fork credits or the user's own account."""
+    """Whether a connection is Book Fork-managed or the user's own account."""
 
     MANAGED = "managed"
     OWN_API = "own_api"

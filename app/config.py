@@ -2,7 +2,7 @@
 
 This module contains **infrastructure and secret configuration only**. Anything
 that describes business/translation behaviour (languages, providers, models,
-prompts, pricing, credit conversion, file/page limits, chunk sizes, ...) belongs
+prompts, per-book pricing, file/page limits, chunk sizes, ...) belongs
 in PocketBase records and is loaded at runtime — never here and never hardcoded.
 
 See ``docs/configuration.md`` for the full matrix of settings.

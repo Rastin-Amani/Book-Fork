@@ -1,6 +1,8 @@
 """Pre-translation usage estimation.
 
 Everything returned is explicitly an estimate — never presented as exact.
+Provider cost is internal (margin monitoring); the customer-facing number is the
+flat book price.
 """
 
 from __future__ import annotations
@@ -9,8 +11,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from app.billing.pricing import (
-    CreditPricing,
-    CreditPricingEngine,
+    BookPricing,
+    BookPricingEngine,
     ProviderPricing,
     ProviderPricingEngine,
 )
@@ -22,10 +24,13 @@ _CHARS_PER_TOKEN = 4
 class JobEstimate:
     words: int
     characters: int
+    pages: int
     input_tokens: int
     output_tokens: int
     provider_cost: float
-    credits: float
+    price: float
+    blocks: int
+    currency: str
     estimated: bool = True
 
 
@@ -33,7 +38,7 @@ def estimate_from_texts(
     texts: Sequence[str],
     *,
     provider_pricing: ProviderPricing,
-    credit_pricing: CreditPricing,
+    book_pricing: BookPricing,
     output_ratio: float = 1.0,
 ) -> JobEstimate:
     characters = sum(len(text) for text in texts)
@@ -42,7 +47,7 @@ def estimate_from_texts(
         characters=characters,
         words=words,
         provider_pricing=provider_pricing,
-        credit_pricing=credit_pricing,
+        book_pricing=book_pricing,
         output_ratio=output_ratio,
     )
 
@@ -51,7 +56,7 @@ def estimate_from_characters(
     characters: int,
     *,
     provider_pricing: ProviderPricing,
-    credit_pricing: CreditPricing,
+    book_pricing: BookPricing,
     words_per_character: float = 1 / 6,
     output_ratio: float = 1.0,
 ) -> JobEstimate:
@@ -60,7 +65,7 @@ def estimate_from_characters(
         characters=characters,
         words=int(characters * words_per_character),
         provider_pricing=provider_pricing,
-        credit_pricing=credit_pricing,
+        book_pricing=book_pricing,
         output_ratio=output_ratio,
     )
 
@@ -70,7 +75,7 @@ def _estimate(
     characters: int,
     words: int,
     provider_pricing: ProviderPricing,
-    credit_pricing: CreditPricing,
+    book_pricing: BookPricing,
     output_ratio: float,
 ) -> JobEstimate:
     input_tokens = max(1, characters // _CHARS_PER_TOKEN) if characters else 0
@@ -78,17 +83,17 @@ def _estimate(
     provider_cost = ProviderPricingEngine().compute(
         provider_pricing, input_tokens=input_tokens, output_tokens=output_tokens
     )
-    credits = CreditPricingEngine().compute(
-        credit_pricing,
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        provider_cost=provider_cost,
-    )
+    words_per_page = max(1, book_pricing.words_per_page)
+    pages = -(-max(0, words) // words_per_page)
+    quote = BookPricingEngine().quote(book_pricing, pages=pages)
     return JobEstimate(
         words=words,
         characters=characters,
+        pages=quote.pages,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         provider_cost=provider_cost,
-        credits=credits,
+        price=quote.price,
+        blocks=quote.blocks,
+        currency=quote.currency,
     )

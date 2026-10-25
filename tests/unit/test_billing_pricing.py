@@ -1,10 +1,10 @@
-"""Provider-cost and credit pricing engines."""
+"""Provider-cost and flat per-book pricing engines."""
 
 from __future__ import annotations
 
 from app.billing.pricing import (
-    CreditPricing,
-    CreditPricingEngine,
+    BookPricing,
+    BookPricingEngine,
     ProviderPricing,
     ProviderPricingEngine,
 )
@@ -27,34 +27,25 @@ def test_flat_request_cost() -> None:
     )
 
 
-def test_managed_credits_from_tokens() -> None:
-    credits = CreditPricingEngine().compute(
-        CreditPricing(billing_mode=BillingMode.MANAGED.value, credits_per_1000_tokens=2.0),
-        input_tokens=1000,
-        output_tokens=1000,
+def test_small_and_full_block_cost_the_same() -> None:
+    engine = BookPricingEngine()
+    assert engine.quote(BookPricing(), pages=100).price == 7.0
+    assert engine.quote(BookPricing(), pages=1000).price == 7.0
+
+
+def test_extra_blocks_are_charged() -> None:
+    quote = BookPricingEngine().quote(BookPricing(), pages=1001)
+    assert quote.blocks == 2
+    assert quote.price == 14.0
+
+
+def test_own_api_is_free() -> None:
+    quote = BookPricingEngine().quote(
+        BookPricing(billing_mode=BillingMode.OWN_API.value), pages=5000
     )
-    assert credits == 4.0
+    assert quote.price == 0.0
+    assert quote.blocks == 0
 
 
-def test_own_api_mode_consumes_no_credits() -> None:
-    credits = CreditPricingEngine().compute(
-        CreditPricing(billing_mode=BillingMode.OWN_API.value, credits_per_1000_tokens=2.0),
-        input_tokens=1000,
-        output_tokens=1000,
-        provider_cost=5.0,
-    )
-    assert credits == 0.0
-
-
-def test_provider_cost_markup() -> None:
-    credits = CreditPricingEngine().compute(
-        CreditPricing(
-            billing_mode=BillingMode.MANAGED.value,
-            credits_per_1000_tokens=0.0,
-            provider_cost_markup=10.0,
-        ),
-        input_tokens=0,
-        output_tokens=0,
-        provider_cost=1.5,
-    )
-    assert credits == 15.0
+def test_empty_book_is_free() -> None:
+    assert BookPricingEngine().quote(BookPricing(), pages=0).price == 0.0
