@@ -99,7 +99,7 @@ All routes require authentication and use the caller's PocketBase token.
 | GET | `/app/translations/{job_id}` | — | Job page. 404 if not owned. |
 | GET | `/app/translations/{job_id}/status` | — | `partials/job_status.html` for polling. |
 | POST | `/app/translations/{job_id}/cancel` | — | CSRF. Sets `cancellation_requested`; returns the status fragment. |
-| POST | `/app/translations/{job_id}/retry` | — | CSRF + retry rate limit. Only sensible for `failed`; sets `retry_mode=failed_only`, requeues, increments `retry_count`. |
+| POST | `/app/translations/{job_id}/retry` | — | CSRF + retry rate limit. Requeues and resumes failed and never-attempted segments; completed segments are kept. Increments `retry_count`. |
 | GET | `/app/translations/{job_id}/download` | query `format` (`pdf`/`epub`) | Streams an output attachment; falls back across available outputs. 404 when no output exists. |
 | GET | `/app/translations/{job_id}/review` | — | Review page. |
 | POST | `/app/translations/{job_id}/segments/{segment_id}` | `translated_text`, `approve` | CSRF. Updates the segment; `approve` sets status `validated`. Returns `partials/segment_row.html`. |

@@ -99,14 +99,14 @@ record; previous attempts are never overwritten.
 ## Cancellation
 
 Cooperative: the API sets `cancellation_requested`. The worker observes it at
-safe checkpoints, moves the job to `cancelling`, refunds the reservation, and
-finishes as `cancelled` — never leaving a half-written output.
+safe checkpoints, moves the job to `cancelling`, and finishes as `cancelled` —
+never leaving a half-written output.
 
 ## Resume & partial retries
 
-A resumed job preserves the original plan snapshot, skips valid completed
-segments, continues pending ones, and reuses translation memory. `retry_mode:
-failed_only` (or "Retry chapter") retranslates only the failed segments.
+A resumed job preserves the original plan snapshot, skips validated/translated
+segments, and translates both failed and never-attempted pending segments.
+Completed work is never redone and translation memory is reused.
 
 ## Progress
 
@@ -116,7 +116,7 @@ Computed from segment state (`total`, `completed`, `failed`, `pending`,
 ## Idempotency
 
 Source stored once; segments created once per job; completed segments skipped;
-reservation/settlement guarded by references; output uploaded to a stable key.
+output uploaded to a stable key.
 
 ## Observability
 
