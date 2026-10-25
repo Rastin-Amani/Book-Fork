@@ -53,9 +53,13 @@ PocketBase record.
 - PyMuPDF extraction, rebuilt from *lines* rather than MuPDF's page blocks:
   spans separated by a horizontal gap get a space, glued runs like
   `overratedPlanning`/`FIRSTThe` are split, paragraphs start where a line is
-  indented, and a line is a heading when it is **bold** (or clearly larger than
-  the body size). This recovers chapter structure and a usable table of contents
-  from converted ebooks whose text layer is a single block per page.
+  indented, and list markers (bullets and numbers, Latin or Arabic-Indic) are
+  recognized, stripped from the translatable text and remembered. A line is a
+  heading when it is **bold** or clearly larger than the body size; when the
+  document has font-size titles those become level-1 chapters and bold-only
+  lines become level-2 subheads, so every bold line no longer starts a new page.
+  This recovers chapter structure and a usable table of contents from converted
+  ebooks whose text layer is a single block per page.
 - The first page is rendered as the **document cover**.
 - Page number, bounding box and font size are preserved; list markers detected;
   images captured as assets; printed contents/index pages are not treated as
@@ -91,8 +95,11 @@ default `epub,pdf`), independent of the source format:
 
 - **PDF** (`pymupdf`, default): a print-ready book via PyMuPDF's Story engine —
   the document's **own cover** when one exists (EPUB cover image, or the first
-  PDF page), a contents page with printed page numbers, running heads, page
-  numbers, a PDF outline and clickable contents, and a new page at each chapter.
+  PDF page), a contents page with printed page numbers and clickable rows, running
+  heads, page numbers, a PDF outline and a new page at each chapter. Headings are
+  kept with the text they introduce even though Story ignores
+  `page-break-after: avoid`; list items get a real bullet or number on the correct
+  side for RTL; cover, running heads and contents are direction-aware.
   Pure Python (no system libraries) and RTL-aware. `html` emits the reflow
   preview; `weasyprint` is the optional extra backend. `DOCUMENT_BOOK_PAGE_SIZE`
   picks the trim size.
