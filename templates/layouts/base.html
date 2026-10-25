@@ -14,10 +14,10 @@
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="manifest" href="/static/site.webmanifest">
   <meta name="theme-color" content="#fafaf5">
-  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="/static/css/app.css?v={{ app_version }}">
   <script src="/static/js/vendor/htmx.min.js" defer></script>
   <script src="/static/js/vendor/alpine.min.js" defer></script>
-  <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/app.js?v={{ app_version }}" defer></script>
 </head>
 <body class="min-h-screen bg-warm-cream font-sans text-ink-black antialiased"
       hx-boost="true" hx-target="#app-content" hx-swap="outerHTML">
