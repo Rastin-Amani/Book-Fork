@@ -27,7 +27,7 @@
           {% for row in rows %}
           <tr id="row-{{ row.record.id }}">
             {% for name in resource.list_fields %}
-            <td class="max-w-xs truncate">{{ row.values.get(name, '—') if row.values.get(name) not in (None, '') else '—' }}</td>
+            <td class="max-w-xs truncate">{{ row['values'].get(name, '—') if row['values'].get(name) not in (None, '') else '—' }}</td>
             {% endfor %}
             <td>
               <div class="flex flex-wrap items-center justify-end gap-1.5">

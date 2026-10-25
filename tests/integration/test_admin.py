@@ -83,6 +83,12 @@ def test_admin_crud_lifecycle(tmp_path: Any, fake_pb: Any) -> None:
         assert any(record["language_code"] == "xx" for record in stored)
         record_id = next(r["id"] for r in stored if r["language_code"] == "xx")
 
+        # The list must render rows (regression: row.values resolved the dict
+        # method, so a non-empty resource list 500'd).
+        listed = client.get("/admin/languages")
+        assert listed.status_code == 200
+        assert "xx" in listed.text
+
         updated = client.post(
             f"/admin/languages/{record_id}",
             data={"language_code": "xx", "name": "Testish 2", "direction": "rtl"},
