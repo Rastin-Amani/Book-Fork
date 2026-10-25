@@ -1,7 +1,7 @@
 """Workspace bootstrap service.
 
 Every user gets a personal workspace on first use. The workspace is the
-ownership boundary for documents, jobs, providers, glossaries, wallets and
+ownership boundary for documents, jobs, providers, glossaries and
 memory.
 """
 

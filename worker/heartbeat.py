@@ -2,7 +2,7 @@
 
 A live worker refreshes its lease periodically. If it dies, the lease expires
 and the recovery routine returns the job to ``queued`` so another run can pick it
-up — without corrupting credit accounting.
+up — without corrupting job accounting.
 """
 
 from __future__ import annotations

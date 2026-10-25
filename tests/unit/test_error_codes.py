@@ -7,7 +7,6 @@ from app.exceptions import (
     DocumentCorruptedError,
     DocumentTooLargeError,
     DocumentUnsupportedError,
-    InsufficientCreditsError,
     LanguageUnsupportedError,
     ModelUnsupportedError,
     OutputGenerationFailedError,
@@ -34,8 +33,6 @@ def test_domain_error_codes_are_stable() -> None:
     assert ProviderUnavailableError().code == "PROVIDER_UNAVAILABLE"
     assert TranslationValidationFailedError().code == "TRANSLATION_VALIDATION_FAILED"
     assert OutputGenerationFailedError().code == "OUTPUT_GENERATION_FAILED"
-    assert InsufficientCreditsError().code == "INSUFFICIENT_CREDITS"
-    assert InsufficientCreditsError().status_code == 402
     assert UsageLimitError().status_code == 429
 
 
@@ -52,7 +49,6 @@ def test_all_domain_errors_are_book_fork_errors() -> None:
         ProviderUnavailableError,
         TranslationValidationFailedError,
         OutputGenerationFailedError,
-        InsufficientCreditsError,
         UsageLimitError,
     ):
         assert issubclass(error, BookForkError)

@@ -20,9 +20,6 @@ KEY_RETRY_MULTIPLIER = "worker.retry.backoff_multiplier"
 KEY_RETRY_JITTER = "worker.retry.jitter"
 KEY_REPAIR_ENABLED = "worker.context_repair.enabled"
 KEY_REPAIR_MIN_BATCH = "worker.context_repair.min_batch_size"
-KEY_CREDITS_ENABLED = "billing.enabled"
-KEY_CREDITS_PER_1K = "billing.credits_per_1000_tokens"
-KEY_PROVIDER_MARKUP = "billing.provider_cost_markup"
 
 _DEFAULTS: dict[str, Any] = {
     KEY_MAX_JOBS: 2,
@@ -37,9 +34,6 @@ _DEFAULTS: dict[str, Any] = {
     KEY_RETRY_JITTER: 0.2,
     KEY_REPAIR_ENABLED: True,
     KEY_REPAIR_MIN_BATCH: 1,
-    KEY_CREDITS_ENABLED: True,
-    KEY_CREDITS_PER_1K: 1.0,
-    KEY_PROVIDER_MARKUP: 0.0,
 }
 
 
@@ -53,9 +47,6 @@ class WorkerSettings:
     retry: RetrySettings = field(default_factory=RetrySettings)
     context_repair_enabled: bool = True
     context_repair_min_batch_size: int = 1
-    credits_enabled: bool = True
-    credits_per_1000_tokens: float = 1.0
-    provider_cost_markup: float = 0.0
 
 
 async def load_worker_settings(settings: SettingsService | None) -> WorkerSettings:
@@ -79,7 +70,4 @@ async def load_worker_settings(settings: SettingsService | None) -> WorkerSettin
         ),
         context_repair_enabled=bool(await value(KEY_REPAIR_ENABLED)),
         context_repair_min_batch_size=max(1, int(await value(KEY_REPAIR_MIN_BATCH))),
-        credits_enabled=bool(await value(KEY_CREDITS_ENABLED)),
-        credits_per_1000_tokens=float(await value(KEY_CREDITS_PER_1K)),
-        provider_cost_markup=float(await value(KEY_PROVIDER_MARKUP)),
     )

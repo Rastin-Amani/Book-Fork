@@ -20,7 +20,6 @@ import signal
 import uuid
 from dataclasses import replace
 
-from app.billing.ledger import CreditLedger
 from app.config import get_settings
 from app.context import build_context, close_context
 from app.documents.adapters.base import DocumentType
@@ -32,7 +31,6 @@ from app.logging import configure_logging, get_logger
 from app.providers.base import TranslationProvider
 from app.providers.credentials import ProviderCredentialService
 from app.providers.runtime import ProviderRuntime
-from app.repositories.billing import CreditTransactionRepository, CreditWalletRepository
 from app.repositories.documents import DocumentRepository
 from app.repositories.knowledge import GlossaryTermRepository, TranslationMemoryRepository
 from app.repositories.languages import LanguageRepository
@@ -155,11 +153,6 @@ async def run(args: argparse.Namespace) -> None:
             ),
             token=token,
         )
-        ledger = CreditLedger(
-            CreditWalletRepository(client, token=token),
-            CreditTransactionRepository(client, token=token),
-            token=token,
-        )
 
         async def provider_factory(
             job: TranslationJob, plan: TranslationPlan
@@ -193,7 +186,6 @@ async def run(args: argparse.Namespace) -> None:
             provider_factory=provider_factory,
             settings=worker_settings,
             retry=RetryService(),
-            ledger=ledger,
             memory_factory=memory_factory,
             glossary_factory=glossary_factory,
             temp_root=app_settings.document_temp_root,

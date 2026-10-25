@@ -91,11 +91,8 @@ class TranslationJob(Record):
     total_segments: int | None = None
     completed_segments: int | None = None
     failed_segments: int | None = None
-    estimated_credits: float | None = None
     estimated_provider_cost: float | None = None
     actual_provider_cost: float | None = None
-    reserved_credits: float | None = None
-    actual_credits: float | None = None
     snapshot: dict[str, Any] = Field(default_factory=dict)
     started_at: datetime | None = None
     completed_at: datetime | None = None
@@ -129,7 +126,6 @@ class TranslationSegment(Record):
     input_tokens: int | None = None
     output_tokens: int | None = None
     provider_cost: float | None = None
-    credits_used: float | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 

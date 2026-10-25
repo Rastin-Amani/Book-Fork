@@ -18,13 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import anyio
-from app.billing.ledger import CreditLedger
-from app.billing.pricing import (
-    CreditPricing,
-    CreditPricingEngine,
-    ProviderPricing,
-    ProviderPricingEngine,
-)
+from app.billing.pricing import ProviderPricing, ProviderPricingEngine
 from app.documents.adapters.base import (
     DocumentType,
     ExportOptions,
@@ -129,7 +123,6 @@ class JobExecutor:
         provider_factory: ProviderFactory,
         settings: WorkerSettings,
         retry: RetryService | None = None,
-        ledger: CreditLedger | None = None,
         memory_factory: MemoryFactory | None = None,
         glossary_factory: GlossaryFactory | None = None,
         sleep: Callable[[float], Awaitable[None]] | None = None,
@@ -149,7 +142,6 @@ class JobExecutor:
         self._provider_factory = provider_factory
         self._settings = settings
         self._retry = retry or RetryService()
-        self._ledger = ledger
         self._memory_factory = memory_factory
         self._glossary_factory = glossary_factory
         self._sleep = sleep or asyncio.sleep
@@ -193,8 +185,6 @@ class JobExecutor:
     async def _pipeline(self, job: TranslationJob) -> None:
         plan = self._load_plan(job)
         await self._event(job.id, "preparing", "Job claimed")
-        estimated_credits = self._estimated_credits(plan)
-        await self._reserve_credits(job, plan, estimated_credits)
         await self._check_cancel(job)
 
         document = await self._document_repo.get(job.document)
@@ -231,7 +221,6 @@ class JobExecutor:
                     "failed_segments": progress["failed"],
                     "completed_segments": progress["completed"],
                     "total_segments": progress["total"],
-                    "actual_credits": self._actual_credits(plan, usage),
                     "actual_provider_cost": self._provider_cost(plan, usage),
                     "error_code": "segments_failed",
                     "error_message": f"{len(failed)} segment(s) failed; retry failed segments.",
@@ -252,7 +241,6 @@ class JobExecutor:
             },
         )
         await self._finalize_output(job, document, plan)
-        await self._settle_credits(job, plan, estimated_credits, usage)
         await self._store.update_job(
             job.id,
             {
@@ -260,7 +248,6 @@ class JobExecutor:
                 "progress": 100.0,
                 "completed_segments": progress["completed"],
                 "total_segments": progress["total"],
-                "actual_credits": self._actual_credits(plan, usage),
                 "actual_provider_cost": self._provider_cost(plan, usage),
                 "completed_at": self._now().isoformat(),
             },
@@ -604,7 +591,7 @@ class JobExecutor:
                 logger.warning("asset_unavailable", asset_id=asset.id, error=type(exc).__name__)
         return assets
 
-    # -- credits -------------------------------------------------------------
+    # -- cost ----------------------------------------------------------------
     def _provider_pricing(self, plan: TranslationPlan) -> ProviderPricing:
         data = plan.pricing or {}
         return ProviderPricing(
@@ -613,18 +600,6 @@ class JobExecutor:
             request_cost=float(data.get("request_cost") or 0.0),
         )
 
-    def _credit_pricing(self, plan: TranslationPlan) -> CreditPricing:
-        return CreditPricing(
-            billing_mode=plan.billing_mode,
-            credits_per_1000_tokens=self._settings.credits_per_1000_tokens,
-            provider_cost_markup=self._settings.provider_cost_markup,
-        )
-
-    def _estimated_credits(self, plan: TranslationPlan) -> float:
-        estimate = plan.expected_usage
-        credits = estimate.credits if estimate else 0.0
-        return credits * plan.credit_policy.reservation_multiplier
-
     def _provider_cost(self, plan: TranslationPlan, usage: ProviderUsage | None) -> float:
         if usage is None:
             return 0.0
@@ -632,58 +607,6 @@ class JobExecutor:
             self._provider_pricing(plan),
             input_tokens=usage.input_tokens,
             output_tokens=usage.output_tokens,
-        )
-
-    def _actual_credits(self, plan: TranslationPlan, usage: ProviderUsage | None) -> float:
-        cost = self._provider_cost(plan, usage)
-        return CreditPricingEngine().compute(
-            self._credit_pricing(plan),
-            input_tokens=usage.input_tokens if usage else 0,
-            output_tokens=usage.output_tokens if usage else 0,
-            provider_cost=cost,
-        )
-
-    async def _reserve_credits(
-        self, job: TranslationJob, plan: TranslationPlan, amount: float
-    ) -> None:
-        estimate = plan.expected_usage
-        await self._store.update_job(
-            job.id,
-            {
-                "reserved_credits": amount,
-                "estimated_credits": estimate.credits if estimate else 0.0,
-                "estimated_provider_cost": estimate.provider_cost if estimate else 0.0,
-            },
-        )
-        if self._ledger is None or not self._settings.credits_enabled or amount <= 0:
-            return
-        await self._ledger.reserve(
-            job.workspace, amount, reference=f"job:{job.id}:reserve", job_id=job.id
-        )
-
-    async def _settle_credits(
-        self,
-        job: TranslationJob,
-        plan: TranslationPlan,
-        reserved: float,
-        usage: ProviderUsage | None,
-    ) -> None:
-        actual_credits = self._actual_credits(plan, usage)
-        await self._store.update_job(
-            job.id,
-            {
-                "actual_credits": actual_credits,
-                "actual_provider_cost": self._provider_cost(plan, usage),
-            },
-        )
-        if self._ledger is None or not self._settings.credits_enabled or reserved <= 0:
-            return
-        await self._ledger.settle(
-            job.workspace,
-            reserved=reserved,
-            actual=actual_credits,
-            reference=f"job:{job.id}",
-            job_id=job.id,
         )
 
     # -- helpers -------------------------------------------------------------
@@ -718,19 +641,6 @@ class JobExecutor:
 
     async def _cancel(self, job: TranslationJob) -> None:
         await self._store.update_job(job.id, {"status": "cancelling"})
-        if self._ledger is not None and self._settings.credits_enabled:
-            current = await self._store.get_job(job.id)
-            reserved = current.reserved_credits or 0.0
-            if reserved > 0:
-                try:
-                    await self._ledger.refund(
-                        job.workspace,
-                        reserved,
-                        reference=f"job:{job.id}:cancel-refund",
-                        job_id=job.id,
-                    )
-                except Exception as exc:
-                    logger.warning("cancel_refund_failed", job_id=job.id, error=type(exc).__name__)
         await self._store.update_job(
             job.id, {"status": "cancelled", "cancelled_at": self._now().isoformat()}
         )

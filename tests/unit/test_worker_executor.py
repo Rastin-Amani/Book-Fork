@@ -23,7 +23,6 @@ from tests.translation_fixtures import FakeProvider, content_for, make_plan, no_
 
 def _settings(**overrides: Any) -> WorkerSettings:
     base: dict[str, Any] = {
-        "credits_enabled": False,
         "lease_seconds": 3600,
         "heartbeat_seconds": 3600,
         "poll_interval_seconds": 0.01,
@@ -57,7 +56,6 @@ def _executor(
         provider_factory=provider_factory,
         settings=settings or _settings(),
         retry=RetryService(sleep=no_sleep()),
-        ledger=None,
         temp_root=tmp_path / "tmp",
     )
 
