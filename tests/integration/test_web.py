@@ -66,11 +66,10 @@ def test_health_liveness(client: TestClient) -> None:
     assert response.json() == {"status": "ok"}
 
 
-def test_index_page_renders(client: TestClient) -> None:
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "Book Fork" in response.text
-    assert "<!doctype html>" in response.text.lower()
+def test_index_redirects_anonymous_to_login(client: TestClient) -> None:
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login"
 
 
 def test_login_page_sets_csrf_cookie(client: TestClient) -> None:
@@ -154,6 +153,10 @@ def test_authenticated_dashboard_redirects_to_app(client: TestClient, app: Any) 
     full = client.get("/dashboard", follow_redirects=False)
     assert full.status_code == 303
     assert full.headers["location"] == "/app"
+
+    root = client.get("/", follow_redirects=False)
+    assert root.status_code == 303
+    assert root.headers["location"] == "/app"
 
 
 def test_partial_rendering_for_htmx(client: TestClient) -> None:

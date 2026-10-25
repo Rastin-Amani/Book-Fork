@@ -1,4 +1,4 @@
-{% extends "layouts/marketing.html" %}
+{% extends "layouts/base.html" %}
 {% block title %}Error {{ status_code }} · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="mx-auto flex max-w-xl flex-col items-center px-5 py-24 text-center sm:py-32">
@@ -7,7 +7,7 @@
   <p class="mt-4 text-[15px] text-graphite">If this keeps happening, head back to your workspace or log in again.</p>
   <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
     <a href="/app" class="btn btn-primary">Go to workspace</a>
-    <a href="/" class="btn btn-ghost">Back home</a>
+    <a href="/login" class="btn btn-ghost">Log in</a>
   </div>
 </section>
 {% endblock %}
