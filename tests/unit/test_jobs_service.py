@@ -140,7 +140,7 @@ def _document() -> Document:
     )
 
 
-async def test_estimate_returns_credits_and_provider_cost(pb, fake_pb) -> None:
+async def test_estimate_returns_price_and_provider_cost(pb, fake_pb) -> None:
     _seed(fake_pb)
     service = _service(pb)
     plan = await service.build_plan(workspace_id="w1", source_language="en", target_language="fa")
@@ -148,7 +148,8 @@ async def test_estimate_returns_credits_and_provider_cost(pb, fake_pb) -> None:
     assert view.billing_mode == "managed"
     assert view.model_identifier == "m"
     assert view.estimate.words > 0
-    assert view.credits > 0
+    assert view.pages > 0
+    assert view.price == 7.0
     assert view.provider_cost > 0
 
 

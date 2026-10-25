@@ -41,12 +41,6 @@ class RetryPolicy:
 
 
 @dataclass(frozen=True, slots=True)
-class CreditPolicy:
-    reservation_multiplier: float = 1.2
-    charge_memory_hits: bool = False
-
-
-@dataclass(frozen=True, slots=True)
 class ContextPolicy:
     strategy: str = "adaptive"
     max_previous_segments: int = 3
@@ -70,8 +64,11 @@ class UsageEstimate:
     output_tokens: int = 0
     words: int = 0
     characters: int = 0
+    pages: int = 0
+    blocks: int = 0
+    price: float = 0.0
+    currency: str = "USD"
     provider_cost: float | None = None
-    credits: float = 0.0
     estimated: bool = True
 
 
@@ -100,7 +97,6 @@ class TranslationPlan:
     temperature: float | None = None
     max_output_tokens: int | None = None
     retry_policy: RetryPolicy = field(default_factory=RetryPolicy)
-    credit_policy: CreditPolicy = field(default_factory=CreditPolicy)
     fallback: FallbackPolicy = field(default_factory=FallbackPolicy)
     billing_mode: str = "managed"
     pricing: Mapping[str, Any] = field(default_factory=dict)
@@ -136,7 +132,6 @@ class TranslationPlan:
                 "max_delay_seconds": self.retry_policy.max_delay_seconds,
                 "retry_categories": sorted(str(c) for c in self.retry_policy.retry_categories),
             },
-            "credit_policy": asdict(self.credit_policy),
             "fallback": asdict(self.fallback),
             "billing_mode": self.billing_mode,
             "pricing": dict(self.pricing),
@@ -155,6 +150,8 @@ class TranslationPlan:
             else DEFAULT_RETRY_CATEGORIES
         )
         usage = data.get("expected_usage")
+        usage_data = dict(usage) if usage else {}
+        usage_data.pop("credits", None)  # pre-v3 snapshots
         return cls(
             source=LanguageSpec(**data["source"]),
             target=LanguageSpec(**data["target"]),
@@ -182,10 +179,9 @@ class TranslationPlan:
                 max_delay_seconds=float(retry_data.get("max_delay_seconds", 8.0)),
                 retry_categories=retry_categories,
             ),
-            credit_policy=CreditPolicy(**(data.get("credit_policy") or {})),
             fallback=FallbackPolicy(**(data.get("fallback") or {})),
             billing_mode=str(data.get("billing_mode", "managed")),
             pricing=data.get("pricing") or {},
-            expected_usage=UsageEstimate(**usage) if usage else None,
+            expected_usage=UsageEstimate(**usage_data) if usage_data else None,
             reasons=tuple(data.get("reasons") or ()),
         )

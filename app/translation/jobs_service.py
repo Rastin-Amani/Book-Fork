@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.billing.estimation import JobEstimate, estimate_from_characters
-from app.billing.pricing import CreditPricing, ProviderPricing
+from app.billing.pricing import BookPricing, ProviderPricing
 from app.exceptions import ConfigurationError
 from app.repositories.documents import DocumentRepository
 from app.repositories.translation import TranslationJobRepository
@@ -19,8 +19,9 @@ from app.settings.service import SettingsService
 from app.translation.plan import TranslationPlan
 from app.translation.policy_engine import PlanRequest, TranslationPolicyEngine
 
-_KEY_CREDITS_PER_1K = "billing.credits_per_1000_tokens"
-_KEY_PROVIDER_MARKUP = "billing.provider_cost_markup"
+_KEY_BOOK_PRICE = "billing.book_price_usd"
+_KEY_PAGES_PER_BLOCK = "billing.pages_per_block"
+_KEY_WORDS_PER_PAGE = "billing.words_per_page"
 _KEY_CURRENCY = "billing.default_currency"
 
 
@@ -29,7 +30,10 @@ class TranslationEstimate:
     plan: TranslationPlan
     estimate: JobEstimate
     billing_mode: str
-    credits: float
+    pages: int
+    blocks: int
+    price: float
+    currency: str
     provider_cost: float
     model_identifier: str | None
     provider_connection_id: str | None
@@ -88,22 +92,26 @@ class TranslationJobService:
             ),
             request_cost=float(pricing_data.get("request_cost") or 0.0),
         )
-        credit_pricing = CreditPricing(
+        book_pricing = BookPricing(
             billing_mode=plan.billing_mode,
-            credits_per_1000_tokens=float(await self._setting(_KEY_CREDITS_PER_1K, 1.0)),
-            provider_cost_markup=float(await self._setting(_KEY_PROVIDER_MARKUP, 0.0)),
-            currency=str(await self._setting(_KEY_CURRENCY, "credits")),
+            price_per_book=float(await self._setting(_KEY_BOOK_PRICE, 7.0)),
+            pages_per_block=int(await self._setting(_KEY_PAGES_PER_BLOCK, 1000)),
+            words_per_page=int(await self._setting(_KEY_WORDS_PER_PAGE, 300)),
+            currency=str(await self._setting(_KEY_CURRENCY, "USD")),
         )
         estimate = estimate_from_characters(
             int(document.file_size or 0),
             provider_pricing=provider_pricing,
-            credit_pricing=credit_pricing,
+            book_pricing=book_pricing,
         )
         return TranslationEstimate(
             plan=plan,
             estimate=estimate,
             billing_mode=plan.billing_mode,
-            credits=estimate.credits,
+            pages=estimate.pages,
+            blocks=estimate.blocks,
+            price=estimate.price,
+            currency=estimate.currency,
             provider_cost=estimate.provider_cost,
             model_identifier=plan.model_identifier,
             provider_connection_id=plan.provider_connection_id,
@@ -122,6 +130,14 @@ class TranslationJobService:
             raise ConfigurationError(
                 "No provider/model is configured for this language pair. Add a provider first."
             )
+        estimate = await self.estimate(document=document, plan=plan)
+        order = {
+            "billing_mode": estimate.billing_mode,
+            "pages": estimate.pages,
+            "blocks": estimate.blocks,
+            "amount": estimate.price,
+            "currency": estimate.currency,
+        }
         return await self._jobs.create(
             {
                 "workspace": workspace_id,
@@ -140,9 +156,10 @@ class TranslationJobService:
                 "total_segments": 0,
                 "completed_segments": 0,
                 "failed_segments": 0,
+                "estimated_provider_cost": estimate.provider_cost,
                 "snapshot": plan.snapshot(),
                 "created_by": created_by,
-                "metadata": {"persist_memory": persist_memory},
+                "metadata": {"persist_memory": persist_memory, "order": order},
             },
             token=self._token,
         )
