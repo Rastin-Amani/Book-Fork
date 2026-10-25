@@ -76,6 +76,9 @@
         {% block content %}{% endblock %}
       </main>
 {% if not is_htmx %}
+  <footer class="mx-auto w-full max-w-[1200px] px-5 pb-8">
+    <p class="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-ash">{{ app_name }} v{{ app_version }}</p>
+  </footer>
 </body>
 </html>
 {% endif %}

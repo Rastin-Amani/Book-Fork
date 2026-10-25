@@ -78,6 +78,13 @@ def test_login_page_sets_csrf_cookie(client: TestClient) -> None:
     assert "book_fork_csrf" in response.cookies
 
 
+def test_web_shell_shows_release_version(client: TestClient) -> None:
+    from app.version import __version__
+
+    response = client.get("/login")
+    assert f"Book Fork v{__version__}" in response.text
+
+
 def test_api_me_requires_auth(client: TestClient) -> None:
     response = client.get("/api/me")
     assert response.status_code == 401

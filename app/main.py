@@ -36,6 +36,7 @@ from app.config import Settings, get_settings
 from app.context import build_context, close_context
 from app.exceptions import BookForkError
 from app.logging import configure_logging, get_logger
+from app.version import __version__
 from app.web.middleware import RequestContextMiddleware
 from app.web.security_headers import SecurityHeadersMiddleware
 from app.web.templating import render
@@ -72,7 +73,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title=settings.app_name,
-        version="0.1.0",
+        version=__version__,
         lifespan=lifespan,
         docs_url="/docs" if docs_enabled else None,
         redoc_url="/redoc" if docs_enabled else None,

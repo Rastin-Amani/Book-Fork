@@ -61,6 +61,7 @@ from app.translation.memory import TranslationMemory, TranslationMemoryStore
 from app.translation.plan import TranslationPlan
 from app.translation.policy import TranslationPolicyService
 from app.translation.policy_engine import TranslationPolicyEngine
+from app.version import __version__
 
 from worker.heartbeat import WorkerRegistry
 from worker.job_executor import JobExecutor
@@ -205,7 +206,7 @@ async def run(args: argparse.Namespace) -> None:
             registry=WorkerRegistry(
                 WorkerRepository(client, token=token),
                 worker_id=worker_id,
-                version="0.1.0",
+                version=__version__,
                 token=token,
             ),
         )

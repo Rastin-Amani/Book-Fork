@@ -16,6 +16,7 @@ from starlette.responses import HTMLResponse
 
 from app.config import Settings, get_settings
 from app.security.csrf import CSRF_COOKIE_NAME
+from app.version import __version__
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 
@@ -32,6 +33,7 @@ def _context_processor(request: Request) -> dict[str, Any]:
         "csrf_token": getattr(request.state, "csrf_token", ""),
         "csrf_cookie_name": CSRF_COOKIE_NAME,
         "app_name": settings.app_name,
+        "app_version": __version__,
         "app_env": settings.app_env,
         # UI chrome locale/direction. This is presentation metadata resolved to
         # defaults for now; a locale resolver will feed it later. It is not the
