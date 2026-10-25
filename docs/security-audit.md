@@ -40,6 +40,10 @@ pinning is the documented upgrade path.
 
 - Sessions are encrypted HttpOnly cookies; validated against PocketBase on each
   non-asset request.
+- Sign-in is OAuth2-only (Google / GitHub). Each attempt carries a signed,
+  HttpOnly, 10-minute `state` cookie and a PKCE verifier; the callback is a
+  top-level navigation and rejects missing, forged, expired or non-ASCII state.
+  Passwords, OTP and MFA are disabled on the PocketBase users collection.
 - Admin routes require `admin.emails` membership **and** run with the superuser
   service token; ordinary users never see other workspaces.
 - No authorization decision relies on hidden UI. Cross-workspace and unauthenticated
