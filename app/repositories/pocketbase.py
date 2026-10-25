@@ -36,7 +36,7 @@ logger = get_logger(__name__)
 # Transport-level retry for the metadata service. This is infrastructure
 # resilience, distinct from (and unrelated to) translation retry policy, which
 # is translation behaviour and therefore configuration-driven.
-_RETRY_ATTEMPTS = 3
+_RETRY_ATTEMPTS = 5
 
 
 class PocketBaseClient:
@@ -54,7 +54,7 @@ class PocketBaseClient:
     # -- low level -----------------------------------------------------------
     @tenacity.retry(
         stop=tenacity.stop_after_attempt(_RETRY_ATTEMPTS),
-        wait=tenacity.wait_exponential(multiplier=0.2, max=2.0),
+        wait=tenacity.wait_exponential(multiplier=0.5, max=4.0),
         retry=tenacity.retry_if_exception_type(httpx.TransportError),
         reraise=True,
     )
