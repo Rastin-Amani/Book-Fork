@@ -1,8 +1,21 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.3.0** and is described below as delivered phases. Dates
+current release is **0.3.1** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.3.1] — 2026-10-25
+
+**Status: UI cache fix.** The app shell now busts cached bundles on deploy and
+provider buttons keep their icon size.
+
+### Web
+
+- Append the release version to the `/static/css/app.css` and
+  `/static/js/app.js` URLs so a deploy cannot serve a stale bundle.
+- Give the Google and GitHub SVGs explicit width and height alongside their
+  utility classes so the provider icon stays 18px.
+- Cover the versioned asset URLs in the web integration tests.
 
 ## [0.3.0] — 2026-10-25
 
