@@ -7,4 +7,4 @@ This is the runtime source of truth. Keep it in step with ``pyproject.toml``,
 
 from __future__ import annotations
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"

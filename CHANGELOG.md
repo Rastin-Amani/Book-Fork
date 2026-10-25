@@ -1,8 +1,20 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.4.0** and is described below as delivered phases. Dates
+current release is **0.4.1** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.4.1] — 2026-10-25
+
+**Status: container build cleanup.**
+
+### Build
+
+- Stop precompiling Python bytecode during the image build. The runtime
+  already sets `PYTHONDONTWRITEBYTECODE=1`, so the image and build no longer
+  carry generated `.pyc` files.
+- A cold start now compiles modules in memory instead of reading cached
+  bytecode from the image.
 
 ## [0.4.0] — 2026-10-25
 

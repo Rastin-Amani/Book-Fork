@@ -1,6 +1,6 @@
 [project]
 name = "book-fork"
-version = "0.4.0"
+version = "0.4.1"
 description = "Book Fork — configuration-driven multilingual document translation SaaS."
 readme = "README.md"
 requires-python = ">=3.14"
