@@ -8,62 +8,54 @@
   </a>
   <header class="space-y-1.5">
     <p class="eyebrow">Account</p>
-    <h1 class="t-h1">Billing &amp; credits</h1>
-    <p class="text-[14px] text-graphite">Book Fork-managed usage draws from this balance; your own API does not.</p>
+    <h1 class="t-h1">Billing</h1>
+    <p class="text-[14px] text-graphite">Free with your own key. Managed books are ${{ '%.0f'|format(book_price) }} each.</p>
   </header>
 
   <div class="grid gap-4 sm:grid-cols-3">
-    <div class="t-card p-6 sm:col-span-1">
-      <p class="eyebrow">Credit balance</p>
-      <p class="mt-3 text-[40px] font-semibold leading-none tracking-[-0.02em]">{{ '%.1f'|format(wallet.balance if wallet else 0) }}</p>
-      <p class="mt-2 text-[13px] text-mid-gray">{{ wallet.currency if wallet else 'credits' }}</p>
+    <div class="t-card p-6">
+      <p class="eyebrow">Your own key</p>
+      <p class="mt-3 text-[40px] font-semibold leading-none tracking-[-0.02em]">Free</p>
+      <p class="mt-2 text-[13px] leading-relaxed text-mid-gray">Unlimited books. You pay your provider directly.</p>
     </div>
-    <div class="t-card flex flex-col justify-center gap-2 p-6 sm:col-span-2">
-      <p class="eyebrow">How billing works</p>
-      <p class="text-[14px] leading-relaxed text-graphite">
-        Managed jobs deduct credits per segment based on tokens and quality. Connections using <span class="font-medium text-ink-black">your own API</span> are billed directly by your provider and never touch this balance.
-      </p>
+    <div class="t-card p-6">
+      <p class="eyebrow">Managed</p>
+      <p class="mt-3 text-[40px] font-semibold leading-none tracking-[-0.02em]">${{ '%.0f'|format(book_price) }}</p>
+      <p class="mt-2 text-[13px] leading-relaxed text-mid-gray">Per book, up to {{ pages_per_block }} pages. +${{ '%.0f'|format(book_price) }} per extra {{ pages_per_block }}-page block.</p>
     </div>
-  </div>
-
-  <div class="t-card overflow-hidden">
-    <div class="border-b border-pebble-border px-5 py-4"><h2 class="t-h2 text-[16px]">Recent transactions</h2></div>
-    <div class="overflow-x-auto">
-      <table class="t-table">
-        <thead><tr><th>Type</th><th>Amount</th><th>Balance after</th><th>Reason</th></tr></thead>
-        <tbody>
-          {% for tx in transactions %}
-          <tr>
-            <td class="text-ink-black font-medium capitalize">{{ tx.type.value }}</td>
-            <td class="font-mono text-[12px]">{{ tx.amount }}</td>
-            <td class="font-mono text-[12px]">{{ tx.balance_after }}</td>
-            <td>{{ tx.reason or '—' }}</td>
-          </tr>
-          {% else %}
-          <tr><td colspan="4" class="py-10 text-center text-mid-gray">No transactions yet.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="t-card p-6">
+      <p class="eyebrow">Book total</p>
+      <p class="mt-3 text-[40px] font-semibold leading-none tracking-[-0.02em]">${{ '%.0f'|format(total) }}</p>
+      <p class="mt-2 text-[13px] leading-relaxed text-mid-gray">Completed managed books in this workspace.</p>
     </div>
   </div>
 
+  <div class="t-card p-6">
+    <p class="eyebrow">How billing works</p>
+    <p class="mt-2 text-[14px] leading-relaxed text-graphite">
+      One managed job is one book order. The price is fixed by the estimated page count and never by tokens.
+      Failed or cancelled jobs are not charged. If you connect your own API, nothing is charged by Book Fork.
+    </p>
+  </div>
+
   <div class="t-card overflow-hidden">
-    <div class="border-b border-pebble-border px-5 py-4"><h2 class="t-h2 text-[16px]">Usage</h2></div>
+    <div class="border-b border-pebble-border px-5 py-4"><h2 class="t-h2 text-[16px]">Book orders</h2></div>
     <div class="overflow-x-auto">
       <table class="t-table">
-        <thead><tr><th>Type</th><th>Job</th><th>Input</th><th>Output</th><th>Credits</th><th>When</th></tr></thead>
+        <thead><tr><th>Book</th><th>Pages</th><th>Blocks</th><th>Amount</th><th>Status</th><th>When</th><th></th></tr></thead>
         <tbody>
-          {% for event in usage %}
+          {% for order in orders %}
           <tr>
-            <td class="text-ink-black">{{ event.event_type.value }}</td>
-            <td class="font-mono text-[12px]">{{ event.job or '—' }}</td>
-            <td class="font-mono text-[12px]">{{ event.input_tokens or 0 }}</td>
-            <td class="font-mono text-[12px]">{{ event.output_tokens or 0 }}</td>
-            <td class="font-mono text-[12px]">{{ event.credits or 0 }}</td>
-            <td class="whitespace-nowrap text-[13px]">{{ event.created }}</td>
+            <td><a class="link" href="/app/translations/{{ order.job.id }}">{{ order.book }}</a></td>
+            <td class="font-mono text-[12px]">{{ order.pages }}</td>
+            <td class="font-mono text-[12px]">{{ order.blocks }}</td>
+            <td class="font-mono text-[12px]">{% if order.status in ('No charge', 'Free') %}—{% else %}${{ '%.0f'|format(order.amount) }}{% endif %}</td>
+            <td class="whitespace-nowrap text-[13px]">{{ order.status }}</td>
+            <td class="whitespace-nowrap text-[13px]">{{ order.job.created }}</td>
+            <td class="text-right"><a href="/app/translations/{{ order.job.id }}" class="link whitespace-nowrap">View</a></td>
           </tr>
           {% else %}
-          <tr><td colspan="6" class="py-10 text-center text-mid-gray">No usage events yet.</td></tr>
+          <tr><td colspan="7" class="py-10 text-center text-mid-gray">No book orders yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>

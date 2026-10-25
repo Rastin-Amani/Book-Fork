@@ -129,9 +129,18 @@ def test_full_upload_to_queued_job(
     assert len(jobs) == 1
     assert jobs[0]["status"] == "queued"
     assert jobs[0]["snapshot"]["target"]["direction"] == "rtl"
+    order = jobs[0]["metadata"]["order"]
+    assert order["billing_mode"] == "managed"
+    assert order["amount"] == 7.0
+    assert order["pages"] > 0
     documents = list(fake_pb.collections.get("documents", {}).values())
     assert len(documents) == 1
     assert documents[0]["storage_key"]
+
+    billing = client.get("/app/settings/billing")
+    assert billing.status_code == 200
+    assert "Book orders" in billing.text
+    assert "$7" in billing.text
 
 
 def test_estimate_renders_for_existing_document(

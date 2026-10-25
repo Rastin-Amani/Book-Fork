@@ -9,6 +9,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import Response, StreamingResponse
 
 from app.api.dependencies import CurrentUser, ReposDep, WorkspaceDep, get_ctx
+from app.api.runtime import build_settings_service
 from app.exceptions import NotFoundError
 from app.web.templating import render
 
@@ -20,11 +21,11 @@ router = APIRouter(prefix="/app", tags=["app"])
 async def dashboard(
     request: Request, user: CurrentUser, workspace: WorkspaceDep, repos: ReposDep
 ) -> Response:
-    jobs, documents, wallet = await asyncio.gather(
+    jobs, documents = await asyncio.gather(
         repos.jobs.list_for_workspace(workspace.id),
         repos.documents.list_for_workspace(workspace.id, per_page=8),
-        repos.wallets.get_for_workspace(workspace.id),
     )
+    book_price = float(await build_settings_service(repos).get("billing.book_price_usd", 7.0))
     active = [
         j
         for j in jobs
@@ -41,7 +42,7 @@ async def dashboard(
             "documents": documents[:8],
             "active_count": len(active),
             "completed_count": len(completed),
-            "balance": wallet.balance if wallet else 0.0,
+            "book_price": book_price,
         },
     )
 

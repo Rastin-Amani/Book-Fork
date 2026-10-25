@@ -18,7 +18,7 @@
       ('Active jobs', active_count, 'activity', 'text-storyboard-blue'),
       ('Completed', completed_count, 'check', 'text-success'),
       ('Documents', documents|length, 'file', 'text-graphite'),
-      ('Credit balance', '%.1f'|format(balance), 'credit-card', 'text-deep-amber'),
+      ('Managed book', '$%.0f'|format(book_price), 'credit-card', 'text-deep-amber'),
     ] %}
     {% for label, value, ic, tone in stats %}
     <div class="t-card p-5">
