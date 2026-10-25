@@ -31,24 +31,35 @@ def coerce_value(setting: SystemSetting) -> Any:
 
 
 class SettingsService:
-    """Reads typed settings from the database."""
+    """Reads typed settings from the database.
+
+    Settings are a small, global collection. Resolving them one key per
+    PocketBase round trip turned a single estimate into ~18 serial network
+    calls, so the first ``get`` loads the collection once and indexes it. The
+    cache lives on the service instance, which is per request (web) or built
+    once at startup (worker), so it never spans requests or hides writes made
+    through a different service.
+    """
 
     def __init__(self, repository: SystemSettingRepository, *, token: str | None = None) -> None:
         self._repository = repository
         self._token = token
+        self._cache: dict[str, Any] | None = None
+
+    async def _values(self) -> dict[str, Any]:
+        if self._cache is None:
+            settings = await self._repository.list_all(sort="key", token=self._token)
+            self._cache = {setting.key: coerce_value(setting) for setting in settings}
+        return self._cache
 
     async def get(self, key: str, default: Any = None) -> Any:
-        setting = await self._repository.get_by_key(key, token=self._token)
-        if setting is None:
-            return default
-        return coerce_value(setting)
+        return (await self._values()).get(key, default)
 
     async def require(self, key: str) -> Any:
-        setting = await self._repository.get_by_key(key, token=self._token)
-        if setting is None:
+        values = await self._values()
+        if key not in values:
             raise NotFoundError(f"Required setting {key!r} is not configured.")
-        return coerce_value(setting)
+        return values[key]
 
     async def all(self) -> dict[str, Any]:
-        settings = await self._repository.list_all(sort="key", token=self._token)
-        return {setting.key: coerce_value(setting) for setting in settings}
+        return dict(await self._values())
