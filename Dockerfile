@@ -16,7 +16,8 @@ FROM python:3.14-slim AS runtime
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy
+    UV_LINK_MODE=copy \
+    UV_CACHE_DIR=/app/.cache/uv
 COPY --from=ghcr.io/astral-sh/uv:0.12.23 /uv /uvx /bin/
 
 WORKDIR /app
@@ -34,8 +35,12 @@ COPY --from=assets /app/static/js/vendor ./static/js/vendor
 
 RUN uv sync --frozen --no-dev
 
-# Run as a non-root user.
-RUN useradd --system --uid 1001 book-fork && chown -R book-fork:book-fork /app
+# Run as a non-root user. The runtime cache lives under /app so `uv run` has a
+# writable cache without a home directory.
+RUN useradd --system --uid 1001 book-fork \
+    && rm -rf /app/.cache \
+    && mkdir -p /app/.cache/uv \
+    && chown -R book-fork:book-fork /app
 USER book-fork
 
 EXPOSE 8000
