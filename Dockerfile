@@ -15,7 +15,6 @@ RUN npm run build
 FROM python:3.14-slim AS runtime
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_CACHE_DIR=/app/.cache/uv \
     PATH="/app/.venv/bin:$PATH"
