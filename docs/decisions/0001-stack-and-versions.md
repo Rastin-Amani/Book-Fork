@@ -67,3 +67,10 @@ the suggested remediation downgrades Tailwind. Accepted and tracked.
 - HTMX 2.x is stable and adequate for the shell; upgrading to 4.x is a
   contained change (attribute semantics, not architecture).
 - Adding document-processing dependencies later is a scoped, deliberate step.
+
+> **Update (Phases 3–8).** The deferred libraries were added as each phase
+> needed them: PyMuPDF, lxml, pysbd, WeasyPrint (optional `pdf` extra),
+> langcodes, language-data, Babel and py3langid are now declared in
+> `pyproject.toml` and resolved in `uv.lock` (see the version table in
+> [`../architecture.md`](../architecture.md#8-package--version-decisions)).
+> EbookLib remains intentionally unused. HTMX is still 2.0.11.
