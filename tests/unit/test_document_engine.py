@@ -8,7 +8,7 @@ import pytest
 from app.documents.adapters.base import DocumentType, ParseOptions
 from app.documents.segmentation.base import SegmentationConfig, SegmentationStrategy
 from app.documents.service import DocumentEngine
-from app.exceptions import ValidationError
+from app.exceptions import NotFoundError, ValidationError
 from app.storage.local import LocalStorage
 
 from tests.documents_fixtures import write_epub, write_pdf
@@ -19,6 +19,16 @@ async def test_detect_type() -> None:
     assert DocumentEngine.detect_type("a.pdf", b"%PDF-1.7") is DocumentType.PDF
     with pytest.raises(ValidationError):
         DocumentEngine.detect_type("a.txt", b"hello")
+
+
+async def test_materialize_missing_source_is_a_clear_error(tmp_path: Path) -> None:
+    """A document uploaded to another deployment's disk must not read as a crash."""
+    engine = DocumentEngine(temp_root=tmp_path / "tmp")
+    storage = LocalStorage(tmp_path / "store")
+
+    with pytest.raises(NotFoundError, match="Upload it again"):
+        async with engine.materialize(storage, "documents/gone/source.pdf"):
+            pass
 
 
 async def test_parse_and_segment(tmp_path: Path) -> None:

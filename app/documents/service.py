@@ -37,7 +37,7 @@ from app.documents.serialization import (
     from_json_bytes,
     to_json_bytes,
 )
-from app.exceptions import ValidationError
+from app.exceptions import NotFoundError, ValidationError
 from app.storage.base import Storage, StoredObject
 
 _KIND_TO_TYPE = {
@@ -112,6 +112,11 @@ class DocumentEngine:
     @asynccontextmanager
     async def materialize(self, storage: Storage, key: str) -> AsyncIterator[Path]:
         """Stream a storage object to a managed temp file for parsing."""
+        if not await storage.exists(key):
+            raise NotFoundError(
+                "The source document is not in this deployment's storage. "
+                "Upload it again through this app."
+            )
         with safe_temp_dir(base=self._temp_root) as tmp:
             target = tmp / "source.bin"
             with target.open("wb") as handle:
