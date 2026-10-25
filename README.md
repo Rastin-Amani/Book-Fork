@@ -9,7 +9,7 @@ It is configuration-driven, modular, resumable, and provider-agnostic: nothing
 about translation behaviour (languages, providers, models, prompts, limits,
 pricing) is hardcoded.
 
-> **Status: v0.4.1 (Phase 8 complete).** Phase 1 foundation, Phase 2 configuration-driven
+> **Status: v0.4.2 (Phase 8 complete).** Phase 1 foundation, Phase 2 configuration-driven
 > data model ([`docs/data-model.md`](docs/data-model.md)), Phase 3 document engine
 > ([`docs/documents.md`](docs/documents.md)), Phase 4 translation engine
 > ([`docs/translation.md`](docs/translation.md)), Phase 5 durable worker

@@ -1,8 +1,38 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.4.1** and is described below as delivered phases. Dates
+current release is **0.4.2** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.4.2] — 2026-10-25
+
+**Status: retry, storage and transport resilience.**
+
+### Worker
+
+- A retry now resumes both failed and never-attempted pending segments while
+  keeping validated/translated work. Previously a failed-only filter could
+  complete a job with most of the book untranslated.
+- Remove the now-unused `retry_mode` job metadata and align the worker and API
+  docs with the resume behaviour.
+
+### Documents & storage
+
+- `materialize` checks storage before opening a temp file and raises a clear
+  404 with a re-upload message when a record's bytes are missing.
+- The container creates `/app/var/storage` for the unprivileged runtime user.
+
+### PocketBase
+
+- Transport retries rise from 3 to 5 attempts, with backoff starting at 0.5 s
+  and capped at 4 s, so a short restart no longer fails a request or job.
+
+### Known limitations at 0.4.2
+
+- The combined web/worker container is intended for one replica because worker
+  slot ids are container-local.
+- Google and/or GitHub must be configured in PocketBase; there is no password
+  fallback.
 
 ## [0.4.1] — 2026-10-25
 
