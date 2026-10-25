@@ -15,6 +15,16 @@ only the built assets. **Node is not present in the runtime image.**
 (profile `s3`). The `app` service has a readiness health check against
 `/health/ready`.
 
+The image's `CMD` is `docker-entrypoint.sh`: it runs the web process plus
+`WORKERS` supervised worker processes (default `1`) in one container, so a
+Dockerfile deploy (Dokploy, `docker run`, a rebuilt image) always starts a
+worker pool — no separate worker container to forget. Each slot gets a stable
+`WORKER_ID`, `SIGTERM`/`SIGINT` is forwarded so in-flight jobs are requeued
+gracefully, and a crashed slot is restarted in place. Set `WORKERS=0` to run
+the web only, or override the command with `python -m worker.main` for a
+worker-only container. `compose.yaml` keeps its dedicated `worker` service and
+sets `WORKERS=0` on `app`, so the two do not overlap.
+
 ## Book outputs (PDF / EPUB)
 
 The worker produces a print-ready PDF (PyMuPDF, pure Python) and an EPUB

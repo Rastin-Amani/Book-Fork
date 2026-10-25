@@ -41,6 +41,12 @@ docker compose up -d app worker
 (profile `s3`). The `app` service has a health check against `/health/ready`
 every 30 s (10 s timeout, 3 retries, 20 s start period).
 
+The image itself runs the web process plus `WORKERS` supervised worker
+processes (default `1`) through `docker-entrypoint.sh`, so a Dockerfile deploy
+starts workers on every build and redeploy. Set `WORKERS=0` for a web-only
+container (as `compose.yaml` does, because it has a dedicated `worker` service)
+or override the command with `python -m worker.main` for a worker-only one.
+
 ### systemd (bare host)
 
 ```bash

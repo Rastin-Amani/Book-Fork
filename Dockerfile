@@ -17,7 +17,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    UV_CACHE_DIR=/app/.cache/uv
+    UV_CACHE_DIR=/app/.cache/uv \
+    PATH="/app/.venv/bin:$PATH"
 COPY --from=ghcr.io/astral-sh/uv:0.12.23 /uv /uvx /bin/
 
 WORKDIR /app
@@ -26,6 +27,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY app ./app
 COPY worker ./worker
+COPY docker-entrypoint.sh ./
 COPY templates ./templates
 COPY static ./static
 COPY seeds ./seeds
@@ -44,4 +46,7 @@ RUN useradd --system --uid 1001 book-fork \
 USER book-fork
 
 EXPOSE 8000
-CMD ["uv", "run", "--no-dev", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Web + a pool of worker processes in one container (Dokploy "Dockerfile"
+# deploy). Scale the pool with WORKERS (default 1); run the worker alone with
+# `docker run ... python -m worker.main`.
+CMD ["sh", "docker-entrypoint.sh"]

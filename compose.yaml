@@ -24,6 +24,9 @@ services:
       - .env
     environment:
       POCKETBASE_URL: http://pocketbase:8090
+      # The image runs workers by default; compose already has a dedicated
+      # worker service, so the web container stays web-only here.
+      WORKERS: "0"
     ports:
       - "8000:8000"
     depends_on:
