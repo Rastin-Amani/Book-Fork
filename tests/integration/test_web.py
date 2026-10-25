@@ -113,6 +113,14 @@ def test_web_shell_shows_release_version(client: TestClient) -> None:
     assert f"Book Fork v{__version__}" in response.text
 
 
+def test_web_shell_versions_static_assets(client: TestClient) -> None:
+    from app.version import __version__
+
+    response = client.get("/login")
+    assert f"/static/css/app.css?v={__version__}" in response.text
+    assert f"/static/js/app.js?v={__version__}" in response.text
+
+
 def test_api_me_requires_auth(client: TestClient) -> None:
     response = client.get("/api/me")
     assert response.status_code == 401
