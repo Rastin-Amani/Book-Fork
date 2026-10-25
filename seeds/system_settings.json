@@ -239,28 +239,36 @@
       "description": "Lower bound when shrinking batches during context repair."
     },
     {
-      "key": "billing.enabled",
-      "type": "bool",
-      "value": true,
+      "key": "billing.book_price_usd",
+      "type": "float",
+      "value": 7.0,
       "category": "billing",
       "editable": true,
-      "description": "Whether credit reservation/settlement runs for jobs."
+      "description": "Flat price per managed book, covering the first page block."
     },
     {
-      "key": "billing.credits_per_1000_tokens",
-      "type": "float",
-      "value": 1.0,
+      "key": "billing.pages_per_block",
+      "type": "int",
+      "value": 1000,
       "category": "billing",
       "editable": true,
-      "description": "Credit charge per 1000 tokens."
+      "description": "Pages covered by one book price; each extra block adds one book price."
     },
     {
-      "key": "billing.provider_cost_markup",
-      "type": "float",
-      "value": 0.0,
+      "key": "billing.words_per_page",
+      "type": "int",
+      "value": 300,
       "category": "billing",
       "editable": true,
-      "description": "Credits charged per unit of provider cost (0 disables markup)."
+      "description": "Words per page used to estimate page blocks before translation."
+    },
+    {
+      "key": "billing.default_currency",
+      "type": "string",
+      "value": "USD",
+      "category": "billing",
+      "editable": false,
+      "description": "Book order currency."
     },
     {
       "key": "translation.default_prompt_template_slug",
@@ -285,22 +293,6 @@
       "category": "translation",
       "editable": true,
       "description": "Minimum language-detection confidence to auto-accept."
-    },
-    {
-      "key": "billing.credit_reservation_multiplier",
-      "type": "float",
-      "value": 1.2,
-      "category": "billing",
-      "editable": true,
-      "description": "Multiplier applied when reserving credits for a job."
-    },
-    {
-      "key": "billing.default_currency",
-      "type": "string",
-      "value": "credits",
-      "category": "billing",
-      "editable": false,
-      "description": "Ledger currency unit."
     },
     {
       "key": "storage.retention_days",
