@@ -1,8 +1,37 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.3.1** and is described below as delivered phases. Dates
+current release is **0.4.0** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.4.0] — 2026-10-25
+
+**Status: single-container worker pool.** A rebuilt image now starts the web
+process and a supervised translation worker pool together.
+
+### Deployment
+
+- Add `docker-entrypoint.sh` as the image command: it runs Uvicorn plus
+  `WORKERS` supervised worker processes (default `1`).
+- Give each slot a stable `WORKER_ID` so a restart updates its own workers row,
+  restart crashed slots in place, and forward `SIGTERM`/`SIGINT` so in-flight
+  jobs are requeued instead of losing a live lease.
+- Put the virtualenv on `PATH` so the health check and entrypoint use the
+  installed Python.
+- Keep `compose.yaml` web-only with `WORKERS=0` because it already has a
+  dedicated worker service.
+- Document the Dockerfile and compose behaviour, and cover slot identity,
+  signal forwarding and crash restart in tests.
+
+### Known limitations at 0.4.0
+
+- Worker slot ids are container-local; run one replica of the combined
+  web/worker container, or give additional replicas distinct deployments.
+- Google and/or GitHub must be configured in PocketBase; there is no password
+  fallback.
+- Only the `openai_compatible` and `ollama` provider protocols have adapters.
+- No self-service card checkout; book orders are reconciled externally.
+- Per-process rate limiting and metrics are not shared across replicas.
 
 ## [0.3.1] — 2026-10-25
 
