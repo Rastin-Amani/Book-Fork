@@ -124,17 +124,19 @@ async def test_resume_skips_completed_segments(tmp_path: Any) -> None:
     assert store.segments[done.id].translated_text == "سلام"
 
 
-async def test_failed_only_retry_mode(tmp_path: Any) -> None:
+async def test_retry_resumes_pending_and_failed_segments(tmp_path: Any) -> None:
+    """Retry must not skip segments an infrastructure failure never reached."""
     store = FakeJobStore()
-    store.add_job(make_job(metadata={"retry_mode": "failed_only"}))
+    store.add_job(make_job())
     done = store.add_segment("job1", status="validated", translated_text="سلام")
     failed = store.add_segment("job1", status="failed")
+    pending = store.add_segment("job1", status="pending", text="Hello")
     provider = FakeProvider()
     executor = _executor(store, provider, tmp_path)
 
     await executor.execute(await _claim(store))
 
-    assert [s.id for s in provider.requests[0].segments] == [failed.id]
+    assert {s.id for s in provider.requests[0].segments} == {failed.id, pending.id}
     assert store.segments[done.id].translated_text == "سلام"
     assert store.jobs["job1"].status == "completed"
 

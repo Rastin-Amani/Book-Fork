@@ -331,13 +331,15 @@ class JobExecutor:
         memory: TranslationMemoryStore | None,
         glossary: GlossaryRetriever | None,
     ) -> ProviderUsage | None:
-        retry_mode = str((job.metadata or {}).get("retry_mode", "all"))
+        # A retry resumes whatever is not finished: completed segments are
+        # skipped, while both previously failed and never-attempted (pending)
+        # segments are translated. Filtering to status == "failed" here used to
+        # strand pending segments after an infrastructure failure — the retry
+        # then completed the job with most of the book untranslated.
         pending = [
             segment
             for segment in segments
-            if segment.source_text
-            and not self._is_completed(segment)
-            and (retry_mode != "failed_only" or segment.status == "failed")
+            if segment.source_text and not self._is_completed(segment)
         ]
         total_usage = None
         remaining = list(pending)

@@ -221,7 +221,6 @@ async def retry_job(
     )
     await limits.check_retry(job)
     metadata = dict(job.metadata or {})
-    metadata["retry_mode"] = "failed_only"
     metadata["retry_count"] = int(metadata.get("retry_count", 0)) + 1
     job = await repos.jobs.update(
         job.id,
