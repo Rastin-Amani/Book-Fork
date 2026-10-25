@@ -165,7 +165,7 @@ Available actions depend on state:
 
 | Action | When it is shown |
 | --- | --- |
-| **Cancel** | While the job is active. Cooperative — the worker refunds the reservation and finishes as `cancelled`. |
+| **Cancel** | While the job is active. Cooperative — the worker stops at a safe checkpoint and finishes as `cancelled`. |
 | **Retry failed** | When the job status is `failed`. Retranslates only the failed segments. |
 | **Download PDF** / **Download EPUB** | When output exists. |
 | **Review segments** | Always (segments appear as they are produced). |
