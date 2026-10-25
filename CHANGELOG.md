@@ -1,8 +1,44 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.2.0** and is described below as delivered phases. Dates
+current release is **0.3.0** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.3.0] — 2026-10-25
+
+**Status: OAuth-only sign-in.** Google and GitHub are now the only ways to sign
+in. Password, OTP/MFA, password-reset and email-verification flows are removed.
+
+### Authentication
+
+- Replace the email/password login, signup, reset and verification pages with a
+  single `/login` page offering Google and GitHub.
+- Use PocketBase's OAuth2 authorization-code flow with PKCE and a signed,
+  HttpOnly, 10-minute `state` cookie; the callback rejects missing, forged,
+  expired and non-ASCII state.
+- Treat sign-in and sign-up as one action: the provider creates the account on
+  first use and links an existing record by verified email.
+- Redirect `/signup` to `/login`; old password form posts return a friendly
+  "password sign-in is no longer available" message.
+- Add `scripts/configure_auth.py` to push Google/GitHub credentials into
+  PocketBase, and a migration that disables password, OTP and MFA auth.
+- Add the four `GOOGLE_OAUTH_*` / `GITHUB_OAUTH_*` environment variables and
+  remove the signup and password-reset rate-limit settings.
+
+### Build & operations
+
+- Give the container user a writable uv cache under `/app/.cache/uv` so the web
+  and worker processes start as non-root.
+
+### Known limitations at 0.3.0
+
+- Google and/or GitHub must be configured in PocketBase; there is no password
+  fallback.
+- A second sign-in attempt for the same provider invalidates an earlier tab's
+  state cookie.
+- Only the `openai_compatible` and `ollama` provider protocols have adapters.
+- No self-service card checkout; book orders are reconciled externally.
+- Per-process rate limiting and metrics are not shared across replicas.
 
 ## [0.2.0] — 2026-10-25
 
