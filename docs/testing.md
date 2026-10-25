@@ -20,7 +20,7 @@ uv run pytest -k billing # by keyword
 — warnings fail the suite except two documented ignores (Starlette's TestClient
 deprecation and pysbd's import-time `SyntaxWarning`).
 
-Current size: **62 unit test modules** and **6 integration modules** (~323 test
+Current size: **60 unit test modules** and **4 integration modules** (~323 test
 functions).
 
 ## 2. Hermetic by design
@@ -55,13 +55,12 @@ Focused, dependency-light tests of a single module or service. Groups include:
 - **Translation:** `test_translation_engine`, `test_translation_context`,
   `test_translation_glossary`, `test_translation_memory`,
   `test_translation_normalization`, `test_translation_structured`,
-  `test_translation_validation`, `test_policy`, `test_policy_engine`,
+  `test_translation_validation`, `test_policy`, `test_translation_policy_engine`,
   `test_prompt_renderer`, `test_model_routing`.
 - **Providers:** `test_provider_factory`, `test_provider_runtime_ssrf`,
   `test_provider_testing`, `test_provider_errors`,
   `test_provider_credentials`, `test_translation_provider_openai`.
-- **Billing:** `test_billing_pricing`, `test_billing_estimation`,
-  `test_credit_ledger`.
+- **Billing:** `test_billing_pricing`, `test_billing_estimation`.
 - **Worker/jobs:** `test_jobs_service`, `test_worker_runner`,
   `test_worker_executor`, `test_worker_store`, `test_worker_heartbeat`,
   `test_worker_registry`.
