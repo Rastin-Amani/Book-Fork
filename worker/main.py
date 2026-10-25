@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import signal
 import uuid
 from dataclasses import replace
@@ -68,6 +69,11 @@ from worker.job_executor import JobExecutor
 from worker.runner import Worker
 
 logger = get_logger(__name__)
+
+
+def _worker_id() -> str:
+    """Stable id from the container slot; random for an ad-hoc run."""
+    return os.environ.get("WORKER_ID") or f"worker-{uuid.uuid4().hex[:8]}"
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -197,7 +203,7 @@ async def run(args: argparse.Namespace) -> None:
             ),
             render_backend=app_settings.document_render_backend,
         )
-        worker_id = f"worker-{uuid.uuid4().hex[:8]}"
+        worker_id = _worker_id()
         worker = Worker(
             store=store,
             executor=executor,
