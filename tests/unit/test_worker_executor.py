@@ -196,6 +196,27 @@ async def test_upstream_requeue_is_bounded(tmp_path: Any) -> None:
     assert store.jobs["job1"].status == "failed"
 
 
+async def test_unexpected_error_names_the_exception(tmp_path: Any) -> None:
+    """The job message must say what crashed without leaking internal text."""
+
+    class _BoomStore(FakeJobStore):
+        async def update_job(self, job_id: str, fields: Any) -> Any:
+            if fields.get("status") == "translating":
+                raise RuntimeError("renderer exploded")
+            return await super().update_job(job_id, fields)
+
+    store = _BoomStore()
+    store.add_job(make_job())
+    executor = _executor(store, FakeProvider(), tmp_path)
+
+    await executor.execute(await _claim(store))
+
+    job = store.jobs["job1"]
+    assert job.status == "failed"
+    assert "RuntimeError" in (job.error_message or "")
+    assert "renderer exploded" not in (job.error_message or "")
+
+
 async def test_cooperative_cancellation(tmp_path: Any) -> None:
     store = FakeJobStore()
     store.add_job(make_job(cancellation_requested=True))

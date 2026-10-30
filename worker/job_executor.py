@@ -189,7 +189,11 @@ class JobExecutor:
             await self._fail(job, error_code=exc.code, message=exc.message)
         except Exception as exc:
             logger.exception("job_unhandled_error", job_id=job.id, error=type(exc).__name__)
-            await self._fail(job, error_code="internal_error", message="Unexpected worker error.")
+            await self._fail(
+                job,
+                error_code="internal_error",
+                message=f"Unexpected worker error ({type(exc).__name__}); see worker logs.",
+            )
 
     # -- pipeline ------------------------------------------------------------
     async def _pipeline(self, job: TranslationJob) -> None:
