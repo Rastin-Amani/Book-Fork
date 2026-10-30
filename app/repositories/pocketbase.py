@@ -76,7 +76,9 @@ class PocketBaseClient:
             )
         except httpx.TransportError as exc:
             logger.warning("pocketbase_transport_error", path=path, error=type(exc).__name__)
-            raise UpstreamError("Could not reach the identity service.") from exc
+            raise UpstreamError(
+                f"Could not reach the identity service ({type(exc).__name__} on {path})."
+            ) from exc
         if response.status_code >= 400:
             raise self._map_error(response)
         return response
