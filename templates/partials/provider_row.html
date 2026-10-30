@@ -18,6 +18,16 @@
   <td>
     <div class="flex flex-wrap items-center justify-end gap-1.5">
       <span id="test-{{ connection.id }}"><button class="btn btn-ghost btn-xs" hx-post="/app/providers/{{ connection.id }}/test" hx-target="#test-{{ connection.id }}" hx-swap="innerHTML">Test</button></span>
+      <details class="relative">
+        <summary class="btn btn-ghost btn-xs list-none [&::-webkit-details-marker]:hidden">Key</summary>
+        <form class="mt-2 flex w-64 flex-wrap items-center gap-1 rounded-[6px] border border-pebble-border bg-warm-cream p-2"
+              hx-post="/app/providers/{{ connection.id }}/credential"
+              hx-target="#provider-{{ connection.id }}"
+              hx-swap="outerHTML">
+          <input class="input input-xs w-44 font-mono" type="password" name="api_key" autocomplete="new-password" placeholder="New API key" aria-label="New API key" required>
+          <button class="btn btn-primary btn-xs">Save</button>
+        </form>
+      </details>
       <button class="btn btn-ghost btn-xs" hx-post="/app/providers/{{ connection.id }}/toggle" hx-target="#provider-{{ connection.id }}" hx-swap="outerHTML">{{ 'Disable' if connection.enabled else 'Enable' }}</button>
       <button class="btn btn-ghost btn-xs text-mid-gray hover:text-error" hx-post="/app/providers/{{ connection.id }}/delete" hx-confirm="Delete this provider?" hx-target="#provider-{{ connection.id }}" hx-swap="outerHTML">Delete</button>
     </div>

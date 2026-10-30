@@ -15,7 +15,7 @@ from app.api.dependencies import (
     WorkspaceDep,
     get_ctx,
 )
-from app.api.runtime import build_provider_runtime
+from app.api.runtime import build_credential_service, build_provider_runtime
 from app.observability.events import PROVIDER_CONNECTION_TESTED, emit
 from app.providers.testing import ProviderConnectionTester
 from app.web.templating import render
@@ -72,8 +72,6 @@ async def create_provider(
         }
     )
     if api_key.strip():
-        from app.api.runtime import build_credential_service
-
         ctx = get_ctx(request)
         service_token = await ctx.ensure_service_token()
         credentials = build_credential_service(ctx.pocketbase, ctx.settings, token=service_token)
@@ -81,6 +79,35 @@ async def create_provider(
     response = Response(status_code=200)
     response.headers["HX-Redirect"] = "/app/providers"
     return response
+
+
+@router.post("/{connection_id}/credential")
+async def update_credential(
+    request: Request,
+    connection_id: str,
+    workspace: WorkspaceDep,
+    repos: ReposDep,
+    _csrf: CsrfProtected,
+    api_key: Annotated[str, Form()],
+) -> Response:
+    """Replace a connection's API key without recreating the connection.
+
+    Jobs keep their provider-connection id in their snapshot, so deleting and
+    re-adding a connection orphans every job pinned to it.
+    """
+    connection = await repos.connections.get(connection_id)
+    if connection.workspace != workspace.id:
+        return HTMLResponse('<span class="badge badge-error">Not found</span>', status_code=404)
+    key = api_key.strip()
+    if not key:
+        return HTMLResponse(
+            '<span class="badge badge-error">API key is required</span>', status_code=422
+        )
+    ctx = get_ctx(request)
+    service_token = await ctx.ensure_service_token()
+    credentials = build_credential_service(ctx.pocketbase, ctx.settings, token=service_token)
+    await credentials.store(connection.id, key)
+    return render(request, "partials/provider_row.html", {"connection": connection})
 
 
 @router.post("/{connection_id}/test")
