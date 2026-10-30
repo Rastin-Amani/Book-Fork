@@ -1,8 +1,28 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.5.0** and is described below as delivered phases. Dates
+current release is **0.5.1** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.5.1] — 2026-10-30
+
+**Status: worker recovery fixes.**
+
+### Worker
+
+- Rebuild a missing `canonical.json` by re-parsing the stored source and
+  restoring its assets, so a job can finalize after a storage loss without
+  re-translating any segment.
+- Report the exception class for an unexpected worker error while keeping the
+  full traceback in the worker log. Raw exception text is not shown in the job
+  UI.
+
+### Known limitations at 0.5.1
+
+- The combined web/worker container is intended for one replica because worker
+  slot ids are container-local.
+- Google and/or GitHub must be configured in PocketBase; there is no password
+  fallback.
 
 ## [0.5.0] — 2026-10-30
 
