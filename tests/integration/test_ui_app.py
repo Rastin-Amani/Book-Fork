@@ -123,9 +123,7 @@ def test_provider_credential_rotation_is_scoped_and_validated(
     )
     assert empty.status_code == 422
 
-    other_workspace = fake_pb.seed(
-        "workspaces", {"name": "Other", "slug": "other", "owner": "u2"}
-    )
+    other_workspace = fake_pb.seed("workspaces", {"name": "Other", "slug": "other", "owner": "u2"})
     foreign = _seed_connection(fake_pb, other_workspace["id"], name="Foreign")
     denied = client.post(
         f"/app/providers/{foreign['id']}/credential",
