@@ -68,6 +68,35 @@ async def test_lookup_returns_best_approved(pb, fake_pb) -> None:
     assert hit is not None and hit.translation == "درود"
 
 
+async def test_lookup_fetches_approved_entries_once(pb, fake_pb, monkeypatch) -> None:
+    """A book-sized job must not fire one PocketBase query per segment."""
+    fake_pb.seed(
+        "translation_memory_entries",
+        {
+            "source_language": "en",
+            "target_language": "fa",
+            "normalized_source_text": "hello",
+            "source_text": "Hello",
+            "translation": "سلام",
+            "approved": True,
+        },
+    )
+    memory = TranslationMemory(TranslationMemoryRepository(pb))
+    calls = 0
+    original = memory._repository.list_approved
+
+    async def counted(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return await original(*args, **kwargs)
+
+    monkeypatch.setattr(memory._repository, "list_approved", counted)
+
+    assert await memory.lookup("en", "fa", "Hello") is not None
+    assert await memory.lookup("en", "fa", "Hello") is not None
+    assert calls == 1
+
+
 async def test_pair_isolation(pb, fake_pb) -> None:
     fake_pb.seed(
         "translation_memory_entries",

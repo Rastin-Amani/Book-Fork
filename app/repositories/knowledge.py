@@ -69,3 +69,25 @@ class TranslationMemoryRepository(PocketBaseRepository[TranslationMemoryEntry]):
             else 'workspace = ""'
         )
         return await self.list(filter=f"{clause} && ({workspace_clause})", token=token)
+
+    async def list_approved(
+        self,
+        source_language: str,
+        target_language: str,
+        *,
+        workspace_id: str | None = None,
+        token: str | None = None,
+    ) -> list[TranslationMemoryEntry]:
+        """Only approved entries are ever reused, so load just those once."""
+        clause = (
+            filter_eq("source_language", source_language)
+            + " && "
+            + filter_eq("target_language", target_language)
+            + " && approved = true"
+        )
+        workspace_clause = (
+            f'workspace = "" || workspace = "{escape_filter_value(workspace_id)}"'
+            if workspace_id
+            else 'workspace = ""'
+        )
+        return await self.list_all(filter=f"{clause} && ({workspace_clause})", token=token)
