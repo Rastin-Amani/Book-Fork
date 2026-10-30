@@ -11,6 +11,7 @@ cooperative between safe checkpoints.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -28,7 +29,7 @@ from app.documents.model import CanonicalDocument
 from app.documents.safety import safe_temp_dir, sha256_bytes
 from app.documents.segmentation.base import SegmentationConfig, SegmentationStrategy
 from app.documents.service import DocumentEngine
-from app.exceptions import BookForkError, ConfigurationError
+from app.exceptions import BookForkError, ConfigurationError, UpstreamError
 from app.jobs.config import WorkerSettings
 from app.jobs.retry import RetryService
 from app.jobs.store import JobStore
@@ -40,6 +41,7 @@ from app.providers.base import (
     ProviderUsage,
     TranslationProvider,
 )
+from app.providers.errors import ProviderError, ProviderErrorCategory
 from app.repositories.documents import DocumentRepository
 from app.schemas.documents import Document
 from app.schemas.translation import TranslationJob, TranslationSegment
@@ -57,6 +59,9 @@ from app.translation.policy_engine import TranslationPolicyEngine
 logger = get_logger(__name__)
 
 _COMPLETED_SEGMENT_STATUSES = {"validated", "translated"}
+# Bounded so a genuinely broken dependency still surfaces as a failed job
+# instead of requeueing forever.
+_MAX_UPSTREAM_REQUEUES = 20
 _RETRYABLE_CATEGORIES = {
     "rate_limited",
     "timeout",
@@ -175,6 +180,11 @@ class JobExecutor:
                 await self._pipeline(job)
         except JobCancelledError:
             await self._cancel(job)
+        except UpstreamError as exc:
+            # PocketBase (or storage) being briefly unreachable is not a job
+            # failure: the job is resumable, so put it back in the queue and
+            # let the next poll continue where this run stopped.
+            await self._requeue_upstream(job, exc)
         except BookForkError as exc:
             await self._fail(job, error_code=exc.code, message=exc.message)
         except Exception as exc:
@@ -371,6 +381,18 @@ class JobExecutor:
             ) -> None:
                 # Persist each batch as it lands so progress is visible and a
                 # crash mid-document does not lose already-translated segments.
+                # A rejected credential is systemic: stop at the first batch
+                # instead of writing thousands of doomed attempts.
+                if any(
+                    result.status == "failed"
+                    and result.error_category == ProviderErrorCategory.AUTHENTICATION.value
+                    for result in batch_outcome.results
+                ):
+                    raise ProviderError(
+                        ProviderErrorCategory.AUTHENTICATION,
+                        "The provider rejected the API key. "
+                        "Update the connection credential and retry.",
+                    )
                 batch_segments = [s for item in batch if (s := _by_id.get(item.id))]
                 await self._record_outcome(job, _plan, batch_segments, batch_outcome)
                 _recorded.update(item.id for item in batch)
@@ -648,6 +670,40 @@ class JobExecutor:
         )
         await self._event(job.id, "cancelled", "Job cancelled by request")
         metrics.inc("book_fork_jobs_cancelled_total")
+
+    async def _requeue_upstream(self, job: TranslationJob, exc: UpstreamError) -> None:
+        """Put a job back in the queue when an upstream dependency blips."""
+        metadata = dict(job.metadata or {})
+        attempts = int(metadata.get("upstream_retries", 0)) + 1
+        if attempts > _MAX_UPSTREAM_REQUEUES:
+            await self._fail(job, error_code=exc.code, message=exc.message)
+            return
+        metadata["upstream_retries"] = attempts
+        await self._store.update_job(
+            job.id,
+            {
+                "status": "queued",
+                "worker_id": "",
+                "lease_id": "",
+                "lease_expires_at": None,
+                "error_code": "",
+                "error_message": "",
+                "metadata": metadata,
+            },
+        )
+        logger.warning(
+            "job_requeued_upstream",
+            job_id=job.id,
+            attempts=attempts,
+            error=type(exc).__name__,
+        )
+        with contextlib.suppress(Exception):
+            await self._event(
+                job.id,
+                "requeued",
+                f"Upstream unavailable; requeued (attempt {attempts}).",
+                level="warning",
+            )
 
     async def _fail(self, job: TranslationJob, *, error_code: str, message: str) -> None:
         await self._store.update_job(

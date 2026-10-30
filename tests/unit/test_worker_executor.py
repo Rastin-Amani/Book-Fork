@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
+from app.exceptions import UpstreamError
 from app.jobs.config import WorkerSettings
 from app.jobs.retry import RetryService, RetrySettings
 from app.providers.errors import ProviderError, ProviderErrorCategory
@@ -139,6 +140,60 @@ async def test_retry_resumes_pending_and_failed_segments(tmp_path: Any) -> None:
     assert {s.id for s in provider.requests[0].segments} == {failed.id, pending.id}
     assert store.segments[done.id].translated_text == "سلام"
     assert store.jobs["job1"].status == "completed"
+
+
+async def test_auth_failure_stops_before_grinding_every_segment(tmp_path: Any) -> None:
+    """A rejected API key is systemic — fail once, not thousands of times."""
+    store = FakeJobStore()
+    store.add_job(make_job())
+    provider = FakeProvider(errors=[ProviderError(ProviderErrorCategory.AUTHENTICATION)])
+    executor = _executor(store, provider, tmp_path)
+
+    await executor.execute(await _claim(store))
+
+    job = store.jobs["job1"]
+    assert job.status == "failed"
+    assert job.error_code == "PROVIDER_AUTH_FAILED"
+    assert "rejected the API key" in (job.error_message or "")
+    assert provider.calls == 1
+
+
+class _UpstreamDownStore(FakeJobStore):
+    """Fails once at the translating transition, like a dropped PocketBase call."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.fail_next = True
+
+    async def update_job(self, job_id: str, fields: Any) -> Any:
+        if self.fail_next and fields.get("status") == "translating":
+            self.fail_next = False
+            raise UpstreamError("Could not reach the identity service (ConnectError on /x).")
+        return await super().update_job(job_id, fields)
+
+
+async def test_upstream_error_requeues_instead_of_failing(tmp_path: Any) -> None:
+    """A dropped PocketBase call must resume the job, not fail it."""
+    store = _UpstreamDownStore()
+    store.add_job(make_job())
+    executor = _executor(store, FakeProvider(), tmp_path)
+
+    await executor.execute(await _claim(store))
+
+    job = store.jobs["job1"]
+    assert job.status == "queued"
+    assert (job.metadata or {}).get("upstream_retries") == 1
+    assert not job.error_code
+
+
+async def test_upstream_requeue_is_bounded(tmp_path: Any) -> None:
+    store = _UpstreamDownStore()
+    store.add_job(make_job(metadata={"upstream_retries": 20}))
+    executor = _executor(store, FakeProvider(), tmp_path)
+
+    await executor.execute(await _claim(store))
+
+    assert store.jobs["job1"].status == "failed"
 
 
 async def test_cooperative_cancellation(tmp_path: Any) -> None:
