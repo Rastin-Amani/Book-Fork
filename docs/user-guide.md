@@ -241,6 +241,8 @@ Each row offers:
 - **Test** — a safe connection diagnostic. Possible outcomes: `connected`,
   `authentication_failed`, `model_unavailable`, `endpoint_unreachable`,
   `unsupported_protocol`, `unsafe_url`. The API key is never returned.
+- **Key** — replace the stored API key without deleting the connection. Jobs
+  pinned to the connection keep working after the new key is saved.
 - **Enable** / **Disable**.
 - **Delete** (confirms first).
 

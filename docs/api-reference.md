@@ -111,6 +111,7 @@ All routes require authentication and use the caller's PocketBase token.
 | GET | `/app/providers` | List connections. |
 | GET | `/app/providers/new` | Add-provider form (enabled catalog protocols). |
 | POST | `/app/providers` | CSRF. `name`, `provider_id`, `base_url`, `api_key`, `default_model`, `billing_mode` (`own_api`/`managed`). Stores the key encrypted. Success: `HX-Redirect: /app/providers`. |
+| POST | `/app/providers/{id}/credential` | CSRF. `api_key`. Replaces the encrypted key in place; returns the provider row. 422 when blank; 404 if not owned. |
 | POST | `/app/providers/{id}/test` | CSRF + provider-test rate limit. Returns `partials/connection_test.html`; 404 if not owned. |
 | POST | `/app/providers/{id}/toggle` | CSRF. Returns the updated provider row. |
 | POST | `/app/providers/{id}/delete` | CSRF. Returns an empty 200. |
