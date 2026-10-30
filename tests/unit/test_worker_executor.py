@@ -217,6 +217,32 @@ async def test_unexpected_error_names_the_exception(tmp_path: Any) -> None:
     assert "renderer exploded" not in (job.error_message or "")
 
 
+async def test_finalize_rebuilds_a_lost_canonical(tmp_path: Any) -> None:
+    """Segments survive in PocketBase even when storage lost canonical.json."""
+    store = FakeJobStore()
+    store.add_job(make_job())
+    store.add_segment("job1", status="validated", translated_text="سلام", text="Hello")
+
+    class _LostCanonical(FakeDocumentEngine):
+        def __init__(self) -> None:
+            super().__init__()
+            self.missing = True
+
+        async def load_canonical(self, storage: Any, key: str) -> Any:
+            if self.missing:
+                self.missing = False
+                raise FileNotFoundError(key)
+            return await super().load_canonical(storage, key)
+
+    documents = _LostCanonical()
+    executor = _executor(store, FakeProvider(), tmp_path, documents=documents)
+
+    await executor.execute(await _claim(store))
+
+    assert store.jobs["job1"].status == "completed"
+    assert documents.parsed == 1
+
+
 async def test_cooperative_cancellation(tmp_path: Any) -> None:
     store = FakeJobStore()
     store.add_job(make_job(cancellation_requested=True))

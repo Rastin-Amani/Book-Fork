@@ -29,7 +29,12 @@ from app.documents.model import CanonicalDocument
 from app.documents.safety import safe_temp_dir, sha256_bytes
 from app.documents.segmentation.base import SegmentationConfig, SegmentationStrategy
 from app.documents.service import DocumentEngine
-from app.exceptions import BookForkError, ConfigurationError, UpstreamError
+from app.exceptions import (
+    BookForkError,
+    ConfigurationError,
+    NotFoundError,
+    UpstreamError,
+)
 from app.jobs.config import WorkerSettings
 from app.jobs.retry import RetryService
 from app.jobs.store import JobStore
@@ -529,9 +534,7 @@ class JobExecutor:
     async def _finalize_output(
         self, job: TranslationJob, document: Document, plan: TranslationPlan
     ) -> None:
-        canonical = await self._documents.load_canonical(
-            self._storage, f"documents/{job.document}/canonical/v1.json"
-        )
+        canonical = await self._canonical_for(job, document)
         _apply_translations(canonical, await self._store.list_segments(job.id))
         assets = await self._load_assets(canonical)
         resolver = (lambda asset: assets.get(asset.id)) if assets else None
@@ -568,6 +571,33 @@ class JobExecutor:
                 "metadata": metadata,
             },
         )
+
+    async def _canonical_for(self, job: TranslationJob, document: Document) -> CanonicalDocument:
+        """Load the parsed canonical, rebuilding it if storage lost it.
+
+        A document parsed before persistent storage was mounted keeps its
+        segments in PocketBase but loses canonical.json on the next deploy.
+        Re-parsing the source restores it without re-translating anything.
+        """
+        key = f"documents/{job.document}/canonical/v1.json"
+        try:
+            return await self._documents.load_canonical(self._storage, key)
+        except FileNotFoundError, NotFoundError:
+            if not document.storage_key:
+                raise ConfigurationError("Document has no source stored.") from None
+            logger.warning("canonical_missing_rebuilding", job_id=job.id, key=key)
+            async with self._documents.materialize(self._storage, document.storage_key) as source:
+                result = await self._documents.parse_file(
+                    source,
+                    document_type=_document_type(document),
+                    options=ParseOptions(document_id=job.document),
+                )
+            await self._documents.store_assets(self._storage, result, document_id=job.document)
+            await self._documents.store_canonical(
+                self._storage, result.document, document_id=job.document
+            )
+            await self._event(job.id, "rebuilt", "Rebuilt the parsed document from its source")
+            return result.document
 
     async def _export_format(
         self,
