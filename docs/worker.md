@@ -71,6 +71,8 @@ Each stage is idempotent enough to re-run after a crash:
 
 - segments exist → parsing/segmenting is skipped;
 - completed segments (validated + translated) are never retranslated;
+- a missing `canonical.json` is rebuilt by re-parsing the stored source and
+  restoring its assets before finalizing;
 - output is written to a deterministic storage key with a checksum.
 
 ## Segment execution
@@ -109,6 +111,9 @@ A transport failure reaching PocketBase or storage raises `UpstreamError`. The
 worker clears the lease and requeues the job with an `upstream_retries` counter,
 so the next poll resumes from the persisted segments. Requeues are bounded at 20;
 after that the job fails with the upstream error instead of looping forever.
+
+An unexpected exception fails the job with `internal_error` and the exception
+class in the job message; the full traceback stays in the worker log.
 
 ## Cancellation
 
