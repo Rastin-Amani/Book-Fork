@@ -20,7 +20,7 @@ uv run pytest -k billing # by keyword
 — warnings fail the suite except two documented ignores (Starlette's TestClient
 deprecation and pysbd's import-time `SyntaxWarning`).
 
-Current size: **62 unit test modules** and **4 integration modules** (~425 test
+Current size: **62 unit test modules** and **4 integration modules** (~427 test
 functions).
 
 ## 2. Hermetic by design
