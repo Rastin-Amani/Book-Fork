@@ -1,8 +1,43 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.4.2** and is described below as delivered phases. Dates
+current release is **0.5.0** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.5.0] — 2026-10-30
+
+**Status: provider recovery and worker resilience.**
+
+### Providers
+
+- Add in-place API key rotation at `POST /app/providers/{id}/credential`, so a
+  rejected key can be replaced without deleting the connection and orphaning
+  jobs pinned to it.
+- Expose a **Key** control in each provider row; it expands inside the row
+  instead of a clipped table popover and labels the password input.
+- Validate blank keys, enforce workspace ownership and cover the route with
+  integration tests.
+
+### Worker
+
+- Stop on the first batch when the provider rejects authentication; fail with
+  `PROVIDER_AUTH_FAILED` and an actionable message instead of writing thousands
+  of doomed attempts.
+- Requeue a job when PocketBase or storage raises `UpstreamError`, clearing the
+  lease and keeping completed segments. Requeues are bounded at 20.
+- Include the transport error class and request path in upstream error messages.
+
+### Translation memory
+
+- Load approved entries for a language pair once per job and index them in
+  memory, instead of issuing one PocketBase query per segment.
+
+### Known limitations at 0.5.0
+
+- The combined web/worker container is intended for one replica because worker
+  slot ids are container-local.
+- Google and/or GitHub must be configured in PocketBase; there is no password
+  fallback.
 
 ## [0.4.2] — 2026-10-25
 
