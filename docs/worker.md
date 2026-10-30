@@ -96,6 +96,20 @@ multiplier, jitter). Transient failures (`rate_limited`, `timeout`,
 Every attempt increments `attempt_count` and appends a `translation_attempts`
 record; previous attempts are never overwritten.
 
+### Systemic provider failures
+
+A provider rejecting the credential (`401`/`403`) is not retried per segment:
+the worker stops on the first affected batch, fails the job with
+`PROVIDER_AUTH_FAILED`, and asks the operator to update the connection key.
+This avoids writing thousands of identical failed attempts.
+
+### Upstream outages
+
+A transport failure reaching PocketBase or storage raises `UpstreamError`. The
+worker clears the lease and requeues the job with an `upstream_retries` counter,
+so the next poll resumes from the persisted segments. Requeues are bounded at 20;
+after that the job fails with the upstream error instead of looping forever.
+
 ## Cancellation
 
 Cooperative: the API sets `cancellation_requested`. The worker observes it at
