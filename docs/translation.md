@@ -75,7 +75,9 @@ under a configurable policy (`minimal`, `previous_segments`, `chapter_context`,
 
 Exact matching only, always language-pair scoped (never by source hash alone).
 Only **approved** entries are reused, and reuse incurs no provider call. New
-translations are stored but not auto-approved.
+translations are stored but not auto-approved. Approved entries for a language
+pair are indexed once per job, so segment lookups do not issue one PocketBase
+request each.
 
 ## Glossary (`app/translation/glossary.py`)
 
