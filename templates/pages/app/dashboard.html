@@ -31,8 +31,8 @@
     {% endfor %}
   </div>
 
-  <div class="grid items-start gap-6 lg:grid-cols-3">
-    <div class="card card-border bg-base-100 lg:col-span-2">
+  <div class="grid min-w-0 items-start gap-6 lg:grid-cols-3">
+    <div class="card card-border min-w-0 bg-base-100 lg:col-span-2">
       <div class="flex items-center justify-between border-b border-base-300 px-5 py-4">
         <h2 class="text-[15px] font-semibold tracking-[-0.01em]">Recent translations</h2>
         <a href="/app/translations" class="link link-accent text-[13px]">View all</a>
@@ -74,7 +74,7 @@
       {% endif %}
     </div>
 
-    <div class="space-y-6">
+    <div class="min-w-0 space-y-6">
       <div class="card card-border bg-base-100">
         <div class="card-body p-5">
           <h2 class="text-[15px] font-semibold tracking-[-0.01em]">Quick start</h2>
@@ -97,9 +97,9 @@
           <ul class="mt-3 space-y-1">
             {% for doc in documents[:4] %}
             <li>
-              <a href="/app/documents/{{ doc.id }}" class="flex items-center gap-2.5 rounded-field px-2 py-2 text-[13.5px] text-base-content/65 transition-colors hover:bg-base-200 hover:text-base-content">
+              <a href="/app/documents/{{ doc.id }}" class="flex min-w-0 items-center gap-2.5 rounded-field px-2 py-2 text-[13.5px] text-base-content/65 transition-colors hover:bg-base-200 hover:text-base-content">
                 <span class="grid size-7 shrink-0 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('file', 'size-3.5') }}</span>
-                <span class="truncate">{{ doc.display_name or doc.original_filename }}</span>
+                <span class="min-w-0 flex-1 truncate">{{ doc.display_name or doc.original_filename }}</span>
               </a>
             </li>
             {% endfor %}

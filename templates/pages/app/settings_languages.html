@@ -2,7 +2,7 @@
 {% block title %}Languages · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="space-y-8">
-  <div class="breadcrumbs -mb-4 text-[12px] text-base-content/45">
+  <div class="breadcrumbs min-w-0 max-w-full overflow-x-auto text-[12px] text-base-content/45">
     <ul>
       <li><a href="/app/settings">Settings</a></li>
       <li class="text-base-content/70">Languages</li>
@@ -23,7 +23,7 @@
             <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Name</th>
             <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Native</th>
             <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Direction</th>
-            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Script</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 md:table-cell">Script</th>
           </tr>
         </thead>
         <tbody>
@@ -33,7 +33,7 @@
             <td>{{ lang.name }}</td>
             <td dir="{{ lang.direction.value }}" class="font-medium">{{ lang.native_name or '' }}</td>
             <td><span class="badge badge-sm border-base-300 bg-base-200 uppercase tracking-[0.04em]">{{ lang.direction.value }}</span></td>
-            <td class="text-base-content/60">{{ lang.script or '—' }}</td>
+            <td class="hidden text-base-content/60 md:table-cell">{{ lang.script or '—' }}</td>
           </tr>
           {% else %}
           <tr><td colspan="5" class="py-10 text-center text-base-content/45">No languages in the registry.</td></tr>

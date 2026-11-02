@@ -74,7 +74,7 @@
 
   <div id="global-toast-root">{% include "components/toast.html" %}</div>
 {% endif %}
-      <main id="app-content" class="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
+      <main id="app-content" class="mx-auto w-full min-w-0 max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
         {% block content %}{% endblock %}
       </main>
 {% if not is_htmx %}

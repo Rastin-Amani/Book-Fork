@@ -3,7 +3,7 @@
 {% block title %}{{ glossary.name }} · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="space-y-8">
-  <div class="breadcrumbs -mb-4 text-[12px] text-base-content/45">
+  <div class="breadcrumbs min-w-0 max-w-full overflow-x-auto text-[12px] text-base-content/45">
     <ul>
       <li><a href="/app/glossaries">Glossaries</a></li>
       <li class="text-base-content/70">{{ glossary.name }}</li>
@@ -21,11 +21,11 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Source</th>
-            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Target</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 sm:table-cell">Source</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 sm:table-cell">Target</th>
             <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Term</th>
             <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Translation</th>
-            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Flags</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 sm:table-cell">Flags</th>
             <th></th>
           </tr>
         </thead>

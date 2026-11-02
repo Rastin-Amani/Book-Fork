@@ -15,9 +15,9 @@
   {% for group in catalog %}
   <div class="space-y-3">
     <h2 class="font-mono text-[10px] uppercase tracking-[0.16em] text-base-content/45">{{ group.title }}</h2>
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {% for resource in group.resources %}
-      <a href="/admin/{{ resource.slug }}" class="card card-border group bg-base-100 transition-colors hover:border-base-content/25">
+      <a href="/admin/{{ resource.slug }}" class="card card-border group min-w-0 bg-base-100 transition-colors hover:border-base-content/25">
         <div class="card-body gap-1.5 p-4">
           <div class="flex items-center justify-between gap-2">
             <span class="text-[14.5px] font-semibold tracking-[-0.01em]">{{ resource.title }}</span>

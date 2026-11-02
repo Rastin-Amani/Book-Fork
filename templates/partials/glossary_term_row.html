@@ -1,9 +1,17 @@
 <tr id="term-{{ term.id }}">
-  <td class="font-mono text-[12px] uppercase">{{ term.source_language }}</td>
-  <td class="font-mono text-[12px] uppercase">{{ term.target_language }}</td>
-  <td class="font-medium">{{ term.source_term }}</td>
+  <td class="hidden font-mono text-[12px] uppercase sm:table-cell">{{ term.source_language }}</td>
+  <td class="hidden font-mono text-[12px] uppercase sm:table-cell">{{ term.target_language }}</td>
+  <td class="font-medium">
+    {{ term.source_term }}
+    {% if term.preferred or term.forbidden %}
+    <span class="mt-1 flex flex-wrap gap-1 sm:hidden">
+      {% if term.preferred %}<span class="badge badge-xs border-info/25 bg-info/10 text-info">preferred</span>{% endif %}
+      {% if term.forbidden %}<span class="badge badge-xs border-error/25 bg-error/10 text-error">forbidden</span>{% endif %}
+    </span>
+    {% endif %}
+  </td>
   <td class="font-medium">{{ term.target_term }}</td>
-  <td>
+  <td class="hidden sm:table-cell">
     {% if term.preferred %}<span class="badge badge-sm me-1 border-info/25 bg-info/10 text-info">preferred</span>{% endif %}
     {% if term.forbidden %}<span class="badge badge-sm border-error/25 bg-error/10 text-error">forbidden</span>{% endif %}
   </td>

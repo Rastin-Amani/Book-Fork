@@ -13,9 +13,9 @@
   </header>
 
   {% if glossaries %}
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for glossary in glossaries %}
-    <a href="/app/glossaries/{{ glossary.id }}" class="card card-border group bg-base-100 transition-colors hover:border-base-content/25">
+    <a href="/app/glossaries/{{ glossary.id }}" class="card card-border group min-w-0 bg-base-100 transition-colors hover:border-base-content/25">
       <div class="card-body gap-4 p-5">
         <div class="flex items-start justify-between gap-3">
           <span class="grid size-10 place-items-center rounded-field bg-base-200 text-base-content/60">{{ icon('book', 'size-5') }}</span>

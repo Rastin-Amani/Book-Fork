@@ -1,7 +1,7 @@
 <tr id="provider-{{ connection.id }}">
   <td class="font-medium">{{ connection.name }}</td>
-  <td class="max-w-[18rem] truncate font-mono text-[12px] text-base-content/55">{{ connection.base_url or '—' }}</td>
-  <td>
+  <td class="hidden max-w-[18rem] truncate font-mono text-[12px] text-base-content/55 md:table-cell">{{ connection.base_url or '—' }}</td>
+  <td class="hidden sm:table-cell">
     {% if connection.billing_mode.value == 'own_api' %}
     <span class="badge badge-sm border-base-300 bg-base-200 text-base-content/60">Your API</span>
     {% else %}

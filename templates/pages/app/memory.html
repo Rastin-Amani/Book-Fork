@@ -15,19 +15,19 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Pair</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 sm:table-cell">Pair</th>
             <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Source</th>
             <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Translation</th>
-            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Approved</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 sm:table-cell">Approved</th>
           </tr>
         </thead>
         <tbody>
           {% for entry in entries %}
           <tr>
-            <td class="whitespace-nowrap font-mono text-[12px] uppercase">{{ entry.source_language }} &rarr; {{ entry.target_language }}</td>
-            <td class="max-w-xs truncate text-base-content/65">{{ entry.source_text }}</td>
-            <td class="max-w-xs truncate font-medium">{{ entry.translation }}</td>
-            <td>
+            <td class="hidden whitespace-nowrap font-mono text-[12px] uppercase sm:table-cell">{{ entry.source_language }} &rarr; {{ entry.target_language }}</td>
+            <td class="max-w-[9rem] truncate text-base-content/65 sm:max-w-xs">{{ entry.source_text }}</td>
+            <td class="max-w-[9rem] truncate font-medium sm:max-w-xs">{{ entry.translation }}</td>
+            <td class="hidden sm:table-cell">
               {% if entry.approved %}
               <span class="badge badge-sm border-success/25 bg-success/10 text-success">yes</span>
               {% else %}
