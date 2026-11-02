@@ -3,9 +3,9 @@
 > "Warm Paper Workspace": a cream canvas, one amber action colour, flat 6px
 > geometry, hairline borders instead of shadows, and a friendly geometric sans.
 
-This is the implemented visual system. It is derived from the boords.com style
-reference and mapped onto daisyUI 5 so every component inherits it. The single
-source of truth for tokens is [`static/css/input.css`](static/css/input.css);
+This is the implemented visual system. It is shared with the marketing site
+(`Book-Fork-Marketing`) and mapped onto daisyUI 5 so every component inherits
+it. The single source of truth for tokens is [`static/css/input.css`](static/css/input.css);
 this document explains the decisions and the rules that keep it coherent.
 
 **Mode:** Operate for the product (`/app`, `/admin`), Persuade for the landing
@@ -17,95 +17,111 @@ page, Read for auth. The system is light-only.
 
 | Level | Token | Value | Role |
 | --- | --- | --- | --- |
-| 1 | `bg-warm-cream` / `base-100` | `#fafaf5` | Page canvas — never pure white at the base |
-| 2 | `bg-pure-white` | `#ffffff` | Cards, panels, tables |
-| 3 | `bg-stone-gray` | `#e9e9e7` | Dividers, subtle fills, progress tracks |
-| 4 | `bg-ink-black` | `#121212` | The one dark section (landing "provider" band) |
+| 1 | `base-100` | `#fbfaf6` | Page canvas — never pure white at the base |
+| 2 | `base-200` | `#f4f2eb` | Raised fills, icon tiles, quiet panels |
+| 3 | `base-300` | `#e5e3db` | Hairlines, dividers, progress tracks |
+| 4 | `neutral` | `#121212` | The one ink chamber per screen (dashboard hero, marketing CTA) |
 
 ## Colour
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `ink-black` | `#121212` | Primary text, dark filled buttons |
-| `graphite` | `#4d4d4d` | Secondary text |
-| `mid-gray` | `#7d7d7d` | Tertiary text, eyebrows, icons |
-| `muted-ash` | `#898989` | Placeholders |
-| `pebble-border` | `#cecdca` | Hairline card/input borders |
-| `stone-gray` | `#e9e9e7` | Row dividers |
-| `warm-gold` | `#e8aa42` | **The** primary action (`btn-primary`) and progress |
-| `deep-amber` | `#eb6c00` | Error accent / validation marks |
-| `storyboard-blue` | `#214c7e` | Links, informational status, focus |
-| `sketch-blue` | `#daeef8` | Status pill background |
+| `base-content` | `#121212` | Primary text, ink filled buttons |
+| `base-content/60` | — | Secondary text |
+| `base-content/45` | — | Eyebrows, metadata, timestamps |
+| `primary` | `#e8aa42` | **The** primary action and progress |
+| `secondary` / `neutral` | `#121212` | Dark filled nav action and the ink chamber |
+| `accent` / `info` | `#214c7e` | Links, focus, informational status |
+| `success` | `#2f7d4f` | Completed, enabled, validated |
+| `warning` | `#d9660a` | Estimates, caution |
+| `error` | `#b23b30` | Failed, destructive, validation |
 
-daisyUI theme mapping (`@plugin "daisyui/theme"`, name `book-fork`):
-
-- `base-100/200/300` → cream / raised cream / soft divider
-- `primary` → `#e8aa42` with `primary-content` `#121212`
-- `secondary` / `neutral` → `#121212` (dark filled button)
-- `accent` / `info` → `#214c7e`
-- `success` `#2f7d4f`, `warning` `#eb6c00`, `error` `#b23b30`
-- `--radius-box/field/selector: 6px`, `--depth: 0`, `--noise: 0`, `--border: 1px`
+Use **only semantic tokens** — `bg-base-100`, `border-base-300`,
+`text-base-content/60`, `bg-primary/10`. Named palette tokens are retired so
+the theme stays coherent.
 
 ## Typography
 
 - **DM Sans** (self-hosted variable, the "matter" substitute) via `--font-sans`.
   Weights 400 body, 500 UI/links, 600–700 headings. Never below 400.
-- **System mono** (`--font-mono`) for IDs, counts, config and code.
-- Positive tracking (`0.05–0.1em`) only on small-caps eyebrows; body and display
-  use normal or slightly tight tracking.
+- **Mono** (`--font-mono`) for eyebrows, IDs, counts, configuration and code.
+- Display and page titles use tight tracking (`-0.03em`) and short leading;
+  body copy stays near `0`; eyebrows use positive tracking (`0.14–0.16em`).
 
 | Role | Class / size |
 | --- | --- |
-| Display | `text-[40px] sm:text-[58px]` hero |
-| Page title | `.t-h1` (~26px) |
-| Section title | `.t-h2` (~19–16px) |
-| Eyebrow | `.eyebrow` (11px, upper, `0.1em`) |
-| Body | 14–15px, `text-graphite` |
+| Display | hero and marketing only |
+| Page title | `text-[28px] font-semibold tracking-[-0.03em]` |
+| Section title | `text-[15px] font-semibold tracking-[-0.01em]` |
+| Eyebrow | `font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45` |
+| Body | 14–15px, `text-base-content/60` |
 
 ## Shape & elevation
 
-- 6px radius everywhere (cards, buttons, inputs, images); pills use `rounded-full`.
-- **No drop shadows on surfaces** — separate with a 1px `pebble-border` or the
-  cream→white difference. The only elevation is `.t-float`
-  (`rgba(0,0,0,.1) 0 2px 8px`) for genuinely floating overlays: the user menu,
-  toasts and the landing hero preview card.
+- 6px radius everywhere (`--radius-box`, `--radius-field`, `--radius-selector`);
+  pills and avatars use `rounded-full`.
+- **No drop shadows on content surfaces** — separate with a 1px `base-300`
+  border or the cream→raised difference. The only elevation is `shadow-lg` on
+  genuinely floating overlays: dropdowns, popovers and toasts.
 
-## Components
+## Built from daisyUI primitives
 
-- **`.t-card`** — white surface + pebble border + 6px radius. The one container.
-- **`.t-table`** — borderless rows with hairline dividers, uppercase micro-header,
-  hover tint on cream. Use inside `.t-card`.
-- **`.t-status`** — blue status pill with a leading dot.
-- **`.eyebrow`** — small-caps category label above headings.
-- **`.nav-item`** — menu/dropdown row.
-- **`.link`** — blue text link, underline on hover.
-- **`.btn-primary`** — the single amber action per view.
-- **`.btn-neutral`** — dark filled (`#121212`) for the persistent nav action.
-- **`status_badge(status)`** macro (`components/status.html`) — tones by state:
-  green = done, red = failed, blue = active, gray = idle.
+No bespoke component classes. Templates compose daisyUI components and Tailwind
+utilities directly:
+
+| Content block | daisyUI component |
+| --- | --- |
+| Shell and navigation | `navbar`, `menu`, `dropdown`, `btn btn-ghost` |
+| Page headers | `breadcrumbs`, `btn btn-primary`, `btn btn-outline` |
+| Cards and panels | `card card-border`, `card-body` |
+| Stats | `stats stats-vertical sm:stats-horizontal`, `stat` |
+| Tables | `table` inside `overflow-x-auto` |
+| Status | `badge` with tone utilities from the palette |
+| Progress | `progress progress-primary` |
+| Forms | `input`, `select`, `textarea`, `file-input`, `checkbox` |
+| Notices | `alert alert-error alert-soft`, `alert alert-warning alert-soft` |
+| Empty states | `card`, `card-body items-center text-center` |
+| Settings index | `card card-border` grid with `menu` for quick actions |
+| Auth providers | `btn btn-outline` |
+
+The `status_badge(status)` macro (`components/status.html`) maps state to a
+`badge` tone: green = done, red = failed, blue = active, grey = idle.
 
 ## Layout & navigation
 
-- App shell (`layouts/base.html`): sticky cream top bar, brand left, primary nav
-  centred-left, dark "New translation" + account menu right. Mobile collapses to
-  a disclosure panel. `max-w-[1200px]`.
-- Auth (`layouts/auth.html`): split panel — value proposition left, carded
-  provider buttons right; stacks on mobile.
+- App shell (`layouts/base.html`): sticky translucent cream top bar, brand left,
+  primary nav next to it, dark "New translation" plus account menu right.
+  Mobile collapses to a `menu` panel. `max-w-6xl`, `px-5 sm:px-8`.
+- Auth (`layouts/auth.html`): split panel — proposition on raised cream left,
+  carded provider buttons right; stacks on mobile.
+- Dashboard: one ink `bg-neutral` welcome chamber, then a stats strip, then a
+  2/3 + 1/3 content grid. Only the dashboard uses the dark chamber.
+- Detail and workflow pages: breadcrumbs, one page header with a single amber
+  action, then carded content. Forms use a 1-column reading width, or a
+  2-column form + sticky action rail for the translation workflow.
 - Internal navigation is HTMX-boosted and swaps only `#app-content`; layouts emit
   just `<main id="app-content">` for `HX-Request`.
 
+## Motion
+
+- 150–200ms colour/transform transitions only; no entrance choreography.
+- Press feedback is instant (`btn` handles it).
+- `prefers-reduced-motion` collapses every animation and transition.
+
 ## Rules
 
-**Do** keep the cream canvas, reserve amber for the single primary action, use 6px
-radii, separate with hairline borders, use DM Sans ≥400, keep mono for technical
-text.
+**Do** keep the cream canvas, reserve amber for the single primary action, use
+6px radii, separate with hairline borders, use DM Sans ≥400, keep mono for
+technical text, and use semantic tokens only.
 
 **Don't** use white as the page background, put two amber CTAs in one view, add
-drop shadows to cards, exceed 12px radius, or use chromatic colour as decoration.
+drop shadows to cards, exceed 12px radius, stack two dark chambers on one screen,
+or use chromatic colour as decoration.
 
 ## Files
 
-- `static/css/input.css` — tokens, daisyUI theme, `@font-face`, component classes.
+- `static/css/input.css` — theme tokens, the local font and a minimal element base.
+  No component classes.
 - `static/fonts/dm-sans-*.woff2` — self-hosted font (CSP is `font-src 'self'`).
 - `static/favicon.svg` — ink tile + gold Book Fork mark (book with a fork cut into its edge).
 - `templates/components/` — `brand`, `icons`, `nav`, `toast`, `status`.
