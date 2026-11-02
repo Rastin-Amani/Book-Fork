@@ -4,22 +4,20 @@
 <input id="job-active" type="hidden" value="{{ '1' if active else '0' }}">
 <div class="space-y-5">
   <div class="flex flex-wrap items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3">
       {{ status_badge(job.status) }}
-      <span class="text-[13.5px] text-graphite">
+      <span class="text-[13.5px] text-base-content/60">
         {{ job.completed_segments or 0 }}/{{ job.total_segments or 0 }} segments{% if job.failed_segments %} · <span class="text-error">{{ job.failed_segments }} failed</span>{% endif %}
       </span>
     </div>
-    <span class="font-mono text-[13px] font-semibold text-ink-black">{{ '%.0f'|format(job.progress or 0) }}%</span>
+    <span class="font-mono text-[15px] font-semibold">{{ '%.0f'|format(job.progress or 0) }}%</span>
   </div>
 
-  <div class="h-2 w-full overflow-hidden rounded-full bg-stone-gray">
-    <div class="h-full rounded-full bg-warm-gold transition-[width] duration-500" style="width: {{ job.progress or 0 }}%"></div>
-  </div>
+  <progress class="progress progress-primary h-2 w-full" value="{{ job.progress or 0 }}" max="100"></progress>
 
   {% if job.error_message %}
-  <div class="flex items-start gap-2.5 rounded-[6px] border border-error/25 bg-error/5 px-4 py-3 text-[13.5px] text-error" role="alert">
-    <span class="mt-0.5">{{ icon('alert', 'h-4 w-4') }}</span><span>{{ job.error_message }}</span>
+  <div class="alert alert-error alert-soft items-start text-[13.5px]" role="alert">
+    <span class="mt-0.5">{{ icon('alert', 'size-4') }}</span><span>{{ job.error_message }}</span>
   </div>
   {% endif %}
 
@@ -28,18 +26,18 @@
     <button class="btn btn-sm" hx-post="/app/translations/{{ job.id }}/cancel" hx-target="#job-status" hx-swap="innerHTML" hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'>Cancel</button>
     {% endif %}
     {% if job.status == 'failed' %}
-    <button class="btn btn-sm btn-primary gap-1.5" hx-post="/app/translations/{{ job.id }}/retry" hx-target="#job-status" hx-swap="innerHTML" hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'>{{ icon('refresh', 'h-3.5 w-3.5') }} Retry failed</button>
+    <button class="btn btn-sm btn-primary gap-1.5" hx-post="/app/translations/{{ job.id }}/retry" hx-target="#job-status" hx-swap="innerHTML" hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'>{{ icon('refresh', 'size-3.5') }} Retry failed</button>
     {% endif %}
     {% if job.output_storage_key %}
     {% set outputs = (job.metadata or {}).get('outputs') or {} %}
     {% if outputs %}
     {% for fmt, label in [('pdf', 'PDF'), ('epub', 'EPUB')] %}
     {% if outputs.get(fmt) %}
-    <a class="btn btn-sm gap-1.5" hx-boost="false" href="/app/translations/{{ job.id }}/download?format={{ fmt }}">{{ icon('download', 'h-3.5 w-3.5') }} {{ label }}</a>
+    <a class="btn btn-sm gap-1.5" hx-boost="false" href="/app/translations/{{ job.id }}/download?format={{ fmt }}">{{ icon('download', 'size-3.5') }} {{ label }}</a>
     {% endif %}
     {% endfor %}
     {% else %}
-    <a class="btn btn-sm gap-1.5" hx-boost="false" href="/app/translations/{{ job.id }}/download">{{ icon('download', 'h-3.5 w-3.5') }} Download result</a>
+    <a class="btn btn-sm gap-1.5" hx-boost="false" href="/app/translations/{{ job.id }}/download">{{ icon('download', 'size-3.5') }} Download result</a>
     {% endif %}
     {% endif %}
   </div>

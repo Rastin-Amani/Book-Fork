@@ -3,24 +3,37 @@
 {% block title %}Translation memory · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="space-y-8">
-  <header class="space-y-1.5">
-    <p class="eyebrow">Reuse</p>
-    <h1 class="t-h1">Translation memory</h1>
-    <p class="text-[14px] text-graphite">Approved segment pairs Book Fork can reuse across jobs.</p>
+  <header class="space-y-2">
+    <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Reuse</p>
+    <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Translation memory</h1>
+    <p class="text-[14px] leading-relaxed text-base-content/60">Approved segment pairs Book Fork can reuse across jobs.</p>
   </header>
 
   {% if entries %}
-  <div class="t-card overflow-hidden">
+  <div class="card card-border overflow-hidden bg-base-100">
     <div class="overflow-x-auto">
-      <table class="t-table">
-        <thead><tr><th>Pair</th><th>Source</th><th>Translation</th><th>Approved</th></tr></thead>
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Pair</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Source</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Translation</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Approved</th>
+          </tr>
+        </thead>
         <tbody>
           {% for entry in entries %}
           <tr>
             <td class="whitespace-nowrap font-mono text-[12px] uppercase">{{ entry.source_language }} &rarr; {{ entry.target_language }}</td>
-            <td class="max-w-xs truncate">{{ entry.source_text }}</td>
-            <td class="max-w-xs truncate text-ink-black">{{ entry.translation }}</td>
-            <td>{% if entry.approved %}<span class="inline-flex items-center rounded-[6px] border border-success/25 bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">yes</span>{% else %}<span class="inline-flex items-center rounded-[6px] border border-pebble-border bg-stone-gray/60 px-2 py-0.5 text-[11px] font-semibold text-graphite">no</span>{% endif %}</td>
+            <td class="max-w-xs truncate text-base-content/65">{{ entry.source_text }}</td>
+            <td class="max-w-xs truncate font-medium">{{ entry.translation }}</td>
+            <td>
+              {% if entry.approved %}
+              <span class="badge badge-sm border-success/25 bg-success/10 text-success">yes</span>
+              {% else %}
+              <span class="badge badge-sm border-base-300 bg-base-200 text-base-content/60">no</span>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -28,10 +41,12 @@
     </div>
   </div>
   {% else %}
-  <div class="t-card flex flex-col items-center gap-3 px-6 py-20 text-center">
-    <span class="grid h-12 w-12 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('database', 'h-6 w-6') }}</span>
-    <h2 class="t-h2 text-[17px]">No memory entries yet</h2>
-    <p class="max-w-sm text-[14px] text-graphite">Save translations to memory during a job and they will appear here.</p>
+  <div class="card card-border bg-base-100">
+    <div class="card-body items-center px-6 py-20 text-center">
+      <span class="grid size-12 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('database', 'size-6') }}</span>
+      <h2 class="mt-1 text-[17px] font-semibold tracking-[-0.01em]">No memory entries yet</h2>
+      <p class="max-w-sm text-[14px] leading-relaxed text-base-content/60">Save translations to memory during a job and they will appear here.</p>
+    </div>
   </div>
   {% endif %}
 </section>

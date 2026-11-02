@@ -4,33 +4,39 @@
 {% block content %}
 <section class="space-y-8">
   <header class="flex flex-wrap items-end justify-between gap-4">
-    <div class="space-y-1.5">
-      <p class="eyebrow">Terminology</p>
-      <h1 class="t-h1">Glossaries</h1>
-      <p class="text-[14px] text-graphite">Pin preferred or forbidden terms across every job.</p>
+    <div class="space-y-2">
+      <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Terminology</p>
+      <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Glossaries</h1>
+      <p class="text-[14px] leading-relaxed text-base-content/60">Pin preferred or forbidden terms across every job.</p>
     </div>
-    <a href="/app/glossaries/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'h-4 w-4') }} New glossary</a>
+    <a href="/app/glossaries/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'size-4') }} New glossary</a>
   </header>
 
   {% if glossaries %}
-  <div class="t-card divide-y divide-stone-gray overflow-hidden">
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for glossary in glossaries %}
-    <a href="/app/glossaries/{{ glossary.id }}" class="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-warm-cream/70">
-      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-[6px] bg-warm-cream text-graphite">{{ icon('book', 'h-4 w-4') }}</span>
-      <span class="min-w-0 flex-1">
-        <span class="block truncate text-[15px] font-medium text-ink-black">{{ glossary.name }}</span>
-        {% if glossary.description %}<span class="block truncate text-[13px] text-mid-gray">{{ glossary.description }}</span>{% endif %}
-      </span>
-      <span class="text-mid-gray">{{ icon('chevron-right', 'h-4 w-4') }}</span>
+    <a href="/app/glossaries/{{ glossary.id }}" class="card card-border group bg-base-100 transition-colors hover:border-base-content/25">
+      <div class="card-body gap-4 p-5">
+        <div class="flex items-start justify-between gap-3">
+          <span class="grid size-10 place-items-center rounded-field bg-base-200 text-base-content/60">{{ icon('book', 'size-5') }}</span>
+          <span class="text-base-content/30 transition-transform duration-200 group-hover:translate-x-0.5">{{ icon('arrow-right', 'size-4') }}</span>
+        </div>
+        <div>
+          <h2 class="truncate text-[15px] font-semibold tracking-[-0.01em]">{{ glossary.name }}</h2>
+          <p class="mt-1 line-clamp-2 text-[13px] leading-relaxed text-base-content/55">{{ glossary.description or 'No description' }}</p>
+        </div>
+      </div>
     </a>
     {% endfor %}
   </div>
   {% else %}
-  <div class="t-card flex flex-col items-center gap-3 px-6 py-20 text-center">
-    <span class="grid h-12 w-12 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('book', 'h-6 w-6') }}</span>
-    <h2 class="t-h2 text-[17px]">No glossaries yet</h2>
-    <p class="max-w-sm text-[14px] text-graphite">Create one to keep brand names and terminology consistent.</p>
-    <a href="/app/glossaries/new" class="btn btn-primary">Create a glossary</a>
+  <div class="card card-border bg-base-100">
+    <div class="card-body items-center px-6 py-20 text-center">
+      <span class="grid size-12 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('book', 'size-6') }}</span>
+      <h2 class="mt-1 text-[17px] font-semibold tracking-[-0.01em]">No glossaries yet</h2>
+      <p class="max-w-sm text-[14px] leading-relaxed text-base-content/60">Create one to keep brand names and terminology consistent.</p>
+      <a href="/app/glossaries/new" class="btn btn-outline btn-sm mt-2">Create a glossary</a>
+    </div>
   </div>
   {% endif %}
 </section>

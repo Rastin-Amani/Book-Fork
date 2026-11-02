@@ -5,34 +5,40 @@
 {% block content %}
 <section class="space-y-8">
   <header class="flex flex-wrap items-end justify-between gap-4">
-    <div class="space-y-1.5">
-      <p class="eyebrow">Jobs</p>
-      <h1 class="t-h1">Translations</h1>
-      <p class="text-[14px] text-graphite">Every job in this workspace, newest first.</p>
+    <div class="space-y-2">
+      <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Jobs</p>
+      <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Translations</h1>
+      <p class="text-[14px] leading-relaxed text-base-content/60">Every job in this workspace, newest first.</p>
     </div>
-    <a href="/app/translations/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'h-4 w-4') }} New translation</a>
+    <a href="/app/translations/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'size-4') }} New translation</a>
   </header>
 
   {% if jobs %}
-  <div class="t-card overflow-hidden">
+  <div class="card card-border overflow-hidden bg-base-100">
     <div class="overflow-x-auto">
-      <table class="t-table">
-        <thead><tr><th>Pair</th><th>Status</th><th class="hidden md:table-cell">Segments</th><th class="hidden sm:table-cell">Progress</th><th></th></tr></thead>
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Pair</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Status</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 md:table-cell">Segments</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 sm:table-cell">Progress</th>
+            <th></th>
+          </tr>
+        </thead>
         <tbody>
           {% for job in jobs %}
           <tr>
-            <td class="whitespace-nowrap font-medium text-ink-black">{{ job.source_language or '?' }} &rarr; {{ job.target_language }}</td>
+            <td class="whitespace-nowrap font-medium">{{ job.source_language or '?' }} &rarr; {{ job.target_language }}</td>
             <td>{{ status_badge(job.status) }}</td>
             <td class="hidden font-mono text-[12px] md:table-cell">{{ job.completed_segments or 0 }}/{{ job.total_segments or 0 }}{% if job.failed_segments %} <span class="text-error">&middot; {{ job.failed_segments }} failed</span>{% endif %}</td>
             <td class="hidden sm:table-cell">
-              <div class="flex items-center gap-2">
-                <div class="h-1.5 w-16 overflow-hidden rounded-full bg-stone-gray sm:w-24">
-                  <div class="h-full rounded-full bg-warm-gold" style="width: {{ job.progress or 0 }}%"></div>
-                </div>
-                <span class="font-mono text-[11px] text-mid-gray">{{ '%.0f'|format(job.progress or 0) }}%</span>
+              <div class="flex items-center gap-2.5">
+                <progress class="progress progress-primary h-1.5 w-16 sm:w-24" value="{{ job.progress or 0 }}" max="100"></progress>
+                <span class="font-mono text-[11px] text-base-content/45">{{ '%.0f'|format(job.progress or 0) }}%</span>
               </div>
             </td>
-            <td class="text-right"><a href="/app/translations/{{ job.id }}" class="link whitespace-nowrap">Open</a></td>
+            <td class="text-right"><a href="/app/translations/{{ job.id }}" class="link link-accent whitespace-nowrap">Open</a></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -40,11 +46,13 @@
     </div>
   </div>
   {% else %}
-  <div class="t-card flex flex-col items-center gap-3 px-6 py-20 text-center">
-    <span class="grid h-12 w-12 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('translate', 'h-6 w-6') }}</span>
-    <h2 class="t-h2 text-[17px]">No translations yet</h2>
-    <p class="max-w-sm text-[14px] text-graphite">Upload an EPUB or PDF and Book Fork will handle the rest.</p>
-    <a href="/app/translations/new" class="btn btn-primary">Start a translation</a>
+  <div class="card card-border bg-base-100">
+    <div class="card-body items-center px-6 py-20 text-center">
+      <span class="grid size-12 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('translate', 'size-6') }}</span>
+      <h2 class="mt-1 text-[17px] font-semibold tracking-[-0.01em]">No translations yet</h2>
+      <p class="max-w-sm text-[14px] leading-relaxed text-base-content/60">Upload an EPUB or PDF and Book Fork will handle the rest.</p>
+      <a href="/app/translations/new" class="btn btn-outline btn-sm mt-2">Start a translation</a>
+    </div>
   </div>
   {% endif %}
 </section>

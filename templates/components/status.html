@@ -5,9 +5,9 @@
 {%- elif s in ['failed', 'error', 'cancelled', 'forbidden', 'disabled'] -%}
   {%- set tone = 'border-error/25 bg-error/10 text-error' -%}
 {%- elif s in ['queued', 'preparing', 'parsing', 'segmenting', 'translating', 'finalizing', 'cancelling', 'draft', 'pending', 'running', 'in_progress'] -%}
-  {%- set tone = 'border-storyboard-blue/20 bg-sketch-blue text-storyboard-blue' -%}
+  {%- set tone = 'border-info/25 bg-info/10 text-info' -%}
 {%- else -%}
-  {%- set tone = 'border-pebble-border bg-stone-gray/60 text-graphite' -%}
+  {%- set tone = 'border-base-300 bg-base-200 text-base-content/60' -%}
 {%- endif -%}
-<span class="inline-flex items-center rounded-[6px] border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.05em] {{ tone }}">{{ (status or 'unknown')|replace('_', ' ') }}</span>
+<span class="badge badge-sm rounded-field border px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] {{ tone }}">{{ (status or 'unknown')|replace('_', ' ') }}</span>
 {% endmacro %}

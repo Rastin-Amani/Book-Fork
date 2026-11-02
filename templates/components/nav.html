@@ -10,21 +10,22 @@
 ] -%}
 {%- set path = request.url.path -%}
 {%- if variant == 'desktop' %}
-<nav class="hidden items-center gap-1 lg:flex" aria-label="Primary">
+<nav class="hidden min-w-0 items-center gap-0.5 lg:flex" aria-label="Primary">
   {%- for href, label, ic in links %}
   {%- set active = (path == href) or (href != '/app' and path.startswith(href)) %}
-  <a href="{{ href }}"
-     class="rounded-[6px] border px-3 py-1.5 text-[14px] font-medium transition-colors {{ 'border-pebble-border bg-pure-white text-ink-black' if active else 'border-transparent text-graphite hover:bg-pure-white hover:text-ink-black' }}"
+  <a href="{{ href }}" class="btn btn-ghost btn-sm{% if active %} btn-active{% endif %}"
      {% if active %}aria-current="page"{% endif %}>{{ label }}</a>
   {%- endfor %}
 </nav>
 {%- else %}
-<nav class="flex flex-col gap-0.5 p-3" aria-label="Primary">
+<nav class="menu menu-sm w-full p-3" aria-label="Primary">
   {%- for href, label, ic in links %}
   {%- set active = (path == href) or (href != '/app' and path.startswith(href)) %}
-  <a href="{{ href }}"
-     class="flex items-center gap-3 rounded-[6px] px-3 py-2.5 text-[15px] font-medium transition-colors {{ 'bg-warm-cream text-ink-black' if active else 'text-graphite hover:bg-warm-cream hover:text-ink-black' }}"
-     {% if active %}aria-current="page"{% endif %}>{{ icon(ic, 'h-4 w-4 ' ~ ('text-warm-gold' if active else 'text-mid-gray')) }}{{ label }}</a>
+  <li>
+    <a href="{{ href }}" class="gap-3{% if active %} menu-active{% endif %}"{% if active %} aria-current="page"{% endif %}>
+      {{ icon(ic, 'size-4') }}{{ label }}
+    </a>
+  </li>
   {%- endfor %}
 </nav>
 {%- endif %}

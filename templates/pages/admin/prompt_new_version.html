@@ -1,35 +1,40 @@
 {% extends "layouts/base.html" %}
-{% from "components/icons.html" import icon %}
 {% block title %}New prompt version · Admin{% endblock %}
 {% block content %}
 <section class="mx-auto max-w-2xl space-y-6">
-  <a href="/admin/prompt-templates" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
-    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Prompt templates
-  </a>
-  <header class="space-y-1.5">
-    <p class="eyebrow">Admin</p>
-    <h1 class="t-h1">New version of &ldquo;{{ template.name }}&rdquo;</h1>
-    <p class="text-[14px] text-graphite">Existing jobs keep referencing their original version.</p>
+  <div class="breadcrumbs -mb-4 text-[12px] text-base-content/45">
+    <ul>
+      <li><a href="/admin">Admin</a></li>
+      <li><a href="/admin/prompt-templates">Prompt templates</a></li>
+      <li class="text-base-content/70">New version</li>
+    </ul>
+  </div>
+  <header class="space-y-2">
+    <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Admin</p>
+    <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">New version of &ldquo;{{ template.name }}&rdquo;</h1>
+    <p class="text-[14px] leading-relaxed text-base-content/60">Existing jobs keep referencing their original version.</p>
   </header>
 
-  <form method="post" action="/admin/prompt-templates/{{ template.id }}/new-version" class="t-card space-y-5 p-6">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <div class="grid gap-5 sm:grid-cols-2">
-      <label class="block"><span class="mb-1.5 block text-[13px] font-medium text-ink-black">Version</span>
-        <input class="input w-full" value="{{ next_version }}" disabled></label>
-      <label class="block"><span class="mb-1.5 block text-[13px] font-medium text-ink-black">Status</span>
-        <select class="select w-full" name="status">
-          <option value="draft">Draft</option>
-          <option value="active">Active</option>
-        </select></label>
-    </div>
-    <label class="block"><span class="mb-1.5 block text-[13px] font-medium text-ink-black">Body</span>
-      <textarea class="textarea w-full font-mono text-[13px]" name="body" rows="12" required></textarea></label>
-    <label class="block"><span class="mb-1.5 block text-[13px] font-medium text-ink-black">Notes <span class="font-normal text-mid-gray">(optional)</span></span>
-      <textarea class="textarea w-full" name="notes" rows="2"></textarea></label>
-    <div class="flex items-center gap-2 pt-1">
-      <button class="btn btn-primary" type="submit">Create version</button>
-      <a class="btn btn-ghost" href="/admin/prompt-templates">Cancel</a>
+  <form method="post" action="/admin/prompt-templates/{{ template.id }}/new-version" class="card card-border bg-base-100">
+    <div class="card-body gap-5 p-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="grid gap-5 sm:grid-cols-2">
+        <label class="block"><span class="mb-1.5 block text-[13px] font-medium">Version</span>
+          <input class="input w-full" value="{{ next_version }}" disabled></label>
+        <label class="block"><span class="mb-1.5 block text-[13px] font-medium">Status</span>
+          <select class="select w-full" name="status">
+            <option value="draft">Draft</option>
+            <option value="active">Active</option>
+          </select></label>
+      </div>
+      <label class="block"><span class="mb-1.5 block text-[13px] font-medium">Body</span>
+        <textarea class="textarea w-full font-mono text-[13px]" name="body" rows="12" required></textarea></label>
+      <label class="block"><span class="mb-1.5 block text-[13px] font-medium">Notes <span class="font-normal text-base-content/40">(optional)</span></span>
+        <textarea class="textarea w-full" name="notes" rows="2"></textarea></label>
+      <div class="flex items-center gap-2 pt-1">
+        <button class="btn btn-primary" type="submit">Create version</button>
+        <a class="btn btn-ghost" href="/admin/prompt-templates">Cancel</a>
+      </div>
     </div>
   </form>
 </section>

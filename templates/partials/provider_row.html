@@ -1,26 +1,26 @@
 <tr id="provider-{{ connection.id }}">
-  <td class="text-ink-black font-medium">{{ connection.name }}</td>
-  <td class="max-w-[18rem] truncate font-mono text-[12px]">{{ connection.base_url or '—' }}</td>
+  <td class="font-medium">{{ connection.name }}</td>
+  <td class="max-w-[18rem] truncate font-mono text-[12px] text-base-content/55">{{ connection.base_url or '—' }}</td>
   <td>
     {% if connection.billing_mode.value == 'own_api' %}
-    <span class="inline-flex items-center rounded-[6px] border border-pebble-border bg-warm-cream px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-graphite">Your API</span>
+    <span class="badge badge-sm border-base-300 bg-base-200 text-base-content/60">Your API</span>
     {% else %}
-    <span class="inline-flex items-center rounded-[6px] border border-storyboard-blue/20 bg-sketch-blue px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-storyboard-blue">Managed</span>
+    <span class="badge badge-sm border-info/25 bg-info/10 text-info">Managed</span>
     {% endif %}
   </td>
   <td>
     {% if connection.enabled %}
-    <span class="inline-flex items-center gap-1.5 text-[12.5px] text-success"><span class="h-1.5 w-1.5 rounded-full bg-success"></span>Enabled</span>
+    <span class="inline-flex items-center gap-1.5 text-[12.5px] text-success"><span class="size-1.5 rounded-full bg-success"></span>Enabled</span>
     {% else %}
-    <span class="inline-flex items-center gap-1.5 text-[12.5px] text-mid-gray"><span class="h-1.5 w-1.5 rounded-full bg-mid-gray"></span>Disabled</span>
+    <span class="inline-flex items-center gap-1.5 text-[12.5px] text-base-content/40"><span class="size-1.5 rounded-full bg-base-content/30"></span>Disabled</span>
     {% endif %}
   </td>
   <td>
-    <div class="flex flex-wrap items-center justify-end gap-1.5">
+    <div class="flex flex-wrap items-center justify-end gap-1">
       <span id="test-{{ connection.id }}"><button class="btn btn-ghost btn-xs" hx-post="/app/providers/{{ connection.id }}/test" hx-target="#test-{{ connection.id }}" hx-swap="innerHTML">Test</button></span>
-      <details class="relative">
+      <details class="dropdown dropdown-end">
         <summary class="btn btn-ghost btn-xs list-none [&::-webkit-details-marker]:hidden">Key</summary>
-        <form class="mt-2 flex w-64 flex-wrap items-center gap-1 rounded-[6px] border border-pebble-border bg-warm-cream p-2"
+        <form class="dropdown-content z-50 mt-2 flex w-64 flex-wrap items-center gap-1 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
               hx-post="/app/providers/{{ connection.id }}/credential"
               hx-target="#provider-{{ connection.id }}"
               hx-swap="outerHTML">
@@ -29,7 +29,7 @@
         </form>
       </details>
       <button class="btn btn-ghost btn-xs" hx-post="/app/providers/{{ connection.id }}/toggle" hx-target="#provider-{{ connection.id }}" hx-swap="outerHTML">{{ 'Disable' if connection.enabled else 'Enable' }}</button>
-      <button class="btn btn-ghost btn-xs text-mid-gray hover:text-error" hx-post="/app/providers/{{ connection.id }}/delete" hx-confirm="Delete this provider?" hx-target="#provider-{{ connection.id }}" hx-swap="outerHTML">Delete</button>
+      <button class="btn btn-ghost btn-xs text-base-content/40 hover:text-error" hx-post="/app/providers/{{ connection.id }}/delete" hx-confirm="Delete this provider?" hx-target="#provider-{{ connection.id }}" hx-swap="outerHTML">Delete</button>
     </div>
   </td>
 </tr>

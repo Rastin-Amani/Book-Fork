@@ -3,14 +3,19 @@
 {% block title %}Review · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="space-y-8">
-  <a href="/app/translations/{{ job.id }}" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
-    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Back to job
-  </a>
+  <div class="breadcrumbs -mb-4 text-[12px] text-base-content/45">
+    <ul>
+      <li><a href="/app/translations">Translations</a></li>
+      <li><a href="/app/translations/{{ job.id }}">Job</a></li>
+      <li class="text-base-content/70">Review</li>
+    </ul>
+  </div>
+
   <header class="flex flex-wrap items-end justify-between gap-4">
-    <div class="space-y-1.5">
-      <p class="eyebrow">Proofing</p>
-      <h1 class="t-h1">Review</h1>
-      <p class="text-[14px] text-graphite">{{ job.source_language or '?' }} &rarr; {{ job.target_language }} · {{ segments|length }} segments</p>
+    <div class="space-y-2">
+      <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Proofing</p>
+      <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Review</h1>
+      <p class="text-[14px] text-base-content/60">{{ job.source_language or '?' }} &rarr; {{ job.target_language }} · {{ segments|length }} segments</p>
     </div>
   </header>
 
@@ -19,10 +24,12 @@
     {% for segment in segments %}{% include "partials/segment_row.html" %}{% endfor %}
   </div>
   {% else %}
-  <div class="t-card flex flex-col items-center gap-3 px-6 py-20 text-center">
-    <span class="grid h-12 w-12 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('list', 'h-6 w-6') }}</span>
-    <h2 class="t-h2 text-[17px]">Nothing to review yet</h2>
-    <p class="max-w-sm text-[14px] text-graphite">Segments appear here once the worker starts producing translations.</p>
+  <div class="card card-border bg-base-100">
+    <div class="card-body items-center px-6 py-20 text-center">
+      <span class="grid size-12 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('list', 'size-6') }}</span>
+      <h2 class="mt-1 text-[17px] font-semibold tracking-[-0.01em]">Nothing to review yet</h2>
+      <p class="max-w-sm text-[14px] leading-relaxed text-base-content/60">Segments appear here once the worker starts producing translations.</p>
+    </div>
   </div>
   {% endif %}
 </section>

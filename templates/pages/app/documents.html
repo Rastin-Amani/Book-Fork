@@ -1,36 +1,43 @@
 {% extends "layouts/base.html" %}
 {% from "components/icons.html" import icon %}
-{% from "components/status.html" import status_badge %}
 {% block title %}Documents · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="space-y-8">
   <header class="flex flex-wrap items-end justify-between gap-4">
-    <div class="space-y-1.5">
-      <p class="eyebrow">Library</p>
-      <h1 class="t-h1">Documents</h1>
-      <p class="text-[14px] text-graphite">Uploaded sources available for translation.</p>
+    <div class="space-y-2">
+      <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Library</p>
+      <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Documents</h1>
+      <p class="text-[14px] leading-relaxed text-base-content/60">Uploaded sources available for translation.</p>
     </div>
-    <a href="/app/translations/new" class="btn btn-primary gap-1.5">{{ icon('upload', 'h-4 w-4') }} Upload</a>
+    <a href="/app/translations/new" class="btn btn-primary gap-1.5">{{ icon('upload', 'size-4') }} Upload</a>
   </header>
 
   {% if documents %}
-  <div class="t-card overflow-hidden">
+  <div class="card card-border overflow-hidden bg-base-100">
     <div class="overflow-x-auto">
-      <table class="t-table">
-        <thead><tr><th>Name</th><th class="hidden sm:table-cell">Type</th><th class="hidden sm:table-cell">Size</th><th class="hidden md:table-cell">Source language</th><th></th></tr></thead>
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Name</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 sm:table-cell">Type</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 sm:table-cell">Size</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 md:table-cell">Source language</th>
+            <th></th>
+          </tr>
+        </thead>
         <tbody>
           {% for doc in documents %}
           <tr>
-            <td class="max-w-[22rem] text-ink-black">
-              <a href="/app/documents/{{ doc.id }}" class="flex items-center gap-2.5 font-medium transition-colors hover:text-storyboard-blue">
-                <span class="grid h-7 w-7 shrink-0 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('file', 'h-3.5 w-3.5') }}</span>
+            <td class="max-w-[22rem]">
+              <a href="/app/documents/{{ doc.id }}" class="flex items-center gap-2.5 font-medium transition-colors hover:text-accent">
+                <span class="grid size-7 shrink-0 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('file', 'size-3.5') }}</span>
                 <span class="truncate">{{ doc.display_name or doc.original_filename }}</span>
               </a>
             </td>
             <td class="hidden text-[12px] uppercase tracking-[0.04em] sm:table-cell">{{ doc.document_type or '—' }}</td>
             <td class="hidden sm:table-cell">{{ doc.file_size | filesize }}</td>
             <td class="hidden md:table-cell">{{ doc.source_language or '—' }}</td>
-            <td class="text-right"><a href="/app/documents/{{ doc.id }}" class="link whitespace-nowrap">Open</a></td>
+            <td class="text-right"><a href="/app/documents/{{ doc.id }}" class="link link-accent whitespace-nowrap">Open</a></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -38,11 +45,13 @@
     </div>
   </div>
   {% else %}
-  <div class="t-card flex flex-col items-center gap-3 px-6 py-20 text-center">
-    <span class="grid h-12 w-12 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('file', 'h-6 w-6') }}</span>
-    <h2 class="t-h2 text-[17px]">No documents yet</h2>
-    <p class="max-w-sm text-[14px] text-graphite">Upload an EPUB or PDF to get started.</p>
-    <a href="/app/translations/new" class="btn btn-primary">Upload a document</a>
+  <div class="card card-border bg-base-100">
+    <div class="card-body items-center px-6 py-20 text-center">
+      <span class="grid size-12 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('file', 'size-6') }}</span>
+      <h2 class="mt-1 text-[17px] font-semibold tracking-[-0.01em]">No documents yet</h2>
+      <p class="max-w-sm text-[14px] leading-relaxed text-base-content/60">Upload an EPUB or PDF to get started.</p>
+      <a href="/app/translations/new" class="btn btn-outline btn-sm mt-2">Upload a document</a>
+    </div>
   </div>
   {% endif %}
 </section>

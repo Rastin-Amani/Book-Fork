@@ -1,32 +1,42 @@
 {% extends "layouts/base.html" %}
-{% from "components/icons.html" import icon %}
 {% block title %}Languages · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="space-y-8">
-  <a href="/app/settings" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
-    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Settings
-  </a>
-  <header class="space-y-1.5">
-    <p class="eyebrow">Registry</p>
-    <h1 class="t-h1">Languages</h1>
-    <p class="text-[14px] text-graphite">Direction, script and native names — never hardcoded in the UI.</p>
+  <div class="breadcrumbs -mb-4 text-[12px] text-base-content/45">
+    <ul>
+      <li><a href="/app/settings">Settings</a></li>
+      <li class="text-base-content/70">Languages</li>
+    </ul>
+  </div>
+  <header class="space-y-2">
+    <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Registry</p>
+    <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Languages</h1>
+    <p class="text-[14px] leading-relaxed text-base-content/60">Direction, script and native names — never hardcoded in the UI.</p>
   </header>
 
-  <div class="t-card overflow-hidden">
+  <div class="card card-border overflow-hidden bg-base-100">
     <div class="overflow-x-auto">
-      <table class="t-table">
-        <thead><tr><th>Code</th><th>Name</th><th>Native</th><th>Direction</th><th>Script</th></tr></thead>
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Code</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Name</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Native</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Direction</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Script</th>
+          </tr>
+        </thead>
         <tbody>
           {% for lang in languages %}
           <tr>
-            <td class="font-mono text-[12px] uppercase text-ink-black">{{ lang.tag }}</td>
+            <td class="font-mono text-[12px] uppercase font-medium">{{ lang.tag }}</td>
             <td>{{ lang.name }}</td>
-            <td dir="{{ lang.direction.value }}" class="text-ink-black">{{ lang.native_name or '' }}</td>
-            <td><span class="inline-flex items-center rounded-[6px] border border-pebble-border bg-warm-cream px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-graphite">{{ lang.direction.value }}</span></td>
-            <td>{{ lang.script or '—' }}</td>
+            <td dir="{{ lang.direction.value }}" class="font-medium">{{ lang.native_name or '' }}</td>
+            <td><span class="badge badge-sm border-base-300 bg-base-200 uppercase tracking-[0.04em]">{{ lang.direction.value }}</span></td>
+            <td class="text-base-content/60">{{ lang.script or '—' }}</td>
           </tr>
           {% else %}
-          <tr><td colspan="5" class="py-10 text-center text-mid-gray">No languages in the registry.</td></tr>
+          <tr><td colspan="5" class="py-10 text-center text-base-content/45">No languages in the registry.</td></tr>
           {% endfor %}
         </tbody>
       </table>

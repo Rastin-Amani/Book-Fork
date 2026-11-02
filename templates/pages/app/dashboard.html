@@ -4,57 +4,62 @@
 {% block title %}Dashboard · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="space-y-8">
-  <header class="flex flex-wrap items-end justify-between gap-4">
-    <div class="space-y-1.5">
-      <p class="eyebrow">Workspace</p>
-      <h1 class="t-h1">{{ workspace.name }}</h1>
-      <p class="text-[14px] text-graphite">{{ current_user.email }}</p>
+  <header class="rounded-box bg-neutral p-7 text-neutral-content sm:p-9">
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <div class="space-y-2">
+        <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-neutral-content/45">Workspace</p>
+        <h1 class="text-[30px] font-semibold leading-tight tracking-[-0.03em] sm:text-[34px]">{{ workspace.name }}</h1>
+        <p class="text-[14px] text-neutral-content/55">{{ current_user.email }}</p>
+      </div>
+      <a href="/app/translations/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'size-4') }} New translation</a>
     </div>
-    <a href="/app/translations/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'h-4 w-4') }} New translation</a>
   </header>
 
-  <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+  <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
     {% set stats = [
-      ('Active jobs', active_count, 'activity', 'text-storyboard-blue'),
-      ('Completed', completed_count, 'check', 'text-success'),
-      ('Documents', documents|length, 'file', 'text-graphite'),
-      ('Managed book', '$%.0f'|format(book_price), 'credit-card', 'text-deep-amber'),
+      ('Active jobs', active_count, 'In the pipeline'),
+      ('Completed', completed_count, 'All time'),
+      ('Documents', documents|length, 'In this workspace'),
+      ('Managed book', '$%.0f'|format(book_price), 'Per book'),
     ] %}
-    {% for label, value, ic, tone in stats %}
-    <div class="t-card p-5">
-      <div class="flex items-center justify-between">
-        <p class="eyebrow">{{ label }}</p>
-        <span class="{{ tone }}">{{ icon(ic, 'h-4 w-4') }}</span>
-      </div>
-      <p class="mt-3 text-[30px] font-semibold leading-none tracking-[-0.02em]">{{ value }}</p>
+    {% for label, value, note in stats %}
+    <div class="stat">
+      <div class="stat-title font-mono text-[10px] uppercase tracking-[0.14em] text-base-content/45">{{ label }}</div>
+      <div class="stat-value text-[28px] font-semibold leading-none tracking-[-0.03em]">{{ value }}</div>
+      <div class="stat-desc text-[12px] text-base-content/45">{{ note }}</div>
     </div>
     {% endfor %}
   </div>
 
   <div class="grid items-start gap-6 lg:grid-cols-3">
-    <div class="t-card lg:col-span-2">
-      <div class="flex items-center justify-between border-b border-pebble-border px-5 py-4">
-        <h2 class="t-h2 text-[16px]">Recent translations</h2>
-        <a href="/app/translations" class="link text-[13px]">View all</a>
+    <div class="card card-border bg-base-100 lg:col-span-2">
+      <div class="flex items-center justify-between border-b border-base-300 px-5 py-4">
+        <h2 class="text-[15px] font-semibold tracking-[-0.01em]">Recent translations</h2>
+        <a href="/app/translations" class="link link-accent text-[13px]">View all</a>
       </div>
       {% if jobs %}
       <div class="overflow-x-auto">
-        <table class="t-table">
-          <thead><tr><th>Pair</th><th>Status</th><th class="hidden md:table-cell">Progress</th><th></th></tr></thead>
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Pair</th>
+              <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Status</th>
+              <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 md:table-cell">Progress</th>
+              <th></th>
+            </tr>
+          </thead>
           <tbody>
             {% for job in jobs %}
             <tr>
-              <td class="whitespace-nowrap font-medium text-ink-black">{{ job.source_language or '?' }} &rarr; {{ job.target_language }}</td>
+              <td class="whitespace-nowrap font-medium">{{ job.source_language or '?' }} &rarr; {{ job.target_language }}</td>
               <td>{{ status_badge(job.status) }}</td>
               <td class="hidden md:table-cell">
-                <div class="flex items-center gap-2">
-                  <div class="h-1.5 w-24 overflow-hidden rounded-full bg-stone-gray">
-                    <div class="h-full rounded-full bg-warm-gold" style="width: {{ job.progress or 0 }}%"></div>
-                  </div>
-                  <span class="font-mono text-[11px] text-mid-gray">{{ '%.0f'|format(job.progress or 0) }}%</span>
+                <div class="flex items-center gap-2.5">
+                  <progress class="progress progress-primary h-1.5 w-24" value="{{ job.progress or 0 }}" max="100"></progress>
+                  <span class="font-mono text-[11px] text-base-content/45">{{ '%.0f'|format(job.progress or 0) }}%</span>
                 </div>
               </td>
-              <td class="text-right"><a href="/app/translations/{{ job.id }}" class="link whitespace-nowrap">Open</a></td>
+              <td class="text-right"><a href="/app/translations/{{ job.id }}" class="link link-accent whitespace-nowrap">Open</a></td>
             </tr>
             {% endfor %}
           </tbody>
@@ -62,43 +67,47 @@
       </div>
       {% else %}
       <div class="flex flex-col items-center gap-3 px-5 py-14 text-center">
-        <span class="grid h-11 w-11 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('translate', 'h-5 w-5') }}</span>
-        <p class="text-[14px] text-graphite">No translations yet.</p>
-        <a href="/app/translations/new" class="btn btn-sm btn-primary">Upload a document</a>
+        <span class="grid size-11 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('translate', 'size-5') }}</span>
+        <p class="text-[14px] text-base-content/60">No translations yet.</p>
+        <a href="/app/translations/new" class="link link-accent text-[13px]">Upload a document &rarr;</a>
       </div>
       {% endif %}
     </div>
 
     <div class="space-y-6">
-      <div class="t-card p-5">
-        <h2 class="t-h2 text-[16px]">Quick start</h2>
-        <div class="mt-3 flex flex-col gap-0.5">
-          <a href="/app/translations/new" class="nav-item">{{ icon('upload', 'h-4 w-4') }} Translate a document</a>
-          <a href="/app/providers/new" class="nav-item">{{ icon('plug', 'h-4 w-4') }} Connect a provider</a>
-          <a href="/app/glossaries/new" class="nav-item">{{ icon('book', 'h-4 w-4') }} Create a glossary</a>
-          <a href="/app/translation-memory" class="nav-item">{{ icon('database', 'h-4 w-4') }} Browse memory</a>
+      <div class="card card-border bg-base-100">
+        <div class="card-body p-5">
+          <h2 class="text-[15px] font-semibold tracking-[-0.01em]">Quick start</h2>
+          <ul class="menu menu-sm -mx-2 mt-2 p-0">
+            <li><a href="/app/translations/new">{{ icon('upload', 'size-4') }} Translate a document</a></li>
+            <li><a href="/app/providers/new">{{ icon('plug', 'size-4') }} Connect a provider</a></li>
+            <li><a href="/app/glossaries/new">{{ icon('book', 'size-4') }} Create a glossary</a></li>
+            <li><a href="/app/translation-memory">{{ icon('database', 'size-4') }} Browse memory</a></li>
+          </ul>
         </div>
       </div>
 
-      <div class="t-card p-5">
-        <div class="flex items-center justify-between">
-          <h2 class="t-h2 text-[16px]">Documents</h2>
-          <a href="/app/documents" class="link text-[13px]">All</a>
+      <div class="card card-border bg-base-100">
+        <div class="card-body p-5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-[15px] font-semibold tracking-[-0.01em]">Documents</h2>
+            <a href="/app/documents" class="link link-accent text-[13px]">All</a>
+          </div>
+          {% if documents %}
+          <ul class="mt-3 space-y-1">
+            {% for doc in documents[:4] %}
+            <li>
+              <a href="/app/documents/{{ doc.id }}" class="flex items-center gap-2.5 rounded-field px-2 py-2 text-[13.5px] text-base-content/65 transition-colors hover:bg-base-200 hover:text-base-content">
+                <span class="grid size-7 shrink-0 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('file', 'size-3.5') }}</span>
+                <span class="truncate">{{ doc.display_name or doc.original_filename }}</span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="mt-3 text-[13.5px] text-base-content/45">No documents yet.</p>
+          {% endif %}
         </div>
-        {% if documents %}
-        <ul class="mt-3 space-y-2.5">
-          {% for doc in documents[:4] %}
-          <li>
-            <a href="/app/documents/{{ doc.id }}" class="flex items-center gap-2.5 text-[13.5px] text-graphite transition-colors hover:text-ink-black">
-              <span class="grid h-7 w-7 shrink-0 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('file', 'h-3.5 w-3.5') }}</span>
-              <span class="truncate">{{ doc.display_name or doc.original_filename }}</span>
-            </a>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p class="mt-3 text-[13.5px] text-mid-gray">No documents yet.</p>
-        {% endif %}
       </div>
     </div>
   </div>

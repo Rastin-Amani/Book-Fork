@@ -1,31 +1,40 @@
 {% extends "layouts/base.html" %}
-{% from "components/icons.html" import icon %}
 {% block title %}Profiles · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="space-y-8">
-  <a href="/app/settings" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
-    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Settings
-  </a>
-  <header class="space-y-1.5">
-    <p class="eyebrow">Quality</p>
-    <h1 class="t-h1">Translation profiles</h1>
-    <p class="text-[14px] text-graphite">Quality modes and segmentation available to this workspace.</p>
+  <div class="breadcrumbs -mb-4 text-[12px] text-base-content/45">
+    <ul>
+      <li><a href="/app/settings">Settings</a></li>
+      <li class="text-base-content/70">Profiles</li>
+    </ul>
+  </div>
+  <header class="space-y-2">
+    <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Quality</p>
+    <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Translation profiles</h1>
+    <p class="text-[14px] leading-relaxed text-base-content/60">Quality modes and segmentation available to this workspace.</p>
   </header>
 
-  <div class="t-card overflow-hidden">
+  <div class="card card-border overflow-hidden bg-base-100">
     <div class="overflow-x-auto">
-      <table class="t-table">
-        <thead><tr><th>Name</th><th>Quality</th><th>Default</th><th>Segmentation</th></tr></thead>
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Name</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Quality</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Default</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Segmentation</th>
+          </tr>
+        </thead>
         <tbody>
           {% for profile in profiles %}
           <tr>
-            <td class="text-ink-black font-medium">{{ profile.name }}</td>
-            <td><span class="inline-flex items-center rounded-[6px] border border-sketch-blue bg-sketch-blue/60 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-storyboard-blue">{{ profile.quality_mode.value }}</span></td>
-            <td>{% if profile.is_system_default %}<span class="inline-flex items-center gap-1.5 text-[12.5px] text-success"><span class="h-1.5 w-1.5 rounded-full bg-success"></span>yes</span>{% else %}<span class="text-mid-gray">no</span>{% endif %}</td>
-            <td class="font-mono text-[12px]">{{ (profile.segmentation_strategy or {}).get('type', '—') }}</td>
+            <td class="font-medium">{{ profile.name }}</td>
+            <td><span class="badge badge-sm border-info/25 bg-info/10 uppercase tracking-[0.04em] text-info">{{ profile.quality_mode.value }}</span></td>
+            <td>{% if profile.is_system_default %}<span class="inline-flex items-center gap-1.5 text-[12.5px] text-success"><span class="size-1.5 rounded-full bg-success"></span>yes</span>{% else %}<span class="text-base-content/35">no</span>{% endif %}</td>
+            <td class="font-mono text-[12px] text-base-content/60">{{ (profile.segmentation_strategy or {}).get('type', '—') }}</td>
           </tr>
           {% else %}
-          <tr><td colspan="4" class="py-10 text-center text-mid-gray">No profiles available.</td></tr>
+          <tr><td colspan="4" class="py-10 text-center text-base-content/45">No profiles available.</td></tr>
           {% endfor %}
         </tbody>
       </table>

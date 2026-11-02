@@ -1,10 +1,10 @@
 {% extends "layouts/base.html" %}
 {% block title %}Error {{ status_code }} · {{ app_name }}{% endblock %}
 {% block content %}
-<section class="mx-auto flex max-w-xl flex-col items-center px-5 py-24 text-center sm:py-32">
-  <span class="font-mono text-[13px] uppercase tracking-[0.1em] text-mid-gray">Error {{ status_code }}</span>
-  <h1 class="mt-4 text-[32px] font-semibold tracking-[-0.02em] sm:text-[40px]">{{ message }}</h1>
-  <p class="mt-4 text-[15px] text-graphite">If this keeps happening, head back to your workspace or log in again.</p>
+<section class="mx-auto flex max-w-xl flex-col items-center py-24 text-center sm:py-32">
+  <span class="font-mono text-[11px] uppercase tracking-[0.16em] text-base-content/40">Error {{ status_code }}</span>
+  <h1 class="mt-4 text-[32px] font-semibold tracking-[-0.03em] sm:text-[40px]">{{ message }}</h1>
+  <p class="mt-4 text-[15px] leading-relaxed text-base-content/60">If this keeps happening, head back to your workspace or log in again.</p>
   <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
     <a href="/app" class="btn btn-primary">Go to workspace</a>
     <a href="/login" class="btn btn-ghost">Log in</a>

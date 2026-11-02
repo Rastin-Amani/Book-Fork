@@ -1,13 +1,13 @@
 <tr id="term-{{ term.id }}">
   <td class="font-mono text-[12px] uppercase">{{ term.source_language }}</td>
   <td class="font-mono text-[12px] uppercase">{{ term.target_language }}</td>
-  <td class="text-ink-black">{{ term.source_term }}</td>
-  <td class="text-ink-black">{{ term.target_term }}</td>
+  <td class="font-medium">{{ term.source_term }}</td>
+  <td class="font-medium">{{ term.target_term }}</td>
   <td>
-    {% if term.preferred %}<span class="mr-1 inline-flex items-center rounded-full border border-storyboard-blue/20 bg-sketch-blue px-2 py-0.5 text-[11px] font-semibold text-storyboard-blue">preferred</span>{% endif %}
-    {% if term.forbidden %}<span class="inline-flex items-center rounded-full border border-error/25 bg-error/10 px-2 py-0.5 text-[11px] font-semibold text-error">forbidden</span>{% endif %}
+    {% if term.preferred %}<span class="badge badge-sm me-1 border-info/25 bg-info/10 text-info">preferred</span>{% endif %}
+    {% if term.forbidden %}<span class="badge badge-sm border-error/25 bg-error/10 text-error">forbidden</span>{% endif %}
   </td>
   <td class="text-right">
-    <button class="btn btn-ghost btn-xs text-mid-gray hover:text-error" hx-post="/app/glossaries/{{ glossary.id }}/terms/{{ term.id }}/delete" hx-target="#term-{{ term.id }}" hx-swap="outerHTML" aria-label="Delete term">Delete</button>
+    <button class="btn btn-ghost btn-xs text-base-content/40 hover:text-error" hx-post="/app/glossaries/{{ glossary.id }}/terms/{{ term.id }}/delete" hx-target="#term-{{ term.id }}" hx-swap="outerHTML" aria-label="Delete term">Delete</button>
   </td>
 </tr>

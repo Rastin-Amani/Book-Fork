@@ -3,30 +3,35 @@
 {% block title %}Translation · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="space-y-8">
-  <a href="/app/translations" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
-    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Translations
-  </a>
+  <div class="breadcrumbs -mb-4 text-[12px] text-base-content/45">
+    <ul>
+      <li><a href="/app/translations">Translations</a></li>
+      <li class="text-base-content/70">Job</li>
+    </ul>
+  </div>
 
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div class="space-y-2">
-      <p class="eyebrow">Translation</p>
-      <h1 class="t-h1">{{ document.display_name or document.original_filename }}</h1>
-      <p class="flex flex-wrap items-center gap-2 text-[14px] text-graphite">
-        <span class="font-medium text-ink-black">{{ job.source_language or '?' }} &rarr; {{ job.target_language }}</span>
-        <span class="text-pebble-border">/</span>
+      <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Translation</p>
+      <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">{{ document.display_name or document.original_filename }}</h1>
+      <p class="flex flex-wrap items-center gap-2 text-[14px] text-base-content/60">
+        <span class="font-medium text-base-content">{{ job.source_language or '?' }} &rarr; {{ job.target_language }}</span>
+        <span class="text-base-content/25">/</span>
         <span class="font-mono text-[12px]">{{ job.model or 'auto model' }}</span>
       </p>
     </div>
-    <a class="btn gap-1.5" href="/app/translations/{{ job.id }}/review">{{ icon('list', 'h-4 w-4') }} Review segments</a>
+    <a class="btn btn-sm gap-1.5" href="/app/translations/{{ job.id }}/review">{{ icon('list', 'size-4') }} Review segments</a>
   </header>
 
-  <div class="t-card p-6">
-    <div id="job-status"
-         hx-get="/app/translations/{{ job.id }}/status"
-         hx-trigger="every 2s [document.getElementById('job-active')?.value === '1']"
-         hx-target="this"
-         hx-swap="innerHTML">
-      {% include "partials/job_status.html" %}
+  <div class="card card-border bg-base-100">
+    <div class="card-body p-6">
+      <div id="job-status"
+           hx-get="/app/translations/{{ job.id }}/status"
+           hx-trigger="every 2s [document.getElementById('job-active')?.value === '1']"
+           hx-target="this"
+           hx-swap="innerHTML">
+        {% include "partials/job_status.html" %}
+      </div>
     </div>
   </div>
 </section>

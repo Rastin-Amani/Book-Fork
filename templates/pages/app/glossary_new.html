@@ -1,29 +1,33 @@
 {% extends "layouts/base.html" %}
-{% from "components/icons.html" import icon %}
 {% block title %}New glossary · {{ app_name }}{% endblock %}
 {% block content %}
 <section class="mx-auto max-w-xl space-y-6">
-  <a href="/app/glossaries" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
-    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Glossaries
-  </a>
-  <header class="space-y-1.5">
-    <p class="eyebrow">New</p>
-    <h1 class="t-h1">Create a glossary</h1>
+  <div class="breadcrumbs -mb-4 text-[12px] text-base-content/45">
+    <ul>
+      <li><a href="/app/glossaries">Glossaries</a></li>
+      <li class="text-base-content/70">New</li>
+    </ul>
+  </div>
+  <header class="space-y-2">
+    <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">New</p>
+    <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Create a glossary</h1>
   </header>
 
-  <form hx-post="/app/glossaries" class="t-card space-y-5 p-6">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <label class="block">
-      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Name</span>
-      <input class="input w-full" name="name" placeholder="Product terminology" required>
-    </label>
-    <label class="block">
-      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Description <span class="font-normal text-mid-gray">(optional)</span></span>
-      <textarea class="textarea w-full" name="description" rows="3" placeholder="What this glossary is for"></textarea>
-    </label>
-    <div class="flex items-center gap-2 pt-1">
-      <button class="btn btn-primary" type="submit">Create glossary</button>
-      <a class="btn btn-ghost" href="/app/glossaries">Cancel</a>
+  <form hx-post="/app/glossaries" class="card card-border bg-base-100">
+    <div class="card-body gap-5 p-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label class="block">
+        <span class="mb-1.5 block text-[13px] font-medium">Name</span>
+        <input class="input w-full" name="name" placeholder="Product terminology" required>
+      </label>
+      <label class="block">
+        <span class="mb-1.5 block text-[13px] font-medium">Description <span class="font-normal text-base-content/40">(optional)</span></span>
+        <textarea class="textarea w-full" name="description" rows="3" placeholder="What this glossary is for"></textarea>
+      </label>
+      <div class="flex items-center gap-2 pt-1">
+        <button class="btn btn-primary" type="submit">Create glossary</button>
+        <a class="btn btn-ghost" href="/app/glossaries">Cancel</a>
+      </div>
     </div>
   </form>
 </section>

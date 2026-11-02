@@ -4,19 +4,27 @@
 {% block content %}
 <section class="space-y-8">
   <header class="flex flex-wrap items-end justify-between gap-4">
-    <div class="space-y-1.5">
-      <p class="eyebrow">Connections</p>
-      <h1 class="t-h1">Providers</h1>
-      <p class="text-[14px] text-graphite">Bring your own OpenAI-compatible endpoint, or use Book Fork-managed books.</p>
+    <div class="space-y-2">
+      <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Connections</p>
+      <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Providers</h1>
+      <p class="text-[14px] leading-relaxed text-base-content/60">Bring your own OpenAI-compatible endpoint, or use Book Fork-managed books.</p>
     </div>
-    <a href="/app/providers/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'h-4 w-4') }} Add provider</a>
+    <a href="/app/providers/new" class="btn btn-primary gap-1.5">{{ icon('plus', 'size-4') }} Add provider</a>
   </header>
 
   {% if connections %}
-  <div class="t-card overflow-hidden">
+  <div class="card card-border overflow-hidden bg-base-100">
     <div class="overflow-x-auto">
-      <table class="t-table">
-        <thead><tr><th>Name</th><th>Base URL</th><th>Billing</th><th>Status</th><th></th></tr></thead>
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Name</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Base URL</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Billing</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Status</th>
+            <th></th>
+          </tr>
+        </thead>
         <tbody>
           {% for connection in connections %}{% include "partials/provider_row.html" %}{% endfor %}
         </tbody>
@@ -24,11 +32,13 @@
     </div>
   </div>
   {% else %}
-  <div class="t-card flex flex-col items-center gap-3 px-6 py-20 text-center">
-    <span class="grid h-12 w-12 place-items-center rounded-[6px] bg-warm-cream text-mid-gray">{{ icon('plug', 'h-6 w-6') }}</span>
-    <h2 class="t-h2 text-[17px]">No providers yet</h2>
-    <p class="max-w-sm text-[14px] text-graphite">Add your own OpenAI-compatible endpoint, or use a managed book.</p>
-    <a href="/app/providers/new" class="btn btn-primary">Add a provider</a>
+  <div class="card card-border bg-base-100">
+    <div class="card-body items-center px-6 py-20 text-center">
+      <span class="grid size-12 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('plug', 'size-6') }}</span>
+      <h2 class="mt-1 text-[17px] font-semibold tracking-[-0.01em]">No providers yet</h2>
+      <p class="max-w-sm text-[14px] leading-relaxed text-base-content/60">Add your own OpenAI-compatible endpoint, or use a managed book.</p>
+      <a href="/app/providers/new" class="btn btn-outline btn-sm mt-2">Add a provider</a>
+    </div>
   </div>
   {% endif %}
 </section>

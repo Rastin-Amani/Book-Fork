@@ -4,25 +4,27 @@
 {% block content %}
 <section class="space-y-8">
   <header class="flex flex-wrap items-end justify-between gap-4">
-    <div class="space-y-1.5">
-      <p class="eyebrow">Operator</p>
-      <h1 class="t-h1">Administration</h1>
-      <p class="text-[14px] text-graphite">Declarative CRUD for providers, prompts, models and languages.</p>
+    <div class="space-y-2">
+      <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Operator</p>
+      <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Administration</h1>
+      <p class="text-[14px] leading-relaxed text-base-content/60">Declarative CRUD for providers, prompts, models and languages.</p>
     </div>
-    <a href="/admin/metrics" class="btn gap-1.5">{{ icon('activity', 'h-4 w-4') }} Metrics</a>
+    <a href="/admin/metrics" class="btn btn-sm gap-1.5">{{ icon('activity', 'size-4') }} Metrics</a>
   </header>
 
   {% for group in catalog %}
-  <div class="space-y-4">
-    <h2 class="eyebrow">{{ group.title }}</h2>
+  <div class="space-y-3">
+    <h2 class="font-mono text-[10px] uppercase tracking-[0.16em] text-base-content/45">{{ group.title }}</h2>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {% for resource in group.resources %}
-      <a href="/admin/{{ resource.slug }}" class="t-card group flex flex-col gap-2 p-5 transition-colors hover:border-mid-gray">
-        <span class="flex items-center justify-between gap-2 text-[15px] font-semibold tracking-[-0.01em] text-ink-black">
-          {{ resource.title }}
-          <span class="text-mid-gray transition-transform group-hover:translate-x-0.5">{{ icon('arrow-right', 'h-4 w-4') }}</span>
-        </span>
-        {% if resource.description %}<span class="text-[13px] leading-relaxed text-graphite">{{ resource.description }}</span>{% endif %}
+      <a href="/admin/{{ resource.slug }}" class="card card-border group bg-base-100 transition-colors hover:border-base-content/25">
+        <div class="card-body gap-1.5 p-4">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[14.5px] font-semibold tracking-[-0.01em]">{{ resource.title }}</span>
+            <span class="text-base-content/30 transition-transform duration-200 group-hover:translate-x-0.5">{{ icon('arrow-right', 'size-4') }}</span>
+          </div>
+          {% if resource.description %}<span class="text-[13px] leading-relaxed text-base-content/55">{{ resource.description }}</span>{% endif %}
+        </div>
       </a>
       {% endfor %}
     </div>

@@ -1,40 +1,45 @@
 {% extends "layouts/base.html" %}
-{% from "components/icons.html" import icon %}
 {% block title %}Compare prompt versions · Admin{% endblock %}
 {% block content %}
 <section class="space-y-8">
-  <a href="/admin/prompt-versions" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-graphite transition-colors hover:text-ink-black">
-    {{ icon('arrow-left', 'h-3.5 w-3.5') }} Prompt versions
-  </a>
-  <header class="space-y-1.5">
-    <p class="eyebrow">Admin</p>
-    <h1 class="t-h1">Compare prompt versions</h1>
+  <div class="breadcrumbs -mb-4 text-[12px] text-base-content/45">
+    <ul>
+      <li><a href="/admin">Admin</a></li>
+      <li><a href="/admin/prompt-versions">Prompt versions</a></li>
+      <li class="text-base-content/70">Compare</li>
+    </ul>
+  </div>
+  <header class="space-y-2">
+    <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Admin</p>
+    <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Compare prompt versions</h1>
   </header>
 
-  <form method="get" action="/admin/prompt-versions/compare" class="t-card flex flex-wrap items-end gap-4 p-5">
-    <label class="block">
-      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Left</span>
-      <select class="select" name="left">
-        {% for version in versions %}<option value="{{ version.id }}" {% if left and left.id == version.id %}selected{% endif %}>v{{ version.version }} ({{ version.status }})</option>{% endfor %}
-      </select>
-    </label>
-    <label class="block">
-      <span class="mb-1.5 block text-[13px] font-medium text-ink-black">Right</span>
-      <select class="select" name="right">
-        {% for version in versions %}<option value="{{ version.id }}" {% if right and right.id == version.id %}selected{% endif %}>v{{ version.version }} ({{ version.status }})</option>{% endfor %}
-      </select>
-    </label>
-    <button class="btn" type="submit">Compare</button>
+  <form method="get" action="/admin/prompt-versions/compare" class="card card-border bg-base-100">
+    <div class="card-body flex flex-wrap items-end gap-4 p-5 sm:flex-row">
+      <label class="block">
+        <span class="mb-1.5 block text-[13px] font-medium">Left</span>
+        <select class="select" name="left">
+          {% for version in versions %}<option value="{{ version.id }}" {% if left and left.id == version.id %}selected{% endif %}>v{{ version.version }} ({{ version.status }})</option>{% endfor %}
+        </select>
+      </label>
+      <label class="block">
+        <span class="mb-1.5 block text-[13px] font-medium">Right</span>
+        <select class="select" name="right">
+          {% for version in versions %}<option value="{{ version.id }}" {% if right and right.id == version.id %}selected{% endif %}>v{{ version.version }} ({{ version.status }})</option>{% endfor %}
+        </select>
+      </label>
+      <button class="btn" type="submit">Compare</button>
+    </div>
   </form>
 
   <div class="grid gap-5 md:grid-cols-2">
-    <div class="t-card overflow-hidden">
-      <div class="border-b border-pebble-border px-5 py-3 font-mono text-[12px] text-mid-gray">{% if left %}v{{ left.version }}{% else %}Left{% endif %}</div>
-      <pre class="whitespace-pre-wrap p-5 font-mono text-[12px] leading-relaxed text-graphite">{{ left.body if left else '' }}</pre>
+    <div class="card card-border overflow-hidden bg-base-100">
+      <div class="border-b border-base-300 px-5 py-3 font-mono text-[12px] text-base-content/45">{% if left %}v{{ left.version }}{% else %}Left{% endif %}</div>
+      <pre class="whitespace-pre-wrap p-5 font-mono text-[12px] leading-relaxed text-base-content/65">{{ left.body if left else '' }}</pre>
     </div>
-    <div class="t-card overflow-hidden">
-      <div class="border-b border-pebble-border px-5 py-3 font-mono text-[12px] text-mid-gray">{% if right %}v{{ right.version }}{% else %}Right{% endif %}</div>
-      <pre class="whitespace-pre-wrap p-5 font-mono text-[12px] leading-relaxed text-graphite">{{ right.body if right else '' }}</pre>
+    <div class="card card-border overflow-hidden bg-base-100">
+      <div class="border-b border-base-300 px-5 py-3 font-mono text-[12px] text-base-content/45">{% if right %}v{{ right.version }}{% else %}Right{% endif %}</div>
+      <pre class="whitespace-pre-wrap p-5 font-mono text-[12px] leading-relaxed text-base-content/65">{{ right.body if right else '' }}</pre>
     </div>
   </div>
 </section>
