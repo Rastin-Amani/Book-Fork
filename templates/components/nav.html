@@ -10,20 +10,25 @@
 ] -%}
 {%- set path = request.url.path -%}
 {%- if variant == 'desktop' %}
-<nav class="hidden min-w-0 items-center gap-0.5 lg:flex" aria-label="Primary">
+<nav class="hidden h-full items-center gap-1 lg:flex" aria-label="Primary">
   {%- for href, label, ic in links %}
   {%- set active = (path == href) or (href != '/app' and path.startswith(href)) %}
-  <a href="{{ href }}" class="btn btn-ghost btn-sm{% if active %} btn-active{% endif %}"
+  <a href="{{ href }}"
+     class="relative flex items-center rounded-field px-3 py-2 text-[14px] font-medium transition-colors {{ 'text-base-content after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-primary' if active else 'text-base-content/55 hover:bg-base-200 hover:text-base-content' }}"
      {% if active %}aria-current="page"{% endif %}>{{ label }}</a>
   {%- endfor %}
 </nav>
 {%- else %}
-<nav class="menu menu-sm w-full p-3" aria-label="Primary">
+<nav class="menu w-full gap-1 p-0" aria-label="Primary">
   {%- for href, label, ic in links %}
   {%- set active = (path == href) or (href != '/app' and path.startswith(href)) %}
   <li>
-    <a href="{{ href }}" class="gap-3{% if active %} menu-active{% endif %}"{% if active %} aria-current="page"{% endif %}>
-      {{ icon(ic, 'size-4') }}{{ label }}
+    <a href="{{ href }}"
+       class="flex items-center gap-3 rounded-field px-2.5 py-2.5 text-[15px] font-medium {{ 'bg-base-200 text-base-content' if active else 'text-base-content/65 hover:bg-base-200 hover:text-base-content' }}"
+       {% if active %}aria-current="page"{% endif %}>
+      <span class="grid size-8 shrink-0 place-items-center rounded-field {{ 'bg-base-100 text-base-content' if active else 'bg-base-200 text-base-content/50' }}">{{ icon(ic, 'size-4') }}</span>
+      <span class="min-w-0 flex-1 truncate">{{ label }}</span>
+      <span class="text-base-content/25">{{ icon('chevron-right', 'size-3.5') }}</span>
     </a>
   </li>
   {%- endfor %}

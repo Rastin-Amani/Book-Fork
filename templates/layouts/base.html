@@ -27,11 +27,11 @@
       {{ app_nav(request, 'desktop') }}
 
       <div class="ms-auto flex flex-none items-center gap-1">
-        <a href="/app/translations/new" class="btn btn-neutral btn-sm gap-1.5 max-sm:btn-square" aria-label="New translation">
-          {{ icon('plus', 'size-4') }}<span class="max-sm:hidden">New translation</span>
+        <a href="/app/translations/new" class="btn btn-neutral btn-sm gap-1.5">
+          {{ icon('plus', 'size-4') }}<span class="sm:hidden">New</span><span class="hidden sm:inline">New translation</span>
         </a>
         {% if current_user %}
-        <div x-data="{ open: false }" @click.outside="open = false" class="relative">
+        <div x-data="{ open: false }" @click.outside="open = false" class="relative hidden lg:block">
           <button type="button" @click="open = !open" :aria-expanded="open"
                   class="btn btn-ghost btn-sm gap-2 px-1.5" aria-label="Account menu">
             <span class="grid size-7 place-items-center rounded-full bg-info/10 text-xs font-semibold text-info">{{ (current_user.email or '?')[:1]|upper }}</span>
@@ -67,8 +67,33 @@
       </div>
     </div>
     <div x-show="mobileOpen" x-cloak @click="mobileOpen = false"
-         class="border-t border-base-300 bg-base-100 lg:hidden">
-      {{ app_nav(request, 'mobile') }}
+         class="border-t border-base-300 bg-base-100/95 backdrop-blur lg:hidden">
+      <div class="mx-auto max-w-6xl px-5 pb-6 pt-4">
+        {{ app_nav(request, 'mobile') }}
+
+        {% if current_user %}
+        <div class="mt-4 rounded-box border border-base-300 bg-base-200/40 p-3">
+          <div class="flex items-center gap-3">
+            <span class="grid size-9 shrink-0 place-items-center rounded-full bg-info/10 text-[13px] font-semibold text-info">{{ (current_user.email or '?')[:1]|upper }}</span>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-[13px] font-medium">{{ current_user.email }}</p>
+              <p class="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-base-content/40">Signed in</p>
+            </div>
+            <form hx-post="/auth/logout" hx-swap="none">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="btn btn-ghost btn-sm gap-1.5 px-2 text-[13px] text-base-content/60">
+                {{ icon('logout', 'size-4') }}<span class="max-[359px]:hidden">Log out</span>
+              </button>
+            </form>
+          </div>
+          <div class="mt-3 grid grid-cols-3 gap-1 border-t border-base-300 pt-3">
+            <a href="/app/settings" class="btn btn-ghost btn-sm justify-start gap-2 px-2 text-[13px]">{{ icon('settings', 'size-4') }} Settings</a>
+            <a href="/app/settings/billing" class="btn btn-ghost btn-sm justify-start gap-2 px-2 text-[13px]">{{ icon('credit-card', 'size-4') }} Billing</a>
+            <a href="/admin" class="btn btn-ghost btn-sm justify-start gap-2 px-2 text-[13px]">{{ icon('shield', 'size-4') }} Admin</a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
     </div>
   </header>
 
