@@ -9,7 +9,7 @@ It is configuration-driven, modular, resumable, and provider-agnostic: nothing
 about translation behaviour (languages, providers, models, prompts, limits,
 pricing) is hardcoded.
 
-> **Status: v0.5.1 (Phase 8 complete).** Phase 1 foundation, Phase 2 configuration-driven
+> **Status: v0.6.0 (Phase 8 complete).** Phase 1 foundation, Phase 2 configuration-driven
 > data model ([`docs/data-model.md`](docs/data-model.md)), Phase 3 document engine
 > ([`docs/documents.md`](docs/documents.md)), Phase 4 translation engine
 > ([`docs/translation.md`](docs/translation.md)), Phase 5 durable worker
@@ -19,9 +19,9 @@ pricing) is hardcoded.
 > observability/deployment. The admin area is declarative CRUD plus prompt, model,
 > language management; see [`docs/security-audit.md`](docs/security-audit.md),
 > [`docs/deployment.md`](docs/deployment.md) and [`docs/configuration.md`](docs/configuration.md).
-> The UI carries a bespoke "Warm Paper Workspace" design system — a custom
-> daisyUI theme, self-hosted DM Sans, and a flat cream/amber visual language.
-> See [`DESIGN.md`](DESIGN.md) and [`docs/ui.md`](docs/ui.md).
+> The UI follows the shared "Warm Paper Workspace" system — a custom daisyUI
+> theme, self-hosted DM Sans, flat cream/amber surfaces, and no bespoke
+> component classes. See [`DESIGN.md`](DESIGN.md) and [`docs/ui.md`](docs/ui.md).
 
 ---
 

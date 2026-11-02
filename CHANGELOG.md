@@ -1,8 +1,41 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.5.1** and is described below as delivered phases. Dates
+current release is **0.6.0** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.6.0] — 2026-11-02
+
+**Status: unified interface release.**
+
+### Interface
+
+- Replace the bespoke component layer with daisyUI primitives and semantic
+  theme tokens; the stylesheet now holds only the theme, self-hosted DM Sans and
+  a minimal element base.
+- Rebuild the application shell, auth split panel, dashboard, settings and admin
+  surfaces on the shared “Warm Paper Workspace” system used by the marketing
+  site.
+- Give the new-translation workflow a single form with a sticky action rail and
+  replace ad-hoc health rows with one consistent table, card and badge language.
+- Add breadcrumb navigation, cleaner empty states, a stats strip, and a single
+  ink chamber on the dashboard for hierarchy.
+- Keep one amber action per view and remove named palette tokens so every
+  surface follows the theme.
+
+### Documentation
+
+- Rewrite `DESIGN.md` around the token-only system, daisyUI primitive mapping
+  and service-first layout rules.
+- Align the UI, architecture and development guides with the implemented
+  interface.
+
+### Known limitations at 0.6.0
+
+- The combined web/worker container is intended for one replica because worker
+  slot ids are container-local.
+- Google and/or GitHub must be configured in PocketBase; there is no password
+  fallback.
 
 ## [0.5.1] — 2026-10-30
 
