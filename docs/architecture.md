@@ -123,10 +123,11 @@ path or bucket.
 
 Server-rendered Jinja2 with HTMX (navigation/mutations) and Alpine.js (local UI
 state) over Tailwind CSS + daisyUI. A persistent shell (`#app-content`) is the
-swap target for internal navigation. The visual system is the bespoke "Warm Paper
+swap target for internal navigation. The visual system is the shared "Warm Paper
 Workspace" theme (cream canvas, single amber action colour, flat 6px geometry,
-hairline borders, self-hosted DM Sans) implemented as a custom daisyUI 5 theme;
-tokens and rules live in `static/css/input.css` and [`../DESIGN.md`](../DESIGN.md).
+hairline borders, self-hosted DM Sans) implemented as a custom daisyUI 5 theme
+with no bespoke component classes; tokens and rules live in
+`static/css/input.css` and [`../DESIGN.md`](../DESIGN.md).
 
 ## 8. Package & version decisions
 

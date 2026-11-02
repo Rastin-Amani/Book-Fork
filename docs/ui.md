@@ -4,10 +4,11 @@ Server-rendered FastAPI + Jinja2 + HTMX + Alpine + Tailwind + daisyUI. No SPA
 framework. The browser-facing app lives under `/app/*`; admin under `/admin/*`.
 
 > **Design note.** The frontend follows the "Warm Paper Workspace" system: a
-> cream canvas, a single amber action colour, flat 6px geometry, hairline pebble
-> borders instead of shadows, and self-hosted DM Sans. It is implemented as a
-> custom daisyUI 5 theme plus design tokens in `static/css/input.css`. Full
-> tokens, components and rules live in [`../DESIGN.md`](../DESIGN.md).
+> cream canvas, a single amber action colour, flat 6px geometry, hairline
+> `base-300` borders instead of shadows, and self-hosted DM Sans. It is a custom
+> daisyUI 5 theme with no bespoke component classes: templates compose daisyUI
+> primitives and semantic tokens directly. Full tokens and rules live in
+> [`../DESIGN.md`](../DESIGN.md).
 
 ## Application shell
 

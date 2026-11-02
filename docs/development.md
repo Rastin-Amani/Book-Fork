@@ -129,5 +129,5 @@ HTMX, Alpine, Tailwind and daisyUI are compiled/vendored into `static/`
 (`app.css` and `js/vendor/` are git-ignored generated output). Run `npm run build`
 after a fresh clone or whenever `input.css` changes.
 
-The visual system is the bespoke “Warm Paper Workspace” daisyUI theme; tokens
+The visual system is the token-only “Warm Paper Workspace” daisyUI theme; tokens
 live in `static/css/input.css` and the rules in [`../DESIGN.md`](../DESIGN.md).
