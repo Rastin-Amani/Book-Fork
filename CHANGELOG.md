@@ -1,8 +1,23 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.6.0** and is described below as delivered phases. Dates
+current release is **0.6.1** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.6.1] — 2026-11-02
+
+**Status: interface polish.**
+
+### Interface
+
+- Mark the active header tab with an amber underline instead of a grey pill.
+- Rebuild the mobile menu with icon tiles, an active row, and an account card
+  carrying logout plus Settings, Billing and Admin links.
+- Keep every page inside the viewport on phones: grid cards no longer force
+  horizontal overflow, long document names truncate, and low-priority table
+  columns hide below `sm` and `md`.
+- Show glossary preferred/forbidden flags inline on phones.
+- Fix breadcrumbs overlapping the page heading.
 
 ## [0.6.0] — 2026-11-02
 
