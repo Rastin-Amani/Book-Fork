@@ -17,7 +17,7 @@
       <p class="flex flex-wrap items-center gap-2 text-[14px] text-base-content/60">
         <span class="font-medium text-base-content">{{ job.source_language or '?' }} &rarr; {{ job.target_language }}</span>
         <span class="text-base-content/25">/</span>
-        <span class="font-mono text-[12px]">{{ job.model or 'auto model' }}</span>
+        <span class="font-mono text-[12px]">{{ job.snapshot.get('model_identifier') or job.model or 'auto model' }}</span>
       </p>
     </div>
     <a class="btn btn-sm gap-1.5" href="/app/translations/{{ job.id }}/review">{{ icon('list', 'size-4') }} Review segments</a>

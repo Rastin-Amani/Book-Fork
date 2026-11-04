@@ -28,10 +28,10 @@
         <tbody>
           {% for doc in documents %}
           <tr>
-            <td class="max-w-0">
+            <td>
               <a href="/app/documents/{{ doc.id }}" class="flex min-w-0 items-center gap-2.5 font-medium transition-colors hover:text-accent">
                 <span class="grid size-7 shrink-0 place-items-center rounded-field bg-base-200 text-base-content/40">{{ icon('file', 'size-3.5') }}</span>
-                <span class="block max-w-[15rem] truncate sm:max-w-[24rem]">{{ doc.display_name or doc.original_filename }}</span>
+                <span class="block max-w-[15rem] truncate sm:max-w-[30rem]">{{ doc.display_name or doc.original_filename }}</span>
               </a>
             </td>
             <td class="hidden text-[12px] uppercase tracking-[0.04em] sm:table-cell">{{ doc.document_type or '—' }}</td>
