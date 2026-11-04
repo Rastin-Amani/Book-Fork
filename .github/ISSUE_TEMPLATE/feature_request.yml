@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest a capability, integration, or workflow improvement.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the workflow and where it stops today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+      description: A concrete behaviour is easier to evaluate than a general direction.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have tried
+    validations:
+      required: false
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Areas involved
+      options:
+        - label: Document parsing or export
+        - label: Translation engine or prompts
+        - label: Providers or models
+        - label: Worker, jobs or retries
+        - label: Interface or review
+        - label: Billing or administration
+        - label: Documentation
