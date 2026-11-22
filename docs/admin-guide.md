@@ -44,6 +44,8 @@ The hub is at **`/admin`**. Resources are grouped into categories:
 - `translation-jobs` — inspect jobs; edit status/quality/error fields.
 - `failed-jobs` — jobs with status `failed` or `cancelled`.
 - `job-events` — the structured job log (read-only; level editable).
+- `billing-invoices` — book orders and payment state (read-only; writes are
+  server-only). Reconcile from the customer invoice page or the Gumroad dashboard.
 
 **Providers & models** (`/admin/providers`, `/admin/models`,
 `/admin/model-capabilities`, `/admin/provider-connections`)
@@ -71,6 +73,9 @@ The hub is at **`/admin`**. Resources are grouped into categories:
 
 Special pages:
 - `/admin/metrics` — the in-process counter/gauge snapshot.
+- `/admin/billing` — open invoices (pending, partial, review) with a
+  **Reconcile** action that asks Gumroad for the authoritative sale. See
+  [Billing](billing.md).
 - `/admin/prompt-versions/compare` — side-by-side prompt version diff.
 
 ---
@@ -164,7 +169,9 @@ There is no customer credit wallet. A managed job is a book order priced at
 snapshot is stored on the job (`metadata.order`) and shown on the customer's
 billing page at `/app/settings/billing`.
 
-Operators reconcile orders through their payment provider or invoice system.
+Operators reconcile orders through Gumroad (sales and refunds) or the invoice
+records in PocketBase. A sale without the invoice correlation token is
+reconciled manually; see [Billing](billing.md).
 Failed and cancelled jobs are not charged. Pricing is configured with
 `billing.book_price_usd`, `billing.pages_per_block` and
 `billing.words_per_page`; provider cost is still recorded on each job for margin

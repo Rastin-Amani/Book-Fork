@@ -56,6 +56,20 @@ Only infrastructure and secrets belong in the environment (see `.env.example` an
 admin. Business configuration (languages, providers, models, prompts, pricing,
 limits, retention, rate-limit-adjacent thresholds) lives in PocketBase.
 
+### Billing in production
+
+Self-hosted installs leave `BILLING_ENABLED=false` and need no payment
+credentials. A cloud install sets `BILLING_ENABLED=true` with
+`PAYMENT_PROVIDER=gumroad`, `GUMROAD_ACCESS_TOKEN`, `GUMROAD_WEBHOOK_SECRET`,
+`GUMROAD_PRODUCT_ID`, `GUMROAD_PRODUCT_PERMALINK` and
+`POCKETBASE_SERVICE_CREDENTIAL`; startup fails rather than run half-configured.
+The webhook endpoint is `POST https://<host>/api/webhooks/gumroad?secret=<secret>`
+and must reach the app without the proxy rewriting its form content type.
+Gumroad does not sign API resource notifications, so that secret is the local
+credential and every delivery is re-verified against the Gumroad API. Manual
+product, token, subscription and test-purchase steps are in
+[billing.md](billing.md#5-gumroad-setup).
+
 ## Reverse proxy & HTTPS
 
 - `APP_BASE_URL` / `ROOT_PATH` describe the external URL and optional sub-path.

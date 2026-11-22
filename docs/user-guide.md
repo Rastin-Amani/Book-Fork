@@ -305,16 +305,21 @@ Approval currently happens in the admin area (see the
 `/app/settings/billing` shows:
 
 - the two plans: **free with your key** and **$7 per managed book**;
-- the **book total** for completed managed jobs;
-- **Book orders** — one row per job with pages, blocks, amount and status.
+- your **free managed allowance**, when the operator configures one;
+- the **book total** for paid managed jobs;
+- **Book orders** — one row per job with pages, blocks, amount and status;
+- **Payment records** — invoices with their state.
 
 A managed job is priced when it is created: **$7 flat up to 1,000 pages**, then
-+$7 for each extra 1,000-page block. Failed and cancelled jobs are **No charge**.
++$7 for each extra 1,000-page block. Failed and cancelled jobs are not charged.
 Your-own-API jobs are **Free**. There is no prepaid wallet.
 
-> **Note.** Payment collection is outside the app: `/app/settings/billing` is the
-> order history your operator reconciles through their payment provider or
-> invoice system.
+When payment is required, the job opens on an **invoice** page. Choose
+**Continue to payment** to open the secure Gumroad checkout. Translation starts
+only after Book Fork re-reads the sale from Gumroad and verifies the product,
+amount and checkout reference — not when the browser returns. The invoice page
+refreshes while it waits, and **Check status** asks Gumroad again. Card details
+are handled entirely by Gumroad and are never seen by Book Fork.
 
 ---
 
@@ -331,7 +336,9 @@ Your-own-API jobs are **Free**. There is no prepaid wallet.
 - **Glossary attachment** to a job/profile is not yet exposed in the UI.
 - **Memory approval** is admin-only; the user review flow does not approve
   memory entries.
-- **No self-service card checkout**; book orders are reconciled outside the app.
+- **Billing depends on the operator.** Managed checkout exists only when the
+  operator enables Gumroad billing; otherwise book orders are handled outside
+  the app.
 - **Single personal workspace per user.** Multi-user workspace invitations are
   modelled in data but not exposed as a user flow.
 

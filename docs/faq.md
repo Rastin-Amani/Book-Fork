@@ -109,16 +109,18 @@ are reused, and always per exact language pair.
 A managed job is one book order: **$7 flat, up to 1,000 pages**, and +$7 for each
 extra 1,000-page block. The estimate is based on page count, never tokens, and is
 shown before you start. Failed or cancelled jobs are not charged. The billing
-page lists every order; payment is reconciled outside the app. See
+page lists every order and, when the operator enables Gumroad billing, links to
+a hosted checkout whose sale is verified server-side before the book starts. See
 [Billing](billing.md).
 
 ---
 
 **Can I pay in the app?**
 
-There is no self-service card checkout yet. The app records book orders and
-your operator handles collection through their payment provider or invoice
-system.
+Yes, when the operator enables billing: managed books open a Gumroad hosted
+checkout, and the book is queued only after Book Fork re-reads the sale from
+Gumroad and verifies the product, amount and checkout reference. Self-hosted
+installs leave billing off, so nothing is charged.
 
 ---
 

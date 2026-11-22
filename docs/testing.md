@@ -61,7 +61,8 @@ Focused, dependency-light tests of a single module or service. Groups include:
 - **Providers:** `test_provider_factory`, `test_provider_runtime_ssrf`,
   `test_provider_testing`, `test_provider_errors`,
   `test_provider_credentials`, `test_translation_provider_openai`.
-- **Billing:** `test_billing_pricing`, `test_billing_estimation`.
+- **Billing:** `test_billing_pricing`, `test_billing_estimation`,
+  `test_billing_service`, `test_gumroad_provider`, `test_config`.
 - **Worker/jobs:** `test_jobs_service`, `test_worker_runner`,
   `test_worker_executor`, `test_worker_store`, `test_worker_heartbeat`,
   `test_worker_registry`, `test_entrypoint`.
@@ -87,6 +88,12 @@ End-to-end behaviour through the HTTP layer:
   `tests/job_fixtures.py` — sample documents, segments and jobs.
 
 Use these instead of adding real network calls to tests.
+
+Gumroad is faked at two levels: `test_gumroad_provider` drives the adapter over
+an `httpx.MockTransport`, and `test_billing_service` uses a fake provider at the
+normalized boundary. **No test makes a real Gumroad request or purchase**, so a
+green suite proves the code paths, not that a real payment succeeds. A staging
+purchase is still required (see [billing.md](billing.md#5-gumroad-setup)).
 
 ## 5. What to test
 

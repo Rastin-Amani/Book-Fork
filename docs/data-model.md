@@ -95,9 +95,25 @@ owned by a workspace.
   (never by source hash alone).
 
 ### Billing
-Book orders live on `translation_jobs.metadata.order` (one managed job = one
-order). There is no customer wallet. Legacy `credit_*` and `usage_events`
-collections remain in old databases but are no longer read or written.
+One managed translation job is one book order. The price snapshot lives on
+`translation_jobs.metadata.order` (server-computed, never client-supplied), and
+payment state lives in:
+
+- `billing_invoices` — amount/currency/status, provider sale/subscription
+  reference, unique correlation token, product snapshot, paid/refunded/fulfilled
+  timestamps. Clients may read their workspace's rows; every write is
+  server-only. Historical PayRam rows stay readable (`provider=payram`).
+- `billing_events` — webhook deliveries and processing outcome, deduplicated by
+  a stable `event_key` unique index. No client access.
+- `billing_free_claims` — bounded lifetime free-book slots, unique on
+  `(workspace, kind, slot)`.
+
+Managed jobs are created as `awaiting_payment` and become `queued` only after a
+verified payment or an explicit free allowance. There is no customer wallet.
+Legacy `credit_*` and `usage_events` collections remain in old databases but are
+no longer read or written.
+
+See [billing.md](billing.md).
 
 ### Configuration
 `system_settings` — typed (`string | int | float | bool | json`) key/value records

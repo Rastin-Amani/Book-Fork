@@ -277,9 +277,10 @@ Deployment details, reverse proxy and environment: [`docs/deployment.md`](docs/d
 | **Setup** | Docker or local processes | Sign in and upload |
 | **Best for** | Studios, publishers, operators who want control | Authors who just need the book translated |
 
-Managed billing is a book order recorded in the app; payment is reconciled by
-the operator (there is no self-service card checkout yet). Failed or cancelled
-jobs are not charged. Details: [`docs/billing.md`](docs/billing.md).
+Managed billing is a book order recorded in the app; payment runs through
+Gumroad hosted checkout and is fulfilled only after the server re-reads and
+verifies the sale. Failed or cancelled jobs are not charged. Details:
+[`docs/billing.md`](docs/billing.md).
 
 ## Configuration
 
@@ -325,8 +326,8 @@ Book Fork is **pre-1.0**. These are deliberate, documented limits, not surprises
   Anthropic and Gemini catalog records exist but need an adapter.
 - **Glossary attachment is not in the UI yet.** Terms can be managed, but a
   glossary is not selectable on a job/profile screen.
-- **No self-service card checkout.** Managed book orders are recorded; payment is
-  handled outside the app.
+- **Billing is opt-in.** Managed checkout runs through Gumroad only when the
+  operator enables it; self-hosted installs record orders without charging.
 - **One combined container, one replica.** Worker slot ids are container-local;
   scale the worker separately for multiple replicas.
 - **Personal workspaces only.** Membership and roles are modelled and enforced,

@@ -32,6 +32,28 @@ uv run python scripts/generate_secrets.py
 | `POCKETBASE_SERVICE_CREDENTIAL` | no | — | For trusted server-side admin ops. |
 | `POCKETBASE_USERS_COLLECTION` | no | `users` | Auth collection name. |
 
+### Payments (Gumroad)
+
+Billing is opt-in. It is off by default; managed books are then not charged and
+no checkout exists, and a self-hosted install needs no Gumroad credentials.
+With `BILLING_ENABLED=true` the app validates the Gumroad configuration at
+startup and refuses to run half-configured. See [billing.md](billing.md).
+
+| Variable | Required | Default | Notes |
+| --- | --- | --- | --- |
+| `BILLING_ENABLED` | no | `false` | Enable checkout and server-side enforcement. |
+| `PAYMENT_PROVIDER` | when enabled | `gumroad` | Only `gumroad` is supported. |
+| `GUMROAD_ACCESS_TOKEN` | when enabled | — | Seller API token; server-side only. |
+| `GUMROAD_WEBHOOK_SECRET` | when enabled | — | Your own ≥32-character callback secret. |
+| `GUMROAD_PRODUCT_ID` | when enabled | — | Product id (not the permalink). |
+| `GUMROAD_PRODUCT_PERMALINK` | when enabled | — | Checkout slug, e.g. `book-fork`. |
+| `GUMROAD_CUSTOM_FIELD_NAME` | no | `Application Checkout Reference` | Must match the product custom field. |
+| `GUMROAD_TIMEOUT_SECONDS` | no | `10` | Outbound request timeout. |
+| `GUMROAD_ALLOW_TEST_SALES` | no | `false` | Fulfil seller self-purchases (`test=true`). |
+
+When billing is enabled, `POCKETBASE_SERVICE_CREDENTIAL` is also required:
+invoices and entitlements are written only with trusted server credentials.
+
 ### OAuth sign-in (Google / GitHub)
 
 The app reads the enabled providers from PocketBase at `/login`; these variables
@@ -135,6 +157,13 @@ Seeded into `system_settings` by `scripts/seed.py`. Admin-editable at
 | `retention.job_events_days` | Delete job events after N days (0 = keep). |
 | `retention.temp_files_hours` | Delete temp files after N hours (0 = keep). |
 | `admin.emails` | JSON list of admin email addresses. |
+
+Billing settings added with Gumroad checkout:
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `billing.free_managed_books` | `1` | Lifetime free managed books per workspace (0 = none). |
+| `billing.checkout_expiry_hours` | `24` | Hours before an unpaid checkout is replaced. |
 
 ### Full seeded setting groups
 

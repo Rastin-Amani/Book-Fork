@@ -97,6 +97,17 @@ in the worker.
 
 Formulas live in `app/billing/`, never scattered through the worker.
 
+## Payment
+
+Managed books are paid through Gumroad hosted checkout: the server builds a
+product URL carrying the invoice amount and a high-entropy correlation token,
+and fulfils only after re-reading the sale from the Gumroad API. Notifications
+use a local callback secret plus that API verification; Gumroad does not sign
+API resource notifications. The job is created as `awaiting_payment` and only
+queued after the entitlement is granted. Own-API jobs never create an invoice.
+The full lifecycle, configuration, verification rules and operations are in
+[billing.md](billing.md).
+
 ## UI-facing estimates
 
 `app/billing/estimation.py` provides the reusable estimate shown before
