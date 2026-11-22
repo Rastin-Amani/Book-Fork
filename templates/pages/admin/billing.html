@@ -1,0 +1,75 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% from "components/status.html" import status_badge %}
+{% block title %}Billing · Admin{% endblock %}
+{% block content %}
+<section class="space-y-8">
+  <div class="breadcrumbs min-w-0 max-w-full overflow-x-auto text-[12px] text-base-content/45">
+    <ul>
+      <li><a href="/admin">Admin</a></li>
+      <li class="text-base-content/70">Billing</li>
+    </ul>
+  </div>
+  <header class="space-y-2">
+    <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Operator</p>
+    <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Open invoices</h1>
+    <p class="text-[14px] leading-relaxed text-base-content/60">
+      Pending and review payments across all workspaces. Reconcile asks Gumroad for the authoritative sale;
+      it never changes an amount or marks a book paid on its own.
+    </p>
+  </header>
+
+  {% if error %}
+  <div class="alert alert-error alert-soft items-start text-[13.5px]" role="alert">
+    <span class="mt-0.5">{{ icon('alert', 'size-4') }}</span>
+    <p class="leading-relaxed">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <div class="card card-border overflow-hidden bg-base-100">
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Reference</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Workspace</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Amount</th>
+            <th class="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45">Status</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 md:table-cell">Provider ref</th>
+            <th class="hidden text-[10.5px] font-semibold uppercase tracking-[0.12em] text-base-content/45 sm:table-cell">Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for invoice in invoices %}
+          <tr>
+            <td class="font-mono text-[12px]">{{ invoice.reference }}</td>
+            <td class="font-mono text-[12px]">{{ invoice.workspace }}</td>
+            <td class="whitespace-nowrap font-mono text-[12px]">${{ '%.2f'|format(invoice.amount) }}</td>
+            <td>{{ status_badge(invoice.status) }}</td>
+            <td class="hidden max-w-[14rem] truncate font-mono text-[12px] md:table-cell">{{ invoice.provider_reference or '—' }}</td>
+            <td class="hidden whitespace-nowrap text-[13px] text-base-content/55 sm:table-cell">{{ invoice.created }}</td>
+            <td class="text-right">
+              {% if invoice.provider_reference or invoice.correlation_token %}
+              <form method="post" action="/admin/billing/{{ invoice.id }}/reconcile" hx-post="/admin/billing/{{ invoice.id }}/reconcile" hx-swap="none">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="btn btn-ghost btn-xs gap-1" type="submit">{{ icon('refresh', 'size-3') }} Reconcile</button>
+              </form>
+              {% else %}
+              <span class="text-[12px] text-base-content/40">No checkout yet</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="py-10 text-center text-base-content/45">No open invoices.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="text-[13px] leading-relaxed text-base-content/55">
+    All invoices: <a class="link link-accent" href="/admin/billing-invoices">billing invoices resource</a>.
+  </p>
+</section>
+{% endblock %}

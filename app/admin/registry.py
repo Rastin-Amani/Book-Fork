@@ -127,6 +127,7 @@ RESOURCES: tuple[AdminResource, ...] = (
                 "select",
                 choices=(
                     "queued",
+                    "awaiting_payment",
                     "preparing",
                     "parsing",
                     "segmenting",
@@ -163,6 +164,45 @@ RESOURCES: tuple[AdminResource, ...] = (
             _f("status", "Status", "select", choices=("queued", "failed", "cancelled")),
             _f("error_code", "Error code", "readonly"),
             _f("error_message", "Error message", "readonly"),
+        ),
+    ),
+    AdminResource(
+        slug="billing-invoices",
+        title="Billing invoices",
+        repo="invoices",
+        label="reference",
+        category="content",
+        description=(
+            "Payment records are server-written and read-only here; "
+            "reconcile pending rows from the billing page."
+        ),
+        can_create=False,
+        can_update=False,
+        can_delete=False,
+        list_fields=(
+            "reference",
+            "workspace",
+            "amount",
+            "currency",
+            "status",
+            "provider",
+            "job",
+            "created",
+        ),
+        fields=(
+            _f("reference", "Reference", "readonly"),
+            _f("workspace", "Workspace", "readonly"),
+            _f("job", "Job", "readonly"),
+            _f("product_name", "Product", "readonly"),
+            _f("amount", "Amount", "readonly"),
+            _f("currency", "Currency", "readonly"),
+            _f("status", "Status", "readonly"),
+            _f("provider", "Provider", "readonly"),
+            _f("provider_reference", "Provider reference", "readonly"),
+            _f("paid_amount", "Paid amount", "readonly"),
+            _f("failure_reason", "Failure reason", "readonly"),
+            _f("paid_at", "Paid at", "readonly"),
+            _f("fulfilled_at", "Fulfilled at", "readonly"),
         ),
     ),
     AdminResource(

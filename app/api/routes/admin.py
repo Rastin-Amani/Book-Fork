@@ -21,9 +21,10 @@ from app.admin.registry import (
     AdminResource,
     get_resource,
 )
-from app.api.dependencies import AdminReposDep, AdminUser, CsrfProtected
+from app.api.dependencies import AdminReposDep, AdminUser, CsrfProtected, get_ctx
 from app.api.repositories import Repositories
-from app.exceptions import NotFoundError, ValidationError
+from app.api.runtime import build_billing_service
+from app.exceptions import BookForkError, NotFoundError, ValidationError
 from app.observability.metrics import metrics
 from app.schemas.prompts import PromptStatus
 from app.web.templating import render
@@ -170,6 +171,41 @@ async def compare_prompt_versions(
         "pages/admin/prompt_compare.html",
         {"left": left_version, "right": right_version, "versions": versions},
     )
+
+
+# -- billing operations -----------------------------------------------------
+# Declared before the generic /{slug} route so it is not read as a resource.
+@router.get("/billing")
+async def billing_dashboard(
+    request: Request,
+    admin: AdminUser,
+    repos: AdminReposDep,
+) -> Response:
+    invoices = await repos.invoices.list_open(per_page=100)
+    return render(request, "pages/admin/billing.html", {"invoices": invoices})
+
+
+@router.post("/billing/{invoice_id}/reconcile")
+async def billing_reconcile(
+    request: Request,
+    invoice_id: str,
+    admin: AdminUser,
+    repos: AdminReposDep,
+    _csrf: CsrfProtected,
+) -> Response:
+    invoice = await repos.invoices.get(invoice_id)
+    billing = await build_billing_service(get_ctx(request), repos)
+    try:
+        await billing.reconcile(invoice)
+    except BookForkError as exc:
+        invoices = await repos.invoices.list_open(per_page=100)
+        return render(
+            request,
+            "pages/admin/billing.html",
+            {"invoices": invoices, "error": exc.message},
+            status_code=exc.status_code,
+        )
+    return _redirect("/admin/billing")
 
 
 @router.get("/{slug}")

@@ -9,7 +9,10 @@
       <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">Administration</h1>
       <p class="text-[14px] leading-relaxed text-base-content/60">Declarative CRUD for providers, prompts, models and languages.</p>
     </div>
-    <a href="/admin/metrics" class="btn btn-sm gap-1.5">{{ icon('activity', 'size-4') }} Metrics</a>
+    <div class="flex flex-wrap items-center gap-2">
+      <a href="/admin/billing" class="btn btn-sm gap-1.5">{{ icon('credit-card', 'size-4') }} Billing</a>
+      <a href="/admin/metrics" class="btn btn-sm gap-1.5">{{ icon('activity', 'size-4') }} Metrics</a>
+    </div>
   </header>
 
   {% for group in catalog %}
