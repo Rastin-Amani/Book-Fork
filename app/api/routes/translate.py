@@ -20,6 +20,7 @@ from app.api.dependencies import (
     get_ctx,
 )
 from app.api.runtime import (
+    build_billing_service,
     build_ingest_service,
     build_job_service,
     build_limit_service,
@@ -159,16 +160,35 @@ async def create_translation(
         connection_id=connection_id or None,
         quality_mode=quality_mode or None,
     )
+    billing = await build_billing_service(ctx, repos, settings)
+    needs_payment = billing.requires_payment(plan.billing_mode)
     job = await job_service.create(
         workspace_id=workspace.id,
         created_by=user.id,
         document=document,
         plan=plan,
         persist_memory=bool(persist_memory),
+        queue=not needs_payment,
     )
+    target = f"/app/translations/{job.id}"
+    if needs_payment:
+        try:
+            invoice = await billing.start(job=job, workspace_id=workspace.id, user_id=user.id)
+        except Exception:
+            # Never leave an unpaid job that no invoice points at.
+            await repos.jobs.update(
+                job.id,
+                {
+                    "status": "cancelled",
+                    "error_message": "Billing could not be started. Please try again.",
+                },
+            )
+            raise
+        if invoice is not None and invoice.status != "paid":
+            target = f"/app/settings/billing/invoices/{invoice.id}"
     emit(JOB_CREATED, workspace_id=workspace.id, job_id=job.id, target_language=target_language)
     response = Response(status_code=200)
-    response.headers["HX-Redirect"] = f"/app/translations/{job.id}"
+    response.headers["HX-Redirect"] = target
     return response
 
 

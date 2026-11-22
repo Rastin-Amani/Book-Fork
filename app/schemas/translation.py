@@ -13,6 +13,7 @@ from app.schemas.base import Record
 
 class JobStatus(StrEnum):
     QUEUED = "queued"
+    AWAITING_PAYMENT = "awaiting_payment"
     PREPARING = "preparing"
     PARSING = "parsing"
     SEGMENTING = "segmenting"

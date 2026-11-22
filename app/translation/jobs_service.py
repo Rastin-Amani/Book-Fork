@@ -125,6 +125,7 @@ class TranslationJobService:
         document: Document,
         plan: TranslationPlan,
         persist_memory: bool = False,
+        queue: bool = True,
     ) -> TranslationJob:
         if plan.provider_connection_id is None and plan.model_id is None:
             raise ConfigurationError(
@@ -151,7 +152,7 @@ class TranslationJobService:
                 "model": plan.model_id,
                 "prompt_version": plan.prompt_version_id,
                 "quality_mode": plan.quality_mode,
-                "status": "queued",
+                "status": "queued" if queue else "awaiting_payment",
                 "progress": 0.0,
                 "total_segments": 0,
                 "completed_segments": 0,
