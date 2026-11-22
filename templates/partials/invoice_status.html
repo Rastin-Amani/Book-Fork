@@ -1,0 +1,74 @@
+{% from "components/icons.html" import icon %}
+{% from "components/status.html" import status_badge %}
+{% set status = invoice.status|string %}
+{% set open = status in ('pending', 'awaiting_payment', 'partially_paid', 'review') %}
+<div id="invoice-status" class="space-y-5"
+     {% if poll_url and open %}hx-get="{{ poll_url }}" hx-trigger="every 5s" hx-swap="outerHTML"{% endif %}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-3">
+      {{ status_badge(status) }}
+      <span class="font-mono text-[12.5px] text-base-content/60">{{ invoice.reference }}</span>
+    </div>
+    <span class="font-mono text-[22px] font-semibold tracking-[-0.02em]">${{ '%.2f'|format(invoice.amount) }}</span>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-warning alert-soft items-start text-[13.5px]" role="alert">
+    <span class="mt-0.5">{{ icon('alert', 'size-4') }}</span>
+    <p class="leading-relaxed">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  {% if invoice.failure_reason and status not in ('cancelled', 'failed') %}
+  <p class="text-[13px] leading-relaxed text-warning">{{ invoice.failure_reason }}</p>
+  {% endif %}
+
+  {% if status == 'paid' %}
+  <div class="alert alert-success alert-soft items-start text-[13.5px]" role="status">
+    <span class="mt-0.5">{{ icon('check', 'size-4') }}</span>
+    <div>
+      <p class="font-semibold">Payment confirmed</p>
+      <p class="mt-1 text-base-content/60">
+        {% if invoice.provider == 'free' %}This book was covered by your free managed allowance.{% else %}The book has been queued for translation.{% endif %}
+      </p>
+    </div>
+  </div>
+  {% elif status == 'refunded' %}
+  <p class="text-[13.5px] leading-relaxed text-base-content/60">This payment was refunded. A book already delivered stays available; no new book starts from this invoice.</p>
+  {% elif status in ('cancelled', 'failed') %}
+  <p class="text-[13.5px] leading-relaxed text-base-content/60">This payment was {{ status }}. Start a new translation to try again.</p>
+  {% elif status == 'review' %}
+  <div class="alert alert-soft items-start text-[13.5px]" role="status">
+    <span class="mt-0.5">{{ icon('info', 'size-4') }}</span>
+    <p class="leading-relaxed text-base-content/60">This payment needs a manual check. Support will confirm it; you will not be charged twice.</p>
+  </div>
+  {% elif status == 'partially_paid' %}
+  <p class="text-[13.5px] leading-relaxed text-base-content/60">
+    Part of the amount has arrived ({{ '$%.2f'|format(invoice.paid_amount or 0) }} of ${{ '%.2f'|format(invoice.amount) }}).
+    The book starts translating once the full amount is confirmed.
+  </p>
+  {% else %}
+  <p class="text-[13.5px] leading-relaxed text-base-content/60">
+    {% if invoice.checkout_url %}Complete the payment on Gumroad, then come back. This page refreshes while Book Fork verifies the sale; success is shown only after that verification.
+    {% else %}Continue to Gumroad to pay for this book.{% endif %}
+  </p>
+  {% endif %}
+
+  {% if open %}
+  <div class="flex flex-wrap items-center gap-2 pt-1">
+    {% if billing_enabled %}
+    <form hx-post="/app/settings/billing/invoices/{{ invoice.id }}/checkout" hx-swap="none">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn btn-primary btn-sm gap-1.5" type="submit">
+        {{ icon('credit-card', 'size-4') }}
+        {% if invoice.checkout_url %}Reopen checkout{% else %}Continue to payment{% endif %}
+      </button>
+    </form>
+    {% endif %}
+    <form hx-post="/app/settings/billing/invoices/{{ invoice.id }}/reconcile" hx-target="#invoice-status" hx-swap="outerHTML">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn btn-sm gap-1.5" type="submit">{{ icon('refresh', 'size-3.5') }} Check status</button>
+    </form>
+  </div>
+  {% endif %}
+</div>

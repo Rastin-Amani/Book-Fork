@@ -1,0 +1,67 @@
+{% extends "layouts/base.html" %}
+{% from "components/icons.html" import icon %}
+{% block title %}Invoice {{ invoice.reference }} · {{ app_name }}{% endblock %}
+{% block content %}
+{% set order = (invoice.product_snapshot or {}).get('order') or {} %}
+<section class="mx-auto max-w-2xl space-y-6">
+  <div class="breadcrumbs min-w-0 max-w-full overflow-x-auto text-[12px] text-base-content/45">
+    <ul>
+      <li><a href="/app/settings/billing">Billing</a></li>
+      <li class="text-base-content/70">{{ invoice.reference }}</li>
+    </ul>
+  </div>
+
+  <header class="space-y-2">
+    <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-base-content/45">Invoice</p>
+    <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.03em]">{{ invoice.product_name }}</h1>
+    <p class="text-[14px] leading-relaxed text-base-content/60">
+      One managed book. The price is fixed by estimated pages, never by tokens, and is not charged until the provider confirms the payment.
+    </p>
+  </header>
+
+  <div class="card card-border bg-base-100">
+    <div class="card-body p-6">
+      {% include "partials/invoice_status.html" %}
+    </div>
+  </div>
+
+  <div class="card card-border bg-base-100">
+    <div class="card-body gap-0 p-0">
+      <div class="border-b border-base-300 px-5 py-4">
+        <h2 class="text-[15px] font-semibold tracking-[-0.01em]">Order details</h2>
+      </div>
+      <dl class="divide-y divide-base-300 text-[13.5px]">
+        <div class="flex items-center justify-between gap-4 px-5 py-3">
+          <dt class="text-base-content/55">Book</dt>
+          <dd class="min-w-0 truncate text-right font-medium">
+            {% if job %}<a class="link link-accent" href="/app/translations/{{ job.id }}">{{ invoice.product_snapshot.get('source_language') or '?' }} → {{ invoice.product_snapshot.get('target_language') or '?' }}</a>{% else %}Translation job{% endif %}
+          </dd>
+        </div>
+        <div class="flex items-center justify-between gap-4 px-5 py-3">
+          <dt class="text-base-content/55">Pages</dt>
+          <dd class="font-mono text-[12.5px]">{{ order.get('pages') or 0 }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-4 px-5 py-3">
+          <dt class="text-base-content/55">Page blocks</dt>
+          <dd class="font-mono text-[12.5px]">{{ order.get('blocks') or 0 }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-4 px-5 py-3">
+          <dt class="text-base-content/55">Total</dt>
+          <dd class="font-mono text-[12.5px] font-semibold">${{ '%.2f'|format(invoice.amount) }} {{ invoice.currency }}</dd>
+        </div>
+        {% if invoice.provider_reference %}
+        <div class="flex items-center justify-between gap-4 px-5 py-3">
+          <dt class="text-base-content/55">Provider reference</dt>
+          <dd class="font-mono text-[12px]">{{ invoice.provider_reference }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2">
+    <a class="btn btn-ghost btn-sm" href="/app/settings/billing">{{ icon('arrow-left', 'size-3.5') }} Back to billing</a>
+    {% if job %}<a class="btn btn-ghost btn-sm" href="/app/translations/{{ job.id }}">Open job {{ icon('arrow-right', 'size-3.5') }}</a>{% endif %}
+  </div>
+</section>
+{% endblock %}

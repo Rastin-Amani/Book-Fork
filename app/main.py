@@ -24,6 +24,7 @@ from starlette.responses import Response
 from app.api.routes import (
     admin,
     auth,
+    billing,
     glossaries,
     health,
     pages,
@@ -121,6 +122,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(providers.router)
     app.include_router(glossaries.router)
     app.include_router(settings_pages.router)
+    app.include_router(billing.router)
+    app.include_router(billing.webhook_router)
     app.include_router(admin.router)
 
     _register_exception_handlers(app)
