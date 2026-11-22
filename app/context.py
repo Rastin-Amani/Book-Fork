@@ -14,6 +14,8 @@ import httpx
 from app.auth.base import AuthSession
 from app.auth.pocketbase import PocketBaseAuthProvider
 from app.auth.session import SessionManager
+from app.billing.payments.base import PaymentProvider
+from app.billing.payments.factory import build_payment_provider
 from app.cache import TTLCache
 from app.config import Settings
 from app.logging import get_logger
@@ -44,6 +46,7 @@ class AppContext:
     health: HealthService
     auth_limiter: RateLimiter
     limiters: dict[str, RateLimiter]
+    payments: PaymentProvider | None = None
     # Short-lived memoization of the two lookups every authenticated request
     # otherwise repeats: session validation and personal-workspace resolution.
     session_cache: TTLCache[AuthSession] = field(
@@ -106,6 +109,7 @@ async def build_context(settings: Settings) -> AppContext:
         health=health,
         auth_limiter=auth_limiter,
         limiters=limiters,
+        payments=build_payment_provider(settings, http),
     )
 
 

@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from app.api.repositories import Repositories
+from app.api.repositories import Repositories, build_repositories
+from app.billing.service import BillingService
 from app.config import Settings
+from app.context import AppContext
 from app.documents.ingest import DocumentIngestService
+from app.exceptions import ConfigurationError
 from app.language.registry import PocketBaseLanguageRegistry
 from app.providers.credentials import ProviderCredentialService
 from app.providers.runtime import ProviderRuntime
@@ -25,6 +28,34 @@ from app.translation.policy_engine import TranslationPolicyEngine
 
 def build_settings_service(repos: Repositories) -> SettingsService:
     return SettingsService(repos.settings)
+
+
+async def build_billing_service(
+    ctx: AppContext,
+    repos: Repositories,
+    settings: SettingsService | None = None,
+) -> BillingService:
+    """Build the billing service with trusted write access.
+
+    Billing mutations must not rely on client-writable collection rules, so they
+    use the PocketBase service credential. Refuse to run an enabled billing
+    server without it rather than falling back to a permissive path.
+    """
+    token = await ctx.ensure_service_token()
+    if ctx.settings.billing_enabled and token is None:
+        raise ConfigurationError(
+            "Billing requires POCKETBASE_SERVICE_CREDENTIAL for trusted invoice writes."
+        )
+    writes = repos if token is None else build_repositories(ctx.pocketbase, token=token)
+    return BillingService(
+        invoices=writes.invoices,
+        events=writes.billing_events,
+        claims=writes.billing_claims,
+        jobs=writes.jobs,
+        settings=settings or build_settings_service(writes),
+        provider=ctx.payments,
+        billing_enabled=ctx.settings.billing_enabled,
+    )
 
 
 def build_policy_engine(
