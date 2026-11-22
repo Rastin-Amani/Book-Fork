@@ -66,6 +66,25 @@ class Settings(BaseSettings):
     # -- secrets management --------------------------------------------------
     encryption_key: SecretStr
 
+    # -- payments (Gumroad) --------------------------------------------------
+    # Billing is opt-in. When disabled, managed jobs keep the self-hosted
+    # behaviour: no charge and no checkout. Missing Gumroad credentials never
+    # enable billing; when enabled, configuration is validated below so the app
+    # never starts half-configured.
+    billing_enabled: bool = False
+    payment_provider: str = "gumroad"
+    gumroad_access_token: SecretStr | None = None
+    # Locally generated high-entropy secret placed in the resource-subscription
+    # callback URL. Gumroad does not sign API resource notifications.
+    gumroad_webhook_secret: SecretStr | None = None
+    gumroad_product_id: str = ""
+    gumroad_product_permalink: str = ""
+    gumroad_custom_field_name: str = "Application Checkout Reference"
+    gumroad_timeout_seconds: float = 10.0
+    # Self-purchases and test pings carry test=true; never fulfill them unless
+    # an operator explicitly opts in.
+    gumroad_allow_test_sales: bool = False
+
     # -- worker --------------------------------------------------------------
     worker_internal_token: SecretStr
 
@@ -142,6 +161,33 @@ class Settings(BaseSettings):
             ]
             if missing:
                 raise ValueError(f"storage_backend='s3' requires: {', '.join(missing)}")
+
+        if self.billing_enabled:
+            if self.payment_provider != "gumroad":
+                raise ValueError("payment_provider must be 'gumroad' when billing is enabled")
+            missing = []
+            access_token = self.gumroad_access_token
+            if access_token is None or not access_token.get_secret_value():
+                missing.append("gumroad_access_token")
+            if self.gumroad_webhook_secret is None:
+                missing.append("gumroad_webhook_secret")
+            elif len(self.gumroad_webhook_secret.get_secret_value()) < 32:
+                raise ValueError("gumroad_webhook_secret must be at least 32 characters")
+            if not self.gumroad_product_id:
+                missing.append("gumroad_product_id")
+            if not self.gumroad_product_permalink:
+                missing.append("gumroad_product_permalink")
+            # Invoices and entitlements are written only with trusted server
+            # credentials; do not start an enabled billing server without it.
+            credential = self.pocketbase_service_credential
+            if credential is None or not credential.get_secret_value():
+                missing.append("pocketbase_service_credential")
+            if missing:
+                raise ValueError(f"billing_enabled=true requires: {', '.join(missing)}")
+            if not _safe_slug(self.gumroad_product_permalink):
+                raise ValueError("gumroad_product_permalink contains invalid characters")
+            if not self.gumroad_custom_field_name.strip():
+                raise ValueError("gumroad_custom_field_name must not be empty")
         return self
 
     @property
@@ -151,6 +197,10 @@ class Settings(BaseSettings):
     @property
     def is_test(self) -> bool:
         return self.app_env == "test"
+
+
+def _safe_slug(value: str) -> bool:
+    return bool(value) and all(character.isalnum() or character in "-_" for character in value)
 
 
 @lru_cache(maxsize=1)
