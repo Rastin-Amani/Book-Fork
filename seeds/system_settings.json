@@ -271,6 +271,22 @@
       "description": "Book order currency."
     },
     {
+      "key": "billing.free_managed_books",
+      "type": "int",
+      "value": 1,
+      "category": "billing",
+      "editable": true,
+      "description": "Lifetime free managed books per workspace (0 = none). Enforced server-side with atomic claim slots."
+    },
+    {
+      "key": "billing.checkout_expiry_hours",
+      "type": "int",
+      "value": 24,
+      "category": "billing",
+      "editable": true,
+      "description": "Hours before an unpaid checkout is replaced by a fresh one."
+    },
+    {
       "key": "translation.default_prompt_template_slug",
       "type": "string",
       "value": "default-translation",

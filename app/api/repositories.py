@@ -8,6 +8,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.repositories.billing import (
+    BillingEventRepository,
+    BillingFreeClaimRepository,
+    BillingInvoiceRepository,
+)
 from app.repositories.documents import DocumentRepository, DocumentSectionRepository
 from app.repositories.knowledge import (
     GlossaryRepository,
@@ -62,6 +67,9 @@ class Repositories:
     prompt_versions: PromptVersionRepository
     users: UserRepository
     workers: WorkerRepository
+    invoices: BillingInvoiceRepository
+    billing_events: BillingEventRepository
+    billing_claims: BillingFreeClaimRepository
 
 
 def build_repositories(client: PocketBaseClient, *, token: str | None) -> Repositories:
@@ -90,4 +98,7 @@ def build_repositories(client: PocketBaseClient, *, token: str | None) -> Reposi
         prompt_versions=PromptVersionRepository(client, token=token),
         users=UserRepository(client, token=token),
         workers=WorkerRepository(client, token=token),
+        invoices=BillingInvoiceRepository(client, token=token),
+        billing_events=BillingEventRepository(client, token=token),
+        billing_claims=BillingFreeClaimRepository(client, token=token),
     )
