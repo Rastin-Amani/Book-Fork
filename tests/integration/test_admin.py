@@ -109,6 +109,39 @@ def test_admin_requires_csrf(tmp_path: Any, fake_pb: Any) -> None:
         assert response.status_code == 403
 
 
+def test_admin_billing_lists_and_reconciles_open_invoices(tmp_path: Any, fake_pb: Any) -> None:
+    app = _admin_app(tmp_path)
+    with TestClient(app) as client:
+        _seed_admin(fake_pb)
+        invoice = fake_pb.seed(
+            "billing_invoices",
+            {
+                "workspace": "ws1",
+                "reference": "BF-TEST",
+                "product_type": "managed_book",
+                "product_name": "Managed book translation",
+                "amount": 7.0,
+                "currency": "USD",
+                "status": "pending",
+                "provider": "none",
+            },
+        )
+        _login(client, app, fake_pb)
+        headers = _csrf(client)
+
+        page = client.get("/admin/billing")
+        assert page.status_code == 200
+        assert "BF-TEST" in page.text
+        assert "No checkout yet" in page.text
+
+        # No provider reference and billing disabled: reconcile is a safe no-op.
+        response = client.post(
+            f"/admin/billing/{invoice['id']}/reconcile",
+            headers=headers,
+        )
+        assert response.headers["HX-Redirect"] == "/admin/billing"
+
+
 def test_prompt_version_activation(tmp_path: Any, fake_pb: Any) -> None:
     app = _admin_app(tmp_path)
     with TestClient(app) as client:

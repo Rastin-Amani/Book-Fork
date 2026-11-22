@@ -39,3 +39,60 @@ def test_local_storage_is_default(tmp_path: Path) -> None:
     settings = _base(storage_local_root=tmp_path)
     assert settings.storage_backend == "local"
     assert settings.is_production is False
+
+
+def test_billing_is_off_and_needs_no_gumroad_config_by_default() -> None:
+    settings = _base()
+    assert settings.billing_enabled is False
+    assert settings.payment_provider == "gumroad"
+    assert settings.gumroad_access_token is None
+
+
+def test_enabled_billing_requires_gumroad_and_service_credential() -> None:
+    with pytest.raises(ValidationError, match="gumroad_access_token"):
+        _base(billing_enabled=True)
+
+    with pytest.raises(ValidationError, match="pocketbase_service_credential"):
+        _base(
+            billing_enabled=True,
+            gumroad_access_token="token",
+            gumroad_webhook_secret="s" * 32,
+            gumroad_product_id="prod",
+            gumroad_product_permalink="book",
+        )
+
+    settings = _base(
+        billing_enabled=True,
+        gumroad_access_token="token",
+        gumroad_webhook_secret="s" * 32,
+        gumroad_product_id="prod",
+        gumroad_product_permalink="book",
+        pocketbase_service_credential="svc",
+    )
+    assert settings.billing_enabled is True
+
+
+def test_enabled_billing_rejects_another_provider() -> None:
+    with pytest.raises(ValidationError, match="gumroad"):
+        _base(
+            billing_enabled=True,
+            payment_provider="stripe",
+            gumroad_access_token="token",
+            gumroad_webhook_secret="s" * 32,
+            gumroad_product_id="prod",
+            gumroad_product_permalink="book",
+            pocketbase_service_credential="svc",
+        )
+
+
+def test_webhook_secret_must_be_long_and_permalink_a_slug() -> None:
+    base = {
+        "billing_enabled": True,
+        "gumroad_access_token": "token",
+        "gumroad_product_id": "prod",
+        "pocketbase_service_credential": "svc",
+    }
+    with pytest.raises(ValidationError, match="at least 32"):
+        _base(**base, gumroad_webhook_secret="short", gumroad_product_permalink="book")
+    with pytest.raises(ValidationError, match="invalid characters"):
+        _base(**base, gumroad_webhook_secret="s" * 32, gumroad_product_permalink="a/b")
