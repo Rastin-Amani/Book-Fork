@@ -41,7 +41,7 @@
 </p>
 
 <p align="center">
-  <sub>v0.6.1 · pre-1.0 · MIT · 427 tests · CI runs ruff, mypy and pytest</sub>
+  <sub>v0.7.0 · pre-1.0 · MIT · 482 tests · CI runs ruff, mypy and pytest</sub>
 </p>
 
 <p align="center">

@@ -1,8 +1,49 @@
 # Changelog
 
 All notable changes to Book Fork. This project uses a phase-based build; the
-current release is **0.6.1** and is described below as delivered phases. Dates
+current release is **0.7.0** and is described below as delivered phases. Dates
 come from the project’s architecture decision records.
+
+## [0.7.0] — 2026-11-22
+
+**Status: opt-in Gumroad billing.**
+
+### Billing
+
+- Add hosted Gumroad checkout for managed books, off by default; self-hosted
+  installs keep recording orders without any payment credentials.
+- Create managed jobs as `awaiting_payment` and queue them only after a
+  verified payment or a bounded free allowance grants the entitlement.
+- Correlate a sale with a single-use token in a Gumroad custom field; email and
+  amount alone never match, and the browser return URL is never trusted.
+- Re-read every sale or subscription from the Gumroad API before changing an
+  invoice; handle partial and overpayment, refunds, chargebacks, disputes and
+  membership events idempotently.
+- Add invoice, webhook-event and free-claim collections with server-only
+  writes, customer workspace reads and an additive migration for the Gumroad
+  fields.
+- Add customer invoice pages with polling, an operator `/admin/billing`
+  reconcile page and read-only invoice records in the admin hub.
+- Surface the payment-required state on jobs and in the billing settings.
+
+### Configuration
+
+- `BILLING_ENABLED`, `PAYMENT_PROVIDER` and the `GUMROAD_*` variables; an
+  enabled server refuses to start half-configured and requires
+  `POCKETBASE_SERVICE_CREDENTIAL` for trusted invoice writes.
+- Add `billing.free_managed_books` and `billing.checkout_expiry_hours` settings.
+
+### Documentation
+
+- Rewrite `docs/billing.md` around the lifecycle, correlation token, webhook
+  verification, Gumroad setup and reconciliation.
+
+### Known limitations at 0.7.0
+
+- All Gumroad interaction is covered by mocked tests; a real purchase, refund
+  and membership lifecycle have not been exercised here. The staging checklist
+  in `docs/billing.md` remains manual verification.
+- Gumroad is the only payment provider.
 
 ## [0.6.1] — 2026-11-02
 
