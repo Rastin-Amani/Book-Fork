@@ -15,6 +15,18 @@
 
   <progress class="progress progress-primary h-2 w-full" value="{{ job.progress or 0 }}" max="100"></progress>
 
+  {% if job.status == 'awaiting_payment' %}
+  {% set invoice_id = ((job.metadata or {}).get('order') or {}).get('invoice_id') %}
+  <div class="alert alert-warning alert-soft items-start text-[13.5px]" role="status">
+    <span class="mt-0.5">{{ icon('credit-card', 'size-4') }}</span>
+    <div>
+      <p class="font-semibold">Payment required</p>
+      <p class="mt-1 text-base-content/60">This managed book starts translating as soon as its payment is confirmed.</p>
+      {% if invoice_id %}<a class="btn btn-sm btn-primary mt-3" href="/app/settings/billing/invoices/{{ invoice_id }}">Complete payment</a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   {% if job.error_message %}
   <div class="alert alert-error alert-soft items-start text-[13.5px]" role="alert">
     <span class="mt-0.5">{{ icon('alert', 'size-4') }}</span><span>{{ job.error_message }}</span>

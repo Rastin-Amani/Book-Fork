@@ -1,9 +1,11 @@
 {% macro status_badge(status) %}
 {%- set s = (status or 'unknown')|lower -%}
-{%- if s in ['completed', 'validated', 'approved', 'active', 'enabled', 'connected'] -%}
+{%- if s in ['completed', 'validated', 'approved', 'active', 'enabled', 'connected', 'paid', 'fulfilled'] -%}
   {%- set tone = 'border-success/25 bg-success/10 text-success' -%}
-{%- elif s in ['failed', 'error', 'cancelled', 'forbidden', 'disabled'] -%}
+{%- elif s in ['failed', 'error', 'cancelled', 'forbidden', 'disabled', 'refunded'] -%}
   {%- set tone = 'border-error/25 bg-error/10 text-error' -%}
+{%- elif s in ['partially_paid', 'review', 'awaiting_payment'] -%}
+  {%- set tone = 'border-warning/25 bg-warning/10 text-warning' -%}
 {%- elif s in ['queued', 'preparing', 'parsing', 'segmenting', 'translating', 'finalizing', 'cancelling', 'draft', 'pending', 'running', 'in_progress'] -%}
   {%- set tone = 'border-info/25 bg-info/10 text-info' -%}
 {%- else -%}
